@@ -1,0 +1,41 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+
+<main class="main home-page">
+
+  <!-- HERO SECTION -->
+  <section id="courses-hero" class="courses-hero section light-background">
+    <div class="hero-content">
+      <div class="container">
+        <div class="row align-items-center">
+
+          <div class="col-lg-6">
+            <h1>Transform Your Future</h1>
+            <p>
+              Discover thousands of high-quality courses designed by industry professionals.
+              Learn at your own pace, gain in-demand skills, and advance your career.
+            </p>
+
+            <div class="hero-buttons">
+              <a href="{{ path('front_courses') }}" class="btn btn-primary">Browse Courses</a>
+              <a href="{{ path('front_about') }}" class="btn btn-outline">Learn More</a>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <img src="{{ asset('assets/img/education/courses-13.webp') }}" class="img-fluid" alt="">
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# All other sections stay exactly as they were, WITHOUT header/footer #}
+
+</main>
+
+{% endblock %}

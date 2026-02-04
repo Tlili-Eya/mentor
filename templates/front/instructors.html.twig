@@ -1,0 +1,90 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Instructors{% endblock %}
+
+{% block body %}
+
+<main class="main instructors-page">
+
+  <!-- Page Title -->
+  <div class="page-title light-background">
+    <div class="container d-lg-flex justify-content-between align-items-center">
+      <h1 class="mb-2 mb-lg-0">Instructors</h1>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{{ path('front_home') }}">Home</a></li>
+          <li class="current">Instructors</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+  <!-- End Page Title -->
+
+  <!-- Instructors Section -->
+  <section id="instructors" class="instructors section">
+    <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <div class="row gy-4">
+
+        {% set instructors = [
+          { name: 'Sarah Johnson', specialty: 'Web Development', img: 'education/teacher-2.webp', students: '2.1k', rating: '4.8' },
+          { name: 'Michael Chen', specialty: 'Data Science', img: 'education/teacher-7.webp', students: '3.5k', rating: '4.9' },
+          { name: 'Amanda Rodriguez', specialty: 'UX Design', img: 'education/teacher-4.webp', students: '1.8k', rating: '4.6' },
+          { name: 'David Thompson', specialty: 'Digital Marketing', img: 'education/teacher-9.webp', students: '2.9k', rating: '4.7' },
+          { name: 'Lisa Williams', specialty: 'Business Analytics', img: 'education/teacher-6.webp', students: '4.2k', rating: '5.0' },
+          { name: 'James Anderson', specialty: 'Machine Learning', img: 'education/teacher-1.webp', students: '3.1k', rating: '4.5' },
+          { name: 'Rachel Martinez', specialty: 'Cybersecurity', img: 'education/teacher-8.webp', students: '2.7k', rating: '4.8' },
+          { name: 'Kevin Taylor', specialty: 'Cloud Computing', img: 'education/teacher-10.webp', students: '3.8k', rating: '4.9' }
+        ] %}
+
+        {% for instructor in instructors %}
+        <div class="col-xl-3 col-lg-4 col-md-6">
+          <div class="instructor-card">
+            <div class="instructor-image">
+              <img src="{{ asset('assets/img/' ~ instructor.img) }}" class="img-fluid" alt="{{ instructor.name }}">
+              <div class="overlay-content">
+                <div class="rating-stars">
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-fill"></i>
+                  <i class="bi bi-star-half"></i>
+                  <span>{{ instructor.rating }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="instructor-info">
+              <h5>{{ instructor.name }}</h5>
+              <p class="specialty">{{ instructor.specialty }}</p>
+
+              <div class="stats-grid">
+                <div class="stat">
+                  <span class="number">{{ instructor.students }}</span>
+                  <span class="label">Students</span>
+                </div>
+                <div class="stat">
+                  <span class="number">{{ instructor.rating }}</span>
+                  <span class="label">Rating</span>
+                </div>
+              </div>
+
+              <div class="action-buttons">
+                <a href="{{ path('front_instructor_profile') }}" class="btn-view">View Profile</a>
+                <div class="social-links">
+                  <a href="#"><i class="bi bi-linkedin"></i></a>
+                  <a href="#"><i class="bi bi-twitter"></i></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+  </section>
+  <!-- End Instructors Section -->
+
+</main>
+
+{% endblock %}

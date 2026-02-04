@@ -1,0 +1,119 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Instructors Management{% endblock %}
+
+{% block body %}
+
+<!-- Page Title -->
+<div class="page-title light-background">
+  <div class="container d-lg-flex justify-content-between align-items-center">
+    <h1 class="mb-2 mb-lg-0 text-primary">Instructors Management</h1>
+    <nav class="breadcrumbs">
+      <ol>
+        <li><a href="{{ path('back_home') }}">Home</a></li>
+        <li class="current">Instructors</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <!-- Header actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="mb-0 text-secondary">Manage Instructors</h2>
+
+      <!-- Red action button (same as Enroll Now / Admin) -->
+      <a href="#" class="btn btn-danger">
+        <i class="bi bi-plus-circle me-1"></i> Add Instructor
+      </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-3 g-3">
+      <div class="col-md-6">
+        <input type="text" class="form-control" placeholder="Search instructor...">
+      </div>
+      <div class="col-md-4">
+        <select class="form-select">
+          <option selected>Sort by</option>
+          <option>Name</option>
+          <option>Experience</option>
+          <option>Status</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead style="background-color: #eef3f7;">
+              <tr class="text-secondary">
+                <th>#</th>
+                <th>Instructor</th>
+                <th>Specialty</th>
+                <th>Department</th>
+                <th>Experience</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>
+                  <strong class="text-dark">Prof. Marcus Johnson</strong><br>
+                  <small class="text-muted">marcus@mentorai.com</small>
+                </td>
+                <td>Web Development</td>
+                <td>Computer Science</td>
+                <td>15 years</td>
+                <td>
+                  <span class="badge bg-success">ACTIVE</span>
+                </td>
+                <td class="text-end">
+                  <a href="#" class="btn btn-sm btn-outline-primary me-1">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <a href="#" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </td>
+              </tr>
+
+              <tr>
+                <td>2</td>
+                <td>
+                  <strong class="text-dark">Dr. Sarah Williams</strong><br>
+                  <small class="text-muted">sarah@mentorai.com</small>
+                </td>
+                <td>Data Science</td>
+                <td>AI & Analytics</td>
+                <td>10 years</td>
+                <td>
+                  <span class="badge bg-secondary">INACTIVE</span>
+                </td>
+                <td class="text-end">
+                  <a href="#" class="btn btn-sm btn-outline-primary me-1">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <a href="#" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

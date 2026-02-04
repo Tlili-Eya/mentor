@@ -1,0 +1,104 @@
+{% extends 'back/base.html.twig' %}
+
+{% block body %}
+<body class="course-details-page">
+
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title light-background">
+    <div class="container d-lg-flex justify-content-between align-items-center">
+      <h1 class="mb-2 mb-lg-0">Course Details</h1>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{{ path('app_home') }}">Home</a></li>
+          <li class="current">Course Details</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Course Details Section -->
+  <section id="course-details" class="course-details section">
+
+    <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+      <div class="row">
+        <div class="col-lg-8">
+
+          <!-- Course Hero -->
+          <div class="course-hero" data-aos="fade-up" data-aos-delay="200">
+            <div class="hero-content">
+              <div class="course-badge">
+                <span class="category">Web Development</span>
+                <span class="level">Advanced</span>
+              </div>
+              <h1>Full Stack JavaScript Mastery</h1>
+              <p class="course-subtitle">
+                Master modern web development with React, Node.js, and MongoDB
+              </p>
+            </div>
+
+            <div class="hero-image">
+              <img src="{{ asset('assets/img/education/courses-8.webp') }}" class="img-fluid" alt="">
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="course-nav-tabs">
+            <ul class="nav nav-tabs">
+              <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#overview">
+                  Overview
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#curriculum">
+                  Curriculum
+                </button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews">
+                  Reviews
+                </button>
+              </li>
+            </ul>
+
+            <div class="tab-content">
+
+              <div class="tab-pane fade show active" id="overview">
+                <h3>Course Description</h3>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+              </div>
+
+              <div class="tab-pane fade" id="curriculum">
+                <p>Curriculum content here</p>
+              </div>
+
+              <div class="tab-pane fade" id="reviews">
+                <p>Reviews content here</p>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+          <div class="enrollment-card">
+            <h3>$149</h3>
+            <button class="btn btn-primary w-100">Enroll Now</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+</body>
+{% endblock %}

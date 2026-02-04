@@ -25,63 +25,295 @@
   <!-- Main CSS -->
   <link rel="stylesheet" href="{{ asset('assets/css/main.css') }}">
 
+  <style>
+    /* Styles spécifiques pour la sidebar */
+    .sidebar-container {
+      min-height: 100vh;
+      display: flex;
+    }
+    
+    .sidebar {
+      width: 250px;
+      background: linear-gradient(180deg, #466789 0%, #1a252f 100%);
+      color: white;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .sidebar-content {
+      padding: 20px 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .sidebar-logo {
+      text-align: center;
+      padding: 20px 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 20px;
+    }
+    
+    .sidebar-logo img {
+      max-width: 150px;
+      height: auto;
+    }
+    
+    .sidebar-nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .sidebar-nav li {
+      margin: 5px 0;
+    }
+    
+    .sidebar-nav a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+      border-left: 4px solid transparent;
+    }
+    
+    .sidebar-nav a:hover,
+    .sidebar-nav a.active {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-left-color: #3498db;
+    }
+    
+    .sidebar-nav a i {
+      margin-right: 10px;
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+    
+    .sidebar-nav .dropdown-toggle::after {
+      margin-left: auto;
+      transition: transform 0.3s ease;
+    }
+    
+    .sidebar-nav .dropdown-toggle[aria-expanded="true"]::after {
+      transform: rotate(180deg);
+    }
+    
+    .sidebar-nav .dropdown-menu {
+      background: rgba(0,0,0,0.2);
+      border: none;
+      padding: 0;
+      margin: 0;
+      border-radius: 0;
+    }
+    
+    .sidebar-nav .dropdown-item {
+      color: rgba(255,255,255,0.8);
+      padding: 10px 20px 10px 50px;
+      border-left: 4px solid transparent;
+    }
+    
+    .sidebar-nav .dropdown-item:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-left-color: #2ecc71;
+    }
+    
+    .admin-badge {
+      margin-top: auto;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .admin-badge .badge {
+      background: #e74c3c;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.9em;
+    }
+    
+    .main-content {
+      flex: 1;
+      margin-left: 250px;
+      padding: 20px;
+      min-height: 100vh;
+      background: #f8f9fa;
+    }
+    
+    .mobile-sidebar-toggle {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 1001;
+      background: #2c3e50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-size: 1.2em;
+    }
+    
+    @media (max-width: 992px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .mobile-sidebar-toggle {
+        display: block;
+      }
+    }
+  </style>
+
   {% block stylesheets %}{% endblock %}
 </head>
 
 <body>
 
-<!-- ======= SAME HEADER STRUCTURE – BACK ROUTES ONLY ======= -->
-<header id="header" class="header d-flex align-items-center sticky-top">
-  <div class="container-fluid container-xl position-relative d-flex align-items-center">
+<!-- Sidebar Navigation -->
+<div class="sidebar-container">
+  <button class="mobile-sidebar-toggle d-xl-none" id="sidebarToggle">
+    <i class="bi bi-list"></i>
+  </button>
+  
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-content">
+      <!-- Logo -->
+      <div class="sidebar-logo">
+        <a href="{{ path('back_home') }}">
+          <img src="{{ asset('assets/img/123.png') }}" alt="MentorAI Admin Logo">
+        </a>
+      </div>
+      
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="{{ path('back_home') }}" class="nav-link">
+              <i class="bi bi-house-door"></i>
+              <span>Home</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="{{ path('back_course_details') }}" class="nav-link">
+              <i class="bi bi-book"></i>
+              <span>Etude</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="{{ path('back_blog') }}" class="nav-link">
+              <i class="bi bi-journal-text"></i>
+              <span>Note</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="{{ path('back_instructors') }}" class="nav-link">
+              <i class="bi bi-briefcase"></i>
+              <span>Projets</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="{{ path('back_courses') }}" class="nav-link">
+              <i class="bi bi-map"></i>
+              <span>Parcours</span>
+            </a>
+          </li>
+          
+          <!-- Productivity Dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-speedometer2"></i>
+              <span>Productivity</span>
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="{{ path('back_blog_details') }}" class="dropdown-item">
+                  <i class="bi bi-briefcase"></i>
+                  <span>Emplois</span>
+                </a>
+              </li>
+              <li>
+                <a href="{{ path('back_events') }}" class="dropdown-item">
+                  <i class="bi bi-trophy"></i>
+                  <span>Défis</span>
+                </a>
+              </li>
+              <li>
+                <a href="{{ path('back_instructor_profile') }}" class="dropdown-item">
+                  <i class="bi bi-person-badge"></i>
+                  <span>Instructor Profile</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+          
+          <li>
+            <a href="{{ path('back_contact') }}" class="nav-link">
+              <i class="bi bi-envelope"></i>
+              <span>Contact</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="{{ path('back_pricing') }}" class="nav-link">
+              <i class="bi bi-currency-dollar"></i>
+              <span>Pricing</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="{{ path('back_about') }}" class="nav-link">
+              <i class="bi bi-info-circle"></i>
+              <span>About</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <!-- Admin Badge -->
+      <div class="admin-badge">
+        <span class="badge">
+          <i class="bi bi-shield-check"></i>
+          Admin Panel
+        </span>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <main class="main">
+      {% block body %}{% endblock %}
+    </main>
 
-    <a href="{{ path('back_home') }}" class="logo d-flex align-items-center me-auto">
-      <img src="{{ asset('assets/img/123.png') }}" alt="MentorAI Admin Logo">
-    </a>
-
-    <nav id="navmenu" class="navmenu">
-      <ul>
-        <li><a href="{{ path('back_home') }}">Home</a></li>
-        <li><a href="{{ path('back_course_details') }}">Etude</a></li>
-        <li><a href="{{ path('back_blog') }}">Note</a></li>
-        <li><a href="{{ path('back_instructors') }}">Projets</a></li>
-        <li><a href="{{ path('back_courses') }}">Parcours</a></li>
-
-        <li class="dropdown">
-          <a href="#">
-            <span>Productivity</span>
-            <i class="bi bi-chevron-down toggle-dropdown"></i>
-          </a>
-          <ul>
-            <li><a href="{{ path('back_blog_details') }}">Emplois</a></li>
-            <li><a href="{{ path('back_events') }}">Défis</a></li>
-            <li><a href="{{ path('back_instructor_profile') }}">Instructor Profile</a></li>
-          </ul>
-        </li>
-
-        <li><a href="{{ path('back_contact') }}">Contact</a></li>
-        <li><a href="{{ path('back_pricing') }}">Pricing</a></li>
-        <li><a href="{{ path('back_about') }}">About</a></li>
-      </ul>
-
-      <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-    </nav>
-
-    <a class="btn-getstarted" href="#">Admin</a>
-
+    <!-- ======= SAME FOOTER ======= -->
+    <footer id="footer" class="footer accent-background">
+      <div class="container text-center">
+        <p>© {{ "now"|date("Y") }} MentorAI. All Rights Reserved.</p>
+      </div>
+    </footer>
   </div>
-</header>
-<!-- ======= END HEADER ======= -->
-
-<main class="main">
-  {% block body %}{% endblock %}
-</main>
-
-<!-- ======= SAME FOOTER ======= -->
-<footer id="footer" class="footer accent-background">
-  <div class="container text-center">
-    <p>© {{ "now"|date("Y") }} MentorAI. All Rights Reserved.</p>
-  </div>
-</footer>
+</div>
 
 <!-- Scroll Top -->
 <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center">
@@ -99,6 +331,38 @@
 
 <!-- Main JS -->
 <script src="{{ asset('assets/js/main.js') }}"></script>
+
+<script>
+  // Toggle sidebar on mobile
+  document.getElementById('sidebarToggle').addEventListener('click', function() {
+    document.getElementById('sidebar').classList.toggle('open');
+  });
+  
+  // Close sidebar when clicking outside on mobile
+  document.addEventListener('click', function(event) {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    
+    if (window.innerWidth <= 992 && 
+        sidebar.classList.contains('open') &&
+        !sidebar.contains(event.target) &&
+        !toggleBtn.contains(event.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+  
+  // Add active class to current page link
+  document.addEventListener('DOMContentLoaded', function() {
+    const currentUrl = window.location.pathname;
+    const navLinks = document.querySelectorAll('.sidebar-nav a.nav-link');
+    
+    navLinks.forEach(link => {
+      if (link.getAttribute('href') === currentUrl) {
+        link.classList.add('active');
+      }
+    });
+  });
+</script>
 
 {% block javascripts %}{% endblock %}
 </body>

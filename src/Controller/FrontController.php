@@ -30,12 +30,6 @@ final class FrontController extends AbstractController
         return $this->render('front/about.html.twig');
     }
 
-    #[Route('courses', name: 'courses')]
-    public function courses(): Response
-    {
-        return $this->render('front/courses.html.twig');
-    }
-
     #[Route('course-details', name: 'course_details')]
     public function courseDetails(): Response
     {
@@ -43,8 +37,8 @@ final class FrontController extends AbstractController
     }
 // Projet creation with validation
 
-    #[Route('instructors', name: 'instructors')]
-    public function instructors(Request $request, EntityManagerInterface $em, RessourceRepository $ressourceRepo): Response
+    #[Route('projets', name: 'projets')]
+    public function projets(Request $request, EntityManagerInterface $em, RessourceRepository $ressourceRepo): Response
     {
         $projet = new Projet();
         $projet->setDateCreation(new \DateTime());
@@ -82,12 +76,12 @@ final class FrontController extends AbstractController
             }
             
             // Validation des dates si présentes
-            $dateDbutObj = null;
+            $dateDebutObj = null;
             $dateFinObj = null;
             
             if (!empty($dateDebut)) {
                 try {
-                    $dateDbutObj = new \DateTime($dateDebut);
+                    $dateDebutObj = new \DateTime($dateDebut);
                 } catch (\Exception $e) {
                     $errors['date_debut'] = 'La date de début est invalide.';
                 }
@@ -102,8 +96,8 @@ final class FrontController extends AbstractController
             }
             
             // Vérifier que la date de fin est après la date de début
-            if (!empty($dateDebut) && !empty($dateFin) && $dateDbutObj && $dateFinObj) {
-                if ($dateFinObj < $dateDbutObj) {
+            if (!empty($dateDebut) && !empty($dateFin) && $dateDebutObj && $dateFinObj) {
+                if ($dateFinObj < $dateDebutObj) {
                     $errors['date_fin'] = 'La date de fin doit être après la date de début.';
                 }
             }
@@ -115,8 +109,8 @@ final class FrontController extends AbstractController
                 $projet->setTechnologies($technologies);
                 $projet->setDescription($description);
                 
-                if ($dateDbutObj) {
-                    $projet->setDateDebut($dateDbutObj);
+                if ($dateDebutObj) {
+                    $projet->setDateDebut($dateDebutObj);
                 }
                 if ($dateFinObj) {
                     $projet->setDateFin($dateFinObj);
@@ -168,7 +162,7 @@ final class FrontController extends AbstractController
                 $em->flush();
                 
                 $this->addFlash('success', 'Projet créé avec succès!');
-                return $this->redirectToRoute('front_instructors');
+                return $this->redirectToRoute('front_projets');
             } else {
                 // Afficher les erreurs
                 foreach ($errors as $error) {
@@ -182,7 +176,7 @@ final class FrontController extends AbstractController
             }
         }
         
-        return $this->render('front/instructors.html.twig', [
+        return $this->render('front/projets.html.twig', [
             'projet' => $projet,
             'errors' => $errors,
             'ressources' => $ressources,

@@ -1,2 +1,78 @@
 {% extends 'front/base.html.twig' %}
-{% block title %}Parcours - MentorAI{% endblock %}
+{% block title %}Mes Parcours - MentorAI{% endblock %}
+
+{% block body %}
+<main class="main">
+  <div class="page-title light-background">
+    <div class="container d-lg-flex justify-content-between align-items-center">
+      <h1 class="mb-2 mb-lg-0">Mes Parcours</h1>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <div class="section-title mb-4">
+        <h2>Parcours de votre compte</h2>
+      </div>
+
+      {% if parcours is defined and parcours|length > 0 %}
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark sticky-top">
+              <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Titre</th>
+                <th>Dates</th>
+                <th>Détails</th>
+                <th>Projet associé</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in parcours %}
+                <tr>
+                  <td>{{ p.id }}</td>
+                  <td>{{ p.typeParcours }}</td>
+                  <td>{{ p.titre }}</td>
+                  <td>
+                    {% if p.dateDebut %}{{ p.dateDebut|date('d/m/Y') }}{% endif %}
+                    {% if p.dateFin %} → {{ p.dateFin|date('d/m/Y') }}{% endif %}
+                  </td>
+                  <td>
+                    <div><strong>Description:</strong> {{ p.description|slice(0,120) }}{% if p.description|length > 120 %}...{% endif %}</div>
+                    <div class="mt-1 small text-muted">
+                      {% if p.typeParcours == 'scolaire' %}
+                        Établissement: {{ p.etablissement }} · Diplôme: {{ p.diplome }} · Spécialité: {{ p.specialite }}
+                      {% elseif p.typeParcours == 'professionnel' %}
+                        Entreprise: {{ p.entreprise }} · Poste: {{ p.poste }} · Contrat: {{ p.typeContrat }}
+                      {% else %}
+                        Organisme: {{ p.etablissement }} · Certification: {{ p.diplome }}
+                      {% endif %}
+                    </div>
+                  </td>
+                  <td>
+                    {% if p.projets is defined and p.projets|length > 0 %}
+                      {% for proj in p.projets %}
+                        <div><a href="{{ path('front_projets') }}#projet-{{ proj.id }}">{{ proj.titre }}</a></div>
+                      {% endfor %}
+                    {% else %}
+                      <span class="text-muted">-</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          <h4 class="alert-heading">Aucun parcours trouvé</h4>
+          <p>Vous n'avez pas encore de parcours enregistré.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+</main>
+
+{% endblock %}
+

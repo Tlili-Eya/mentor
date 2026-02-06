@@ -7,6 +7,9 @@ use App\Entity\Ressource;
 use App\Enum\TypeRessource;
 use App\Repository\ProjetRepository;
 use App\Repository\RessourceRepository;
+use App\Repository\ParcoursRepository;
+use App\Entity\Utilisateur;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -270,15 +273,104 @@ final class FrontController extends AbstractController
     }
 
         #[Route('mesprojets', name: 'mesprojets')]
-    public function mesprojets(EntityManagerInterface $em): Response
+        public function mesprojets(ProjetRepository $projetRepository, ManagerRegistry $doctrine): Response
+        {
+            $user = $this->getUser();
+
+            if (!$user) {
+                // Development fallback: load the user with id=1 to allow testing without login.
+                $user = $doctrine->getRepository(Utilisateur::class)->find(1);
+                if ($user) {
+                    $this->addFlash('info', 'Fallback dev actif : affichage en tant qu\'utilisateur id=1');
+                } else {
+                    $this->addFlash('error', 'Utilisateur de test (id=1) introuvable. Merci de vous connecter.');
+                    return $this->redirectToRoute('front_home');
+                }
+            }
+
+            $projets = $projetRepository->findBy(['utilisateur' => $user]);
+
+            return $this->render('front/mesprojets.html.twig', [
+                'projets' => $projets,
+            ]);
+        }
+
+
+
+    
+        /*#[Route('mesprojets', name: 'mesprojets')]
+        public function mesprojets(
+            ProjetRepository $projetRepository
+        ): Response
+        {
+            $user = $this->getUser();
+            if (!$user) {
+                $this->addFlash('error', 'Vous devez être connecté pour voir vos projets.');
+                return $this->redirectToRoute('front_home');
+            }
+
+            $projets = $projetRepository->findBy(['utilisateur' => $user]);
+
+            return $this->render('front/mesprojets.html.twig', [
+                'projets' => $projets,
+            ]);
+        }*/
+
+
+
+                    #[Route('mesparcours', name: 'mesparcours')]
+    public function mesparcours(ProjetRepository $projetRepository, ManagerRegistry $doctrine): Response
     {
+        $user = $this->getUser();
 
+        if (!$user) {
+            // Development fallback: load the user with id=1 to allow testing without login.
+            $user = $doctrine->getRepository(Utilisateur::class)->find(1);
+            if ($user) {
+                $this->addFlash('info', 'Fallback dev actif : affichage en tant qu\'utilisateur id=1');
+            } else {
+                $this->addFlash('error', 'Utilisateur de test (id=1) introuvable. Merci de vous connecter.');
+                return $this->redirectToRoute('front_home');
+            }
+        }
 
-        return $this->render('front/mesprojets.html.twig', [
+        $projets = $projetRepository->findBy(['utilisateur' => $user]);
 
+        // Extraire les parcours uniques à partir des projets de l'utilisateur
+        $parcoursMap = [];
+        foreach ($projets as $p) {
+            $parc = $p->getParcours();
+            if ($parc) {
+                $parcoursMap[$parc->getId()] = $parc;
+            }
+        }
+
+        $parcours = array_values($parcoursMap);
+
+        return $this->render('front/mesparcours.html.twig', [
+            'parcours' => $parcours,
         ]);
     }
 
+        
+       /* #[Route('mesparcours', name: 'mesparcours')]
+        public function mesparcours(
+            ParcoursRepository $parcoursRepository
+        ): Response
+        {
+            $user = $this->getUser();
+            if (!$user) {
+                $this->addFlash('error', 'Vous devez être connecté pour voir vos parcours.');
+                return $this->redirectToRoute('front_home');
+            }
+
+            $parcours = $parcoursRepository->findBy(['utilisateur' => $user]);
+
+            return $this->render('front/mesparcours.html.twig', [
+                'parcours' => $parcours,
+            ]);
+        }
+*/
 
 
 

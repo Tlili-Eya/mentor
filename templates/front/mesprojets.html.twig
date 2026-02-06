@@ -1,2 +1,85 @@
 {% extends 'front/base.html.twig' %}
-{% block title %}Projets - MentorAI{% endblock %}
+{% block title %}Mes Projets - MentorAI{% endblock %}
+
+{% block body %}
+<main class="main">
+  <div class="page-title light-background">
+    <div class="container d-lg-flex justify-content-between align-items-center">
+      <h1 class="mb-2 mb-lg-0">Mes Projets</h1>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <div class="section-title mb-4">
+        <h2>Projets de votre compte</h2>
+      </div>
+
+      {% if projets is defined and projets|length > 0 %}
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark sticky-top">
+              <tr>
+                <th>ID</th>
+                <th>Titre</th>
+                <th>Type</th>
+                <th>Technologies</th>
+                <th>Dates</th>
+                <th>Ressources</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for projet in projets %}
+                <tr>
+                  <td>{{ projet.id }}</td>
+                  <td>{{ projet.titre }}</td>
+                  <td>{{ projet.type }}</td>
+                  <td>{{ projet.technologies }}</td>
+                  <td>
+                    {% if projet.dateDebut %}{{ projet.dateDebut|date('d/m/Y') }}{% endif %}
+                    {% if projet.dateFin %} → {{ projet.dateFin|date('d/m/Y') }}{% endif %}
+                  </td>
+                  <td>
+                    {% if projet.ressources|length > 0 %}
+                      <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#res-{{ projet.id }}">{{ projet.ressources|length }} ressource(s)</button>
+                    {% else %}
+                      <span class="text-muted">0</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% if projet.ressources|length > 0 %}
+                  <tr class="collapse" id="res-{{ projet.id }}">
+                    <td colspan="6">
+                      <div class="p-3 bg-light">
+                        <h6>Ressources pour {{ projet.titre }}</h6>
+                        <ul class="list-group">
+                          {% for r in projet.ressources %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                              <div>
+                                <strong>{{ r.nom }}</strong>
+                                <div class="small text-muted">{{ r.typeRessource ? r.typeRessource.name : '' }}</div>
+                                <div><a href="{{ r.urlRessource }}" target="_blank">{{ r.urlRessource }}</a></div>
+                              </div>
+                              <div class="small text-muted">{{ r.dateCreation ? r.dateCreation|date('d/m/Y') : '' }}</div>
+                            </li>
+                          {% endfor %}
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          <h4 class="alert-heading">Aucun projet trouvé</h4>
+          <p>Vous n'avez pas encore de projet enregistré.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+</main>
+
+{% endblock %}

@@ -1,91 +1,276 @@
 {% extends 'back/base.html.twig' %}
-
-
-{% block title %}Instructors{% endblock %}
+{% block title %}Projets - MentorAI{% endblock %}
 
 {% block body %}
+  <section id="add-project" class="enroll section">
 
-<main class="main instructors-page">
+   <div class="container" data-aos="fade-up" data-aos-delay="100">
 
-  <!-- Page Title -->
-  <div class="page-title light-background">
-    <div class="container d-lg-flex justify-content-between align-items-center">
-      <h1 class="mb-2 mb-lg-0">Instructors</h1>
-      <nav class="breadcrumbs">
-        <ol>
-          <li><a href="{{ path('front_home') }}">Home</a></li>
-          <li class="current">Instructors</li>
-        </ol>
-      </nav>
-    </div>
-  </div>
-  <!-- End Page Title -->
-
-  <!-- Instructors Section -->
-  <section id="instructors" class="instructors section">
-    <div class="container" data-aos="fade-up" data-aos-delay="100">
-      <div class="row gy-4">
-
-        {% set instructors = [
-          { name: 'Sarah Johnson', specialty: 'Web Development', img: 'education/teacher-2.webp', students: '2.1k', rating: '4.8' },
-          { name: 'Michael Chen', specialty: 'Data Science', img: 'education/teacher-7.webp', students: '3.5k', rating: '4.9' },
-          { name: 'Amanda Rodriguez', specialty: 'UX Design', img: 'education/teacher-4.webp', students: '1.8k', rating: '4.6' },
-          { name: 'David Thompson', specialty: 'Digital Marketing', img: 'education/teacher-9.webp', students: '2.9k', rating: '4.7' },
-          { name: 'Lisa Williams', specialty: 'Business Analytics', img: 'education/teacher-6.webp', students: '4.2k', rating: '5.0' },
-          { name: 'James Anderson', specialty: 'Machine Learning', img: 'education/teacher-1.webp', students: '3.1k', rating: '4.5' },
-          { name: 'Rachel Martinez', specialty: 'Cybersecurity', img: 'education/teacher-8.webp', students: '2.7k', rating: '4.8' },
-          { name: 'Kevin Taylor', specialty: 'Cloud Computing', img: 'education/teacher-10.webp', students: '3.8k', rating: '4.9' }
-        ] %}
-
-        {% for instructor in instructors %}
-        <div class="col-xl-3 col-lg-4 col-md-6">
-          <div class="instructor-card">
-            <div class="instructor-image">
-              <img src="{{ asset('assets/img/' ~ instructor.img) }}" class="img-fluid" alt="{{ instructor.name }}">
-              <div class="overlay-content">
-                <div class="rating-stars">
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-half"></i>
-                  <span>{{ instructor.rating }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="instructor-info">
-              <h5>{{ instructor.name }}</h5>
-              <p class="specialty">{{ instructor.specialty }}</p>
-
-              <div class="stats-grid">
-                <div class="stat">
-                  <span class="number">{{ instructor.students }}</span>
-                  <span class="label">Students</span>
-                </div>
-                <div class="stat">
-                  <span class="number">{{ instructor.rating }}</span>
-                  <span class="label">Rating</span>
-                </div>
-              </div>
-
-              <div class="action-buttons">
-                <a href="{{ path('front_instructor_profile') }}" class="btn-view">View Profile</a>
-                <div class="social-links">
-                  <a href="#"><i class="bi bi-linkedin"></i></a>
-                  <a href="#"><i class="bi bi-twitter"></i></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-
+      <div class="section-title text-center mb-5">
+        <h2>Tous les Projets et Ressources</h2>
+        <p>Tableau complet de tous les projets avec leurs ressources associées</p>
       </div>
-    </div>
-  </section>
-  <!-- End Instructors Section -->
 
-</main>
+    {% if projets|length > 0 %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark sticky-top">
+                    <tr>
+                        <th style="width: 5%">ID</th>
+                        <th style="width: 15%">Titre Projet</th>
+                        <th style="width: 10%">Type</th>
+                        <th style="width: 20%">Description</th>
+                        <th style="width: 12%">Technologies</th>
+                        <th style="width: 12%">Dates</th>
+                        <th style="width: 10%">Ressources</th>
+                        <th style="width: 16%">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for projet in projets %}
+                        <tr>
+                            <td>{{ projet.id }}</td>
+                            <td contenteditable="true" onblur="updateProjet({{ projet.id }}, 'titre', this.innerText)">{{ projet.titre }}</td>
+                            <td contenteditable="true" onblur="updateProjet({{ projet.id }}, 'type', this.innerText)">{{ projet.type }}</td>
+                            <td contenteditable="true" onblur="updateProjet({{ projet.id }}, 'description', this.innerText)">{{ projet.description }}</td>
+                            <td contenteditable="true" onblur="updateProjet({{ projet.id }}, 'technologies', this.innerText)">{{ projet.technologies }}</td>
+                            <td>
+                                {% if projet.dateDebut %}
+                                    <small>{{ projet.dateDebut|date('d/m/Y') }}</small>
+                                {% endif %}
+                                {% if projet.dateFin %}
+                                    <br><small class="text-muted">→ {{ projet.dateFin|date('d/m/Y') }}</small>
+                                {% endif %}
+                                {% if not projet.dateDebut and not projet.dateFin %}
+                                    <em class="text-muted">-</em>
+                                {% endif %}
+                            </td>
+<td>
+    {% if projet.ressources|length > 0 %}
+        <button class="btn btn-sm" 
+                style="background-color: #102c59; color: white; border-color: #0d2347;"
+                data-bs-toggle="collapse" 
+                data-bs-target="#ressources-{{ projet.id }}" 
+                aria-expanded="false">
+            {{ projet.ressources|length }} <i class="fas fa-link"></i>
+        </button>
+    {% else %}
+        <span class="badge" style="background-color: #102c59; color: white;">
+            0
+        </span>
+    {% endif %}
+</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" onclick="deleteProjet({{ projet.id }})">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            </td>
+                        </tr>
 
+                        {% if projet.ressources|length > 0 %}
+                            <tr class="collapse" id="ressources-{{ projet.id }}">
+                                <td colspan="8" class="p-0">
+                                    <div class="p-4 bg-light">
+                                        <h6 class="mb-3">
+                                            <strong>Ressources du projet : {{ projet.titre }}</strong>
+                                            <span class="badge ms-2" style="background-color: #102c59; color: white;">
+                                                {{ projet.ressources|length }} ressource(s)
+                                            </span>                                        </h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered table-hover mb-0">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th scope="col">ID</th>
+                                                        <th scope="col">Nom</th>
+                                                        <th scope="col">Description</th>
+                                                        <th scope="col">Type</th>
+                                                        <th scope="col">URL</th>
+                                                        <th scope="col">Date Création</th>
+                                                        <th scope="col">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for ressource in projet.ressources %}
+                                                        <tr>
+                                                            <td>{{ ressource.id }}</td>
+                                                            <td contenteditable="true" onblur="updateRessource({{ ressource.id }}, 'nom', this.innerText)">{{ ressource.nom }}</td>
+                                                            <td contenteditable="true" onblur="updateRessource({{ ressource.id }}, 'description', this.innerText)">{{ ressource.description }}</td>
+                                                            <td contenteditable="true" onblur="updateRessource({{ ressource.id }}, 'typeRessource', this.innerText)">{{ ressource.typeRessource.name }}</td>
+                                                            <td contenteditable="true" onblur="updateRessource({{ ressource.id }}, 'urlRessource', this.innerText)">{{ ressource.urlRessource }}</td>
+                                                            <td><small>{{ ressource.dateCreation|date('d/m/Y') }}</small></td>
+                                                            <td>
+                                                                <button class="btn btn-sm btn-danger" onclick="deleteRessource({{ ressource.id }})">
+                                                                    <i class="fas fa-trash"></i> Supprimer
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <h4 class="alert-heading">Aucun projet trouvé</h4>
+            <p class="mb-0">Aucun projet n'est enregistré dans la base de données pour le moment.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function showMessage(message) {
+    const messageBox = document.createElement('div');
+    messageBox.innerText = message;
+    messageBox.style.position = 'fixed';
+    messageBox.style.top = '50%';
+    messageBox.style.left = '50%';
+    messageBox.style.transform = 'translate(-50%, -50%)';
+    messageBox.style.backgroundColor = '#28a745';
+    messageBox.style.color = '#fff';
+    messageBox.style.padding = '1rem 2rem';
+    messageBox.style.borderRadius = '5px';
+    messageBox.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    messageBox.style.zIndex = '1050';
+    document.body.appendChild(messageBox);
+
+    setTimeout(() => {
+        document.body.removeChild(messageBox);
+    }, 2000);
+}
+
+function updateProjet(id, field, value) {
+    fetch(`/admin/update-projet/${id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [field]: value }),
+    }).then(response => response.json()).then(data => {
+        showMessage(data.status);
+    });
+}
+
+function confirmDeletion(message, callback) {
+    const confirmBox = document.createElement('div');
+    confirmBox.style.position = 'fixed';
+    confirmBox.style.top = '50%';
+    confirmBox.style.left = '50%';
+    confirmBox.style.transform = 'translate(-50%, -50%)';
+    confirmBox.style.backgroundColor = '#fff';
+    confirmBox.style.color = '#000';
+    confirmBox.style.padding = '1.5rem';
+    confirmBox.style.borderRadius = '8px';
+    confirmBox.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    confirmBox.style.zIndex = '1050';
+    confirmBox.style.textAlign = 'center';
+
+    const messageText = document.createElement('p');
+    messageText.innerText = message;
+    messageText.style.marginBottom = '1rem';
+    confirmBox.appendChild(messageText);
+
+    const buttonContainer = document.createElement('div');
+
+    const confirmButton = document.createElement('button');
+    confirmButton.innerText = 'Confirmer';
+    confirmButton.style.marginRight = '1rem';
+    confirmButton.style.padding = '0.5rem 1rem';
+    confirmButton.style.backgroundColor = '#dc3545';
+    confirmButton.style.color = '#fff';
+    confirmButton.style.border = 'none';
+    confirmButton.style.borderRadius = '4px';
+    confirmButton.style.cursor = 'pointer';
+    confirmButton.onclick = () => {
+        document.body.removeChild(confirmBox);
+        callback();
+    };
+
+    const cancelButton = document.createElement('button');
+    cancelButton.innerText = 'Annuler';
+    cancelButton.style.padding = '0.5rem 1rem';
+    cancelButton.style.backgroundColor = '#6c757d';
+    cancelButton.style.color = '#fff';
+    cancelButton.style.border = 'none';
+    cancelButton.style.borderRadius = '4px';
+    cancelButton.style.cursor = 'pointer';
+    cancelButton.onclick = () => {
+        document.body.removeChild(confirmBox);
+    };
+
+    buttonContainer.appendChild(confirmButton);
+    buttonContainer.appendChild(cancelButton);
+    confirmBox.appendChild(buttonContainer);
+
+    document.body.appendChild(confirmBox);
+}
+
+function deleteProjet(id) {
+    confirmDeletion('Êtes-vous sûr de vouloir supprimer ce projet ?', () => {
+        fetch(`/admin/delete-projet/${id}`, {
+            method: 'DELETE',
+        }).then(response => response.json()).then(data => {
+            showMessage(data.status);
+            location.reload();
+        });
+    });
+}
+
+function updateRessource(id, field, value) {
+    fetch(`/admin/update-ressource/${id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [field]: value }),
+    }).then(response => response.json()).then(data => {
+        showMessage(data.status);
+    });
+}
+
+function deleteRessource(id) {
+    confirmDeletion('Êtes-vous sûr de vouloir supprimer cette ressource ?', () => {
+        fetch(`/admin/delete-ressource/${id}`, {
+            method: 'DELETE',
+        }).then(response => response.json()).then(data => {
+            showMessage(data.status);
+            location.reload();
+        });
+    });
+}
+</script>
+
+<style>
+
+    
+    .sticky-top {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .collapse {
+        display: table-row;
+    }
+
+    .collapse:not(.show) {
+        display: none;
+    }
+
+    .text-truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
 {% endblock %}

@@ -2,7 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\Projet;
+use App\Entity\Ressource;
+use App\Repository\ProjetRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -34,9 +40,12 @@ final class BackController extends AbstractController
     }
 
     #[Route('/instructors', name: 'instructors')]
-    public function instructors(): Response
+    public function instructors(ProjetRepository $projetRepository): Response
     {
-        return $this->render('back/instructors.html.twig');
+        $projets = $projetRepository->findAll();
+        return $this->render('back/instructors.html.twig', [
+            'projets' => $projets,
+        ]);
     }
 
     #[Route('/instructor-profile', name: 'instructor_profile')]
@@ -73,5 +82,48 @@ final class BackController extends AbstractController
     public function contact(): Response
     {
         return $this->render('back/contact.html.twig');
+    }
+
+    #[Route('/update-projet/{id}', name: 'update_projet', methods: ['POST'])]
+    public function updateProjet(Request $request, Projet $projet, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $projet->setTitre($data['titre'] ?? $projet->getTitre());
+        $projet->setType($data['type'] ?? $projet->getType());
+        $projet->setDescription($data['description'] ?? $projet->getDescription());
+        $projet->setTechnologies($data['technologies'] ?? $projet->getTechnologies());
+        $entityManager->flush();
+
+        return new JsonResponse(['status' => 'Projet mis à jour avec succès']);
+    }
+
+    #[Route('/delete-projet/{id}', name: 'delete_projet', methods: ['DELETE'])]
+    public function deleteProjet(Projet $projet, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $entityManager->remove($projet);
+        $entityManager->flush();
+
+        return new JsonResponse(['status' => 'Projet supprimé avec succès']);
+    }
+
+    #[Route('/update-ressource/{id}', name: 'update_ressource', methods: ['POST'])]
+    public function updateRessource(Request $request, Ressource $ressource, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $ressource->setNom($data['nom'] ?? $ressource->getNom());
+        $ressource->setDescription($data['description'] ?? $ressource->getDescription());
+        $ressource->setUrlRessource($data['urlRessource'] ?? $ressource->getUrlRessource());
+        $entityManager->flush();
+
+        return new JsonResponse(['status' => 'Ressource mise à jour avec succès']);
+    }
+
+    #[Route('/delete-ressource/{id}', name: 'delete_ressource', methods: ['DELETE'])]
+    public function deleteRessource(Ressource $ressource, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $entityManager->remove($ressource);
+        $entityManager->flush();
+
+        return new JsonResponse(['status' => 'Ressource supprimée avec succès']);
     }
 }

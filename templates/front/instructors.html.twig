@@ -1,90 +1,358 @@
 {% extends 'front/base.html.twig' %}
 
-{% block title %}Instructors{% endblock %}
+{% block title %}Projets - MentorAI{% endblock %}
 
 {% block body %}
 
-<main class="main instructors-page">
+<body>
+
+<main class="main">
 
   <!-- Page Title -->
   <div class="page-title light-background">
     <div class="container d-lg-flex justify-content-between align-items-center">
-      <h1 class="mb-2 mb-lg-0">Instructors</h1>
+      <h1 class="mb-2 mb-lg-0">Projets</h1>
       <nav class="breadcrumbs">
         <ol>
-          <li><a href="{{ path('front_home') }}">Home</a></li>
-          <li class="current">Instructors</li>
+          <li><a href="{{ path('front_home') }}">Accueil</a></li>
+          <li class="current">Projets</li>
         </ol>
       </nav>
     </div>
   </div>
   <!-- End Page Title -->
 
-  <!-- Instructors Section -->
-  <section id="instructors" class="instructors section">
+  <!-- Add Project Section -->
+  <section id="add-project" class="enroll section">
+
     <div class="container" data-aos="fade-up" data-aos-delay="100">
-      <div class="row gy-4">
 
-        {% set instructors = [
-          { name: 'Sarah Johnson', specialty: 'Web Development', img: 'education/teacher-2.webp', students: '2.1k', rating: '4.8' },
-          { name: 'Michael Chen', specialty: 'Data Science', img: 'education/teacher-7.webp', students: '3.5k', rating: '4.9' },
-          { name: 'Amanda Rodriguez', specialty: 'UX Design', img: 'education/teacher-4.webp', students: '1.8k', rating: '4.6' },
-          { name: 'David Thompson', specialty: 'Digital Marketing', img: 'education/teacher-9.webp', students: '2.9k', rating: '4.7' },
-          { name: 'Lisa Williams', specialty: 'Business Analytics', img: 'education/teacher-6.webp', students: '4.2k', rating: '5.0' },
-          { name: 'James Anderson', specialty: 'Machine Learning', img: 'education/teacher-1.webp', students: '3.1k', rating: '4.5' },
-          { name: 'Rachel Martinez', specialty: 'Cybersecurity', img: 'education/teacher-8.webp', students: '2.7k', rating: '4.8' },
-          { name: 'Kevin Taylor', specialty: 'Cloud Computing', img: 'education/teacher-10.webp', students: '3.8k', rating: '4.9' }
-        ] %}
+      <div class="section-title text-center mb-5">
+        <h2>Créer un Nouveau Projet</h2>
+        <p>Ajoutez un projet à votre portefeuille pour valoriser votre expérience</p>
+      </div>
 
-        {% for instructor in instructors %}
-        <div class="col-xl-3 col-lg-4 col-md-6">
-          <div class="instructor-card">
-            <div class="instructor-image">
-              <img src="{{ asset('assets/img/' ~ instructor.img) }}" class="img-fluid" alt="{{ instructor.name }}">
-              <div class="overlay-content">
-                <div class="rating-stars">
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-fill"></i>
-                  <i class="bi bi-star-half"></i>
-                  <span>{{ instructor.rating }}</span>
-                </div>
-              </div>
+      <!-- Flash Messages -->
+      {% if app.flashes %}
+        {% for label, messages in app.flashes %}
+          {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+              {% if label == 'error' %}
+                <i class="bi bi-exclamation-circle"></i>
+              {% elseif label == 'success' %}
+                <i class="bi bi-check-circle"></i>
+              {% endif %}
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
+          {% endfor %}
+        {% endfor %}
+      {% endif %}
 
-            <div class="instructor-info">
-              <h5>{{ instructor.name }}</h5>
-              <p class="specialty">{{ instructor.specialty }}</p>
+      <div class="row justify-content-center" data-aos="fade-up" data-aos-delay="200">
+        <div class="col-lg-6">
+          <div class="enrollment-form-wrapper">
+            <h4 class="mb-4"><i class="bi bi-file-earmark-text"></i> Informations du Projet</h4>
+            <form method="POST" action="{{ path('front_instructors') }}" class="enrollment-form">
+              
+              <!-- Container for hidden resource inputs -->
+              <div id="hidden-resources-container" style="display: none;"></div>
+              
+              <div class="form-group">
+                <label for="titre" class="form-label">Titre du Projet <span class="text-danger">*</span></label>
+                <input type="text" class="form-control {% if errors.titre is defined %}is-invalid{% endif %}" id="titre" name="titre" placeholder="Ex: Application de Gestion Scolaire" value="{{ projet.titre ?? '' }}">
+                {% if errors.titre is defined %}
+                  <div class="invalid-feedback d-block">
+                    {{ errors.titre }}
+                  </div>
+                {% endif %}
+              </div>
 
-              <div class="stats-grid">
-                <div class="stat">
-                  <span class="number">{{ instructor.students }}</span>
-                  <span class="label">Students</span>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="type" class="form-label">Type <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control {% if errors.type is defined %}is-invalid{% endif %}" id="type" name="type" placeholder="Ex: Web, Mobile, Desktop" value="{{ projet.type ?? '' }}">
+                    {% if errors.type is defined %}
+                      <div class="invalid-feedback d-block">
+                        {{ errors.type }}
+                      </div>
+                    {% endif %}
+                  </div>
                 </div>
-                <div class="stat">
-                  <span class="number">{{ instructor.rating }}</span>
-                  <span class="label">Rating</span>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="technologies" class="form-label">Technologies <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control {% if errors.technologies is defined %}is-invalid{% endif %}" id="technologies" name="technologies" placeholder="Ex: PHP, Symfony, MySQL, JavaScript" value="{{ projet.technologies ?? '' }}">
+                    {% if errors.technologies is defined %}
+                      <div class="invalid-feedback d-block">
+                        {{ errors.technologies }}
+                      </div>
+                    {% endif %}
+                  </div>
                 </div>
               </div>
 
-              <div class="action-buttons">
-                <a href="{{ path('front_instructor_profile') }}" class="btn-view">View Profile</a>
-                <div class="social-links">
-                  <a href="#"><i class="bi bi-linkedin"></i></a>
-                  <a href="#"><i class="bi bi-twitter"></i></a>
+              <div class="form-group">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="5" placeholder="Décrivez votre projet en détail...">{{ projet.description ?? '' }}</textarea>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="date_debut" class="form-label">Date de Début</label>
+                    <input type="date" class="form-control {% if errors.date_debut is defined %}is-invalid{% endif %}" id="date_debut" name="date_debut" value="{{ projet.dateDebut ? projet.dateDebut|date('Y-m-d') : '' }}">
+                    {% if errors.date_debut is defined %}
+                      <div class="invalid-feedback d-block">
+                        {{ errors.date_debut }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="date_fin" class="form-label">Date de Fin</label>
+                    <input type="date" class="form-control {% if errors.date_fin is defined %}is-invalid{% endif %}" id="date_fin" name="date_fin" value="{{ projet.dateFin ? projet.dateFin|date('Y-m-d') : '' }}">
+                    {% if errors.date_fin is defined %}
+                      <div class="invalid-feedback d-block">
+                        {{ errors.date_fin }}
+                      </div>
+                    {% endif %}
+                  </div>
                 </div>
               </div>
-            </div>
+
+              <div class="text-center mt-4">
+                <button type="submit" class="btn-enroll">
+                  <span>Créer le Projet</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-        {% endfor %}
 
+        <!-- Resources Section -->
+        <div class="col-lg-6">
+          <div class="enrollment-form-wrapper">
+            <h4 class="mb-4"><i class="bi bi-collection"></i> Ajouter des Ressources</h4>
+            <p class="text-muted small mb-4">Ajoutez des ressources (vidéos, documents, images, liens) pour enrichir votre projet</p>
+            
+            <!-- Resources List -->
+            <div id="resources-list" class="mb-4">
+              {% if ressources is defined and ressources|length > 0 %}
+                {% for ressource in ressources %}
+                  <div class="resource-item mb-3 p-3" style="background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0d6efd;">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div>
+                        {% if ressource.typeRessource == 'video' %}
+                          <i class="bi bi-play-circle text-primary"></i>
+                        {% elseif ressource.typeRessource == 'image' %}
+                          <i class="bi bi-image text-success"></i>
+                        {% elseif ressource.typeRessource in ['pdf', 'doc', 'docx'] %}
+                          <i class="bi bi-file-pdf text-danger"></i>
+                        {% else %}
+                          <i class="bi bi-link-45deg text-info"></i>
+                        {% endif %}
+                        <strong class="ms-2">{{ ressource.nom }}</strong>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-outline-danger delete-resource" data-id="{{ ressource.id }}">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                    <small class="text-muted d-block mt-2">{{ ressource.description }}</small>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="alert alert-info" id="no-resources">
+                  Aucune ressource ajoutée pour le moment
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Add Resource Form -->
+            <form id="resource-form" class="resource-form">
+              <input type="hidden" id="projet-id" value="">
+
+              <div class="form-group">
+                <label for="ressource-nom" class="form-label">Nom de la Ressource <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="ressource-nom" name="ressource_nom" placeholder="Ex: Tutoriel installation" required>
+                <small class="text-muted">Donnez un titre descriptif à votre ressource</small>
+              </div>
+
+              <div class="form-group">
+                <label for="ressource-type" class="form-label">Type de Ressource <span class="text-danger">*</span></label>
+                <select class="form-control" id="ressource-type" name="ressource_type" required>
+                  <option value="">-- Sélectionnez un type --</option>
+                  <option value="VIDEO">📹 Vidéo (URL YouTube ou locale)</option>
+                  <option value="IMAGE">🖼️ Image/Photo</option>
+                  <option value="PDF">📄 Document PDF</option>
+                  <option value="DOCUMENT">📝 Document (Word, etc.)</option>
+                  <option value="OTHER">🔗 Lien externe</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="ressource-url" class="form-label">URL de la Ressource <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="ressource-url" name="ressource_url" placeholder="Ex: https://youtube.com/... ou /documents/file.pdf" required>
+                <small class="text-muted d-block mt-1">Entrez l'URL complète (https://...) ou le chemin local (/documents/...)</small>
+              </div>
+
+              <div class="form-group">
+                <label for="ressource-description" class="form-label">Description (Optionnel)</label>
+                <textarea class="form-control" id="ressource-description" name="ressource_description" rows="2" placeholder="Décrivez brièvement cette ressource..."></textarea>
+              </div>
+
+              <div class="text-center">
+                <button type="button" class="btn btn-outline-primary" id="add-resource-btn" onclick="addResource()">
+                  <i class="bi bi-plus-circle"></i> Ajouter la Ressource
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
+
     </div>
+
   </section>
-  <!-- End Instructors Section -->
+  <!-- End Add Project Section -->
 
 </main>
+
+</body>
+
+<script>
+// Gestion des ressources
+function addResource() {
+  const nom = document.getElementById('ressource-nom').value.trim();
+  const type = document.getElementById('ressource-type').value;
+  const url = document.getElementById('ressource-url').value.trim();
+  const description = document.getElementById('ressource-description').value.trim();
+
+  // Validation simple
+  if (!nom || !type || !url) {
+    alert('Veuillez remplir tous les champs obligatoires');
+    return;
+  }
+
+  // Validation d'URL
+  if (!isValidUrl(url) && !url.startsWith('/')) {
+    alert('Veuillez entrer une URL valide (https://...) ou un chemin local (/...)');
+    return;
+  }
+
+  // Créer un objet ressource
+  const ressource = {
+    nom: nom,
+    type: type,
+    url: url,
+    description: description
+  };
+
+  // Afficher la ressource dans la liste
+  displayResource(ressource);
+
+  // Réinitialiser le formulaire
+  document.getElementById('resource-form').reset();
+}
+
+function displayResource(ressource) {
+  const resourcesList = document.getElementById('resources-list');
+  const noResources = document.getElementById('no-resources');
+  const hiddenContainer = document.getElementById('hidden-resources-container');
+
+  // Masquer le message "aucune ressource"
+  if (noResources) {
+    noResources.style.display = 'none';
+  }
+
+  // Créer l'élément de ressource visible
+  const resourceDiv = document.createElement('div');
+  resourceDiv.className = 'resource-item mb-3 p-3';
+  resourceDiv.style.cssText = 'background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0d6efd;';
+
+  let icon = '<i class="bi bi-link-45deg text-info"></i>';
+  if (ressource.type === 'VIDEO') {
+    icon = '<i class="bi bi-play-circle text-primary"></i>';
+  } else if (ressource.type === 'IMAGE') {
+    icon = '<i class="bi bi-image text-success"></i>';
+  } else if (['PDF', 'DOCUMENT'].includes(ressource.type)) {
+    icon = '<i class="bi bi-file-pdf text-danger"></i>';
+  }
+
+  const timestamp = Date.now();
+  
+  // Créer les inputs cachés dans le conteneur caché du formulaire principal
+  const hiddenInputs = `
+    <input type="hidden" name="ressources[${timestamp}][nom]" value="${escapeHtml(ressource.nom)}">
+    <input type="hidden" name="ressources[${timestamp}][type]" value="${ressource.type}">
+    <input type="hidden" name="ressources[${timestamp}][url]" value="${escapeHtml(ressource.url)}">
+    <input type="hidden" name="ressources[${timestamp}][description]" value="${escapeHtml(ressource.description)}">
+  `;
+  
+  // Ajouter un wrapper pour grouper les inputs cachés et le div visible
+  const wrapper = document.createElement('div');
+  wrapper.className = 'resource-wrapper';
+  wrapper.innerHTML = hiddenInputs;
+  hiddenContainer.appendChild(wrapper);
+
+  resourceDiv.innerHTML = `
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        ${icon}
+        <strong class="ms-2">${escapeHtml(ressource.nom)}</strong>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeResource(this)">
+        <i class="bi bi-trash"></i>
+      </button>
+    </div>
+    <small class="text-muted d-block mt-2">${escapeHtml(ressource.description || '')}</small>
+  `;
+
+  resourcesList.appendChild(resourceDiv);
+}
+
+function removeResource(btn) {
+  const index = Array.from(document.querySelectorAll('.resource-item')).indexOf(btn.closest('.resource-item'));
+  const hiddenInputs = document.querySelectorAll('[name^="ressources["]');
+  
+  // Supprimer les inputs cachés correspondants
+  let count = 0;
+  for (let input of hiddenInputs) {
+    if (count === index * 4) {
+      for (let i = 0; i < 4; i++) {
+        input.parentElement.remove();
+      }
+      break;
+    }
+    count++;
+  }
+  
+  btn.closest('.resource-item').remove();
+}
+
+function isValidUrl(string) {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Permettre d'ajouter une ressource avec Ctrl+Entrée
+document.getElementById('ressource-description')?.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter' && e.ctrlKey) {
+    addResource();
+  }
+});
+</script>
 
 {% endblock %}

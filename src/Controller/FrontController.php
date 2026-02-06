@@ -2,9 +2,17 @@
 
 namespace App\Controller;
 
+use App\Entity\Projet;
+use App\Entity\Ressource;
+use App\Enum\TypeRessource;
+use App\Repository\ProjetRepository;
+use App\Repository\RessourceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\ORM\EntityManagerInterface;
+
 
 #[Route('/', name: 'front_')]
 final class FrontController extends AbstractController
@@ -15,6 +23,7 @@ final class FrontController extends AbstractController
         return $this->render('front/home.html.twig');
     }
 
+    
     #[Route('about', name: 'about')]
     public function about(): Response
     {
@@ -32,11 +41,152 @@ final class FrontController extends AbstractController
     {
         return $this->render('front/course-details.html.twig');
     }
+// Projet creation with validation
 
     #[Route('instructors', name: 'instructors')]
-    public function instructors(): Response
+    public function instructors(Request $request, EntityManagerInterface $em, RessourceRepository $ressourceRepo): Response
     {
-        return $this->render('front/instructors.html.twig');
+        $projet = new Projet();
+        $projet->setDateCreation(new \DateTime());
+        $errors = [];
+        $ressources = [];
+        
+        if ($request->isMethod('POST')) {
+            // Récupération des données du projet
+            $titre = trim($request->request->get('titre', ''));
+            $type = trim($request->request->get('type', ''));
+            $technologies = trim($request->request->get('technologies', ''));
+            $description = trim($request->request->get('description', ''));
+            $dateDebut = $request->request->get('date_debut', '');
+            $dateFin = $request->request->get('date_fin', '');
+            
+            // Validation PHP du projet
+            if (empty($titre)) {
+                $errors['titre'] = 'Le titre du projet est requis.';
+            } elseif (strlen($titre) < 3) {
+                $errors['titre'] = 'Le titre doit contenir au moins 3 caractères.';
+            } elseif (strlen($titre) > 255) {
+                $errors['titre'] = 'Le titre ne doit pas dépasser 255 caractères.';
+            }
+            
+            if (empty($type)) {
+                $errors['type'] = 'Le type de projet est requis.';
+            } elseif (strlen($type) > 100) {
+                $errors['type'] = 'Le type ne doit pas dépasser 100 caractères.';
+            }
+            
+            if (empty($technologies)) {
+                $errors['technologies'] = 'Les technologies sont requises.';
+            } elseif (strlen($technologies) > 500) {
+                $errors['technologies'] = 'Les technologies ne doivent pas dépasser 500 caractères.';
+            }
+            
+            // Validation des dates si présentes
+            $dateDbutObj = null;
+            $dateFinObj = null;
+            
+            if (!empty($dateDebut)) {
+                try {
+                    $dateDbutObj = new \DateTime($dateDebut);
+                } catch (\Exception $e) {
+                    $errors['date_debut'] = 'La date de début est invalide.';
+                }
+            }
+            
+            if (!empty($dateFin)) {
+                try {
+                    $dateFinObj = new \DateTime($dateFin);
+                } catch (\Exception $e) {
+                    $errors['date_fin'] = 'La date de fin est invalide.';
+                }
+            }
+            
+            // Vérifier que la date de fin est après la date de début
+            if (!empty($dateDebut) && !empty($dateFin) && $dateDbutObj && $dateFinObj) {
+                if ($dateFinObj < $dateDbutObj) {
+                    $errors['date_fin'] = 'La date de fin doit être après la date de début.';
+                }
+            }
+            
+            // Si pas d'erreurs, sauvegarder le projet
+            if (empty($errors)) {
+                $projet->setTitre($titre);
+                $projet->setType($type);
+                $projet->setTechnologies($technologies);
+                $projet->setDescription($description);
+                
+                if ($dateDbutObj) {
+                    $projet->setDateDebut($dateDbutObj);
+                }
+                if ($dateFinObj) {
+                    $projet->setDateFin($dateFinObj);
+                }
+                
+                // Ajouter l'utilisateur actuellement connecté
+                if ($this->getUser()) {
+                    $projet->setUtilisateur($this->getUser());
+                }
+                
+                $em->persist($projet);
+                $em->flush();
+                
+                // Traiter les ressources
+                $ressourcesData = $request->request->all();
+                
+                if (isset($ressourcesData['ressources']) && is_array($ressourcesData['ressources'])) {
+                    foreach ($ressourcesData['ressources'] as $timestamp => $ressourceData) {
+                        // Vérifier que les champs requis sont présents
+                        if (isset($ressourceData['nom'], $ressourceData['type'], $ressourceData['url']) 
+                            && !empty($ressourceData['nom']) 
+                            && !empty($ressourceData['type']) 
+                            && !empty($ressourceData['url'])) {
+                            
+                            $ressource = new Ressource();
+                            $ressource->setNom(trim($ressourceData['nom']));
+                            $ressource->setUrlRessource(trim($ressourceData['url']));
+                            $ressource->setDescription(trim($ressourceData['description'] ?? ''));
+                            $ressource->setProjet($projet);
+                            $ressource->setDateCreation(new \DateTime());
+                            
+                            // Mapper le type string vers l'enum TypeRessource
+                            $typeStr = strtoupper(trim($ressourceData['type']));
+                            try {
+                                $typeEnum = TypeRessource::tryFrom($typeStr);
+                                if ($typeEnum === null) {
+                                    $typeEnum = TypeRessource::OTHER;
+                                }
+                                $ressource->setTypeRessource($typeEnum);
+                            } catch (\Exception $e) {
+                                $ressource->setTypeRessource(TypeRessource::OTHER);
+                            }
+                            
+                            $em->persist($ressource);
+                        }
+                    }
+                }
+                
+                $em->flush();
+                
+                $this->addFlash('success', 'Projet créé avec succès!');
+                return $this->redirectToRoute('front_instructors');
+            } else {
+                // Afficher les erreurs
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error);
+                }
+                // Repeupler le formulaire avec les données saisies
+                $projet->setTitre($titre);
+                $projet->setType($type);
+                $projet->setTechnologies($technologies);
+                $projet->setDescription($description);
+            }
+        }
+        
+        return $this->render('front/instructors.html.twig', [
+            'projet' => $projet,
+            'errors' => $errors,
+            'ressources' => $ressources,
+        ]);
     }
 
     #[Route('instructor-profile', name: 'instructor_profile')]
@@ -104,4 +254,40 @@ final class FrontController extends AbstractController
     {
         return $this->render('front/404.html.twig');
     }
+
+    #[Route('api/resource/delete/{id}', name: 'api_resource_delete', methods: ['POST'])]
+    public function deleteResource(int $id, EntityManagerInterface $em, RessourceRepository $ressourceRepo): Response
+    {
+        $ressource = $ressourceRepo->find($id);
+        
+        if (!$ressource) {
+            return $this->json(['error' => 'Ressource not found'], 404);
+        }
+
+        // Vérifier que l'utilisateur est propriétaire du projet
+        if ($ressource->getProjet()?->getUtilisateur() !== $this->getUser()) {
+            return $this->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $em->remove($ressource);
+        $em->flush();
+
+        return $this->json(['success' => true]);
+    }
+
+        #[Route('mesprojets', name: 'mesprojets')]
+    public function mesprojets(EntityManagerInterface $em): Response
+    {
+
+
+        return $this->render('front/mesprojets.html.twig', [
+
+        ]);
+    }
+
+
+
+
+
 }
+

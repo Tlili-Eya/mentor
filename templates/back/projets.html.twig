@@ -4,12 +4,82 @@
 {% block body %}
   <section id="add-project" class="enroll section">
 
-   <div class="container" data-aos="fade-up" data-aos-delay="100">
+<div class="container" data-aos="fade-up" data-aos-delay="100">
 
-      <div class="section-title text-center mb-5">
+    <div class="section-title text-center mb-5">
         <h2>Tous les Projets et Ressources</h2>
         <p>Tableau complet de tous les projets avec leurs ressources associées</p>
-      </div>
+    </div>
+
+    <!-- Barre de filtrage et recherche -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form id="filterForm" method="get" action="{{ path('back_projets') }}">
+                <div class="row g-3">
+                    <!-- Champ de recherche -->
+                    <div class="col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text" style="background-color: #102c59; color: white; border-color: #0d2347;">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                name="search" 
+                                placeholder="Rechercher par titre, type ou technologies..." 
+                                value="{{ app.request.get('search') }}"
+                                onkeyup="this.form.submit()"
+                                style="border-color: #102c59;"
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- Sélecteur de tri -->
+                    <div class="col-md-3">
+                        <div class="input-group">
+                            <span class="input-group-text" style="background-color: #102c59; color: white; border-color: #0d2347;">
+                                <i class="fas fa-sort"></i>
+                            </span>
+                            <select 
+                                class="form-select" 
+                                name="sort" 
+                                onchange="this.form.submit()"
+                                style="border-color: #102c59;"
+                            >
+                                <option value="">Trier par...</option>
+                                <option value="titre_asc" {{ app.request.get('sort') == 'titre_asc' ? 'selected' : '' }}>Titre (A-Z)</option>
+                                <option value="titre_desc" {{ app.request.get('sort') == 'titre_desc' ? 'selected' : '' }}>Titre (Z-A)</option>
+                                <option value="date_debut_asc" {{ app.request.get('sort') == 'date_debut_asc' ? 'selected' : '' }}>Date début (ancien)</option>
+                                <option value="date_debut_desc" {{ app.request.get('sort') == 'date_debut_desc' ? 'selected' : '' }}>Date début (récent)</option>
+                                <option value="ressources_desc" {{ app.request.get('sort') == 'ressources_desc' ? 'selected' : '' }}>Ressources (décroissant)</option>
+                                <option value="ressources_asc" {{ app.request.get('sort') == 'ressources_asc' ? 'selected' : '' }}>Ressources (croissant)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Bouton export PDF (au centre) -->
+                    <div class="col-md-2">
+                        <a href="{{ path('back_projets_export_pdf') }}?search={{ app.request.get('search')|url_encode }}&sort={{ app.request.get('sort')|url_encode }}" 
+                           class="btn w-100 d-flex align-items-center justify-content-center gap-2"
+                           style="background-color: #d32f2f; color: white; border-color: #b71c1c; height: 38px;"
+                           target="_blank">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>PDF</span>
+                        </a>
+                    </div>
+                    
+                    <!-- Bouton réinitialiser -->
+                    <div class="col-md-2">
+                        <a href="{{ path('back_projets') }}" class="btn w-100 d-flex align-items-center justify-content-center gap-2"
+                           style="background-color: #6c757d; color: white; border-color: #5a6268; height: 38px;">
+                            <i class="fas fa-redo"></i>
+                            <span>Réinit</span>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 
     {% if projets|length > 0 %}
         <div class="table-responsive">
@@ -45,21 +115,21 @@
                                     <em class="text-muted">-</em>
                                 {% endif %}
                             </td>
-<td>
-    {% if projet.ressources|length > 0 %}
-        <button class="btn btn-sm" 
-                style="background-color: #102c59; color: white; border-color: #0d2347;"
-                data-bs-toggle="collapse" 
-                data-bs-target="#ressources-{{ projet.id }}" 
-                aria-expanded="false">
-            {{ projet.ressources|length }} <i class="fas fa-link"></i>
-        </button>
-    {% else %}
-        <span class="badge" style="background-color: #102c59; color: white;">
-            0
-        </span>
-    {% endif %}
-</td>
+                            <td>
+                                {% if projet.ressources|length > 0 %}
+                                    <button class="btn btn-sm" 
+                                            style="background-color: #102c59; color: white; border-color: #0d2347;"
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#ressources-{{ projet.id }}" 
+                                            aria-expanded="false">
+                                        {{ projet.ressources|length }} <i class="fas fa-link"></i>
+                                    </button>
+                                {% else %}
+                                    <span class="badge" style="background-color: #102c59; color: white;">
+                                        0
+                                    </span>
+                                {% endif %}
+                            </td>
                             <td>
                                 <button class="btn btn-sm btn-danger" onclick="deleteProjet({{ projet.id }})">
                                     <i class="fas fa-trash"></i> Supprimer
@@ -75,7 +145,8 @@
                                             <strong>Ressources du projet : {{ projet.titre }}</strong>
                                             <span class="badge ms-2" style="background-color: #102c59; color: white;">
                                                 {{ projet.ressources|length }} ressource(s)
-                                            </span>                                        </h6>
+                                            </span>
+                                        </h6>
                                         <div class="table-responsive">
                                             <table class="table table-sm table-bordered table-hover mb-0">
                                                 <thead class="table-light">
@@ -119,10 +190,43 @@
     {% else %}
         <div class="alert alert-info">
             <h4 class="alert-heading">Aucun projet trouvé</h4>
-            <p class="mb-0">Aucun projet n'est enregistré dans la base de données pour le moment.</p>
+            <p class="mb-0">Aucun projet ne correspond à votre recherche.</p>
         </div>
     {% endif %}
 </div>
+
+<style>
+    /* Styles pour les boutons au survol */
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        transition: all 0.3s ease;
+    }
+    
+    /* Style pour les inputs et selects */
+    .form-control:focus, .form-select:focus {
+        border-color: #102c59;
+        box-shadow: 0 0 0 0.25rem rgba(16, 44, 89, 0.25);
+    }
+    
+    /* Style pour les badges */
+    .badge {
+        padding: 0.35em 0.65em;
+        font-weight: 600;
+    }
+    
+    /* Style pour le bouton PDF au survol */
+    .btn[style*="background-color: #d32f2f"]:hover {
+        background-color: #b71c1c !important;
+        border-color: #9a1a1a !important;
+    }
+    
+    /* Style pour le bouton réinitialiser au survol */
+    .btn[style*="background-color: #6c757d"]:hover {
+        background-color: #5a6268 !important;
+        border-color: #4e555b !important;
+    }
+</style>
 
 <script>
 function showMessage(message) {
@@ -244,11 +348,18 @@ function deleteRessource(id) {
         });
     });
 }
+
+// Fonction pour soumettre automatiquement la recherche après un délai
+let searchTimeout;
+function debounceSearch(input) {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        input.form.submit();
+    }, 500);
+}
 </script>
 
 <style>
-
-    
     .sticky-top {
         position: sticky;
         top: 0;
@@ -271,6 +382,22 @@ function deleteRessource(id) {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+    
+    /* Styles pour la barre de filtrage */
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #102c59;
+        box-shadow: 0 0 0 0.25rem rgba(16, 44, 89, 0.25);
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        border-color: #6c757d;
     }
 </style>
 {% endblock %}

@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Parcours;
 use App\Repository\ParcoursRepository;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 #[Route('/admin', name: 'back_')]
 final class BackController extends AbstractController
@@ -37,12 +39,50 @@ final class BackController extends AbstractController
         return $this->render('back/course-details.html.twig');
     }
 
-    #[Route('/instructors', name: 'instructors')]
-    public function instructors(ProjetRepository $projetRepository): Response
+#[Route('/projets', name: 'projets')]
+public function projets(ProjetRepository $projetRepository, Request $request): Response
+{
+    // Récupérer les paramètres de recherche et tri
+    $search = $request->query->get('search', '');
+    $sort = $request->query->get('sort', '');
+    
+    // Utiliser la nouvelle méthode du repository
+    $projets = $projetRepository->findBySearchAndSort($search, $sort);
+    
+    return $this->render('back/projets.html.twig', [
+        'projets' => $projets,
+    ]);
+}
+
+    #[Route('/projets/export-pdf', name: 'projets_export_pdf', methods: ['GET'])]
+    public function exportProjetsPdf(ProjetRepository $projetRepository, Request $request): Response
     {
-        $projets = $projetRepository->findAll();
-        return $this->render('back/instructors.html.twig', [
+        $search = $request->query->get('search', '');
+        $sort = $request->query->get('sort', '');
+
+        $projets = $projetRepository->findBySearchAndSort($search, $sort);
+
+        // Render HTML for PDF
+        $html = $this->renderView('back/projets_pdf.html.twig', [
             'projets' => $projets,
+        ]);
+
+        if (!class_exists(Dompdf::class)) {
+            $this->addFlash('error', 'Dompdf non installé. Exécutez : composer require dompdf/dompdf');
+            return $this->redirectToRoute('back_projets');
+        }
+
+        $options = new Options();
+        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $output = $dompdf->output();
+
+        return new Response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="projets.pdf"'
         ]);
     }
 
@@ -128,13 +168,50 @@ final class BackController extends AbstractController
 
     // BackController.php
 #[Route('/parcours', name: 'parcours')]
-public function parcours(ParcoursRepository $parcoursRepository): Response
+public function parcours(ParcoursRepository $parcoursRepository, Request $request): Response
 {
-    $parcours = $parcoursRepository->findAll();
-    return $this->render('back/courses.html.twig', [
+    // Récupérer les paramètres de recherche et tri
+    $search = $request->query->get('search', '');
+    $sort = $request->query->get('sort', '');
+    
+    // Utiliser une nouvelle méthode du repository
+    $parcours = $parcoursRepository->findBySearchAndSort($search, $sort);
+    
+    return $this->render('back/parcours.html.twig', [
         'parcours' => $parcours,
     ]);
 }
+
+    #[Route('/parcours/export-pdf', name: 'parcours_export_pdf', methods: ['GET'])]
+    public function exportParcoursPdf(ParcoursRepository $parcoursRepository, Request $request): Response
+    {
+        $search = $request->query->get('search', '');
+        $sort = $request->query->get('sort', '');
+
+        $parcours = $parcoursRepository->findBySearchAndSort($search, $sort);
+
+        $html = $this->renderView('back/parcours_pdf.html.twig', [
+            'parcours' => $parcours,
+        ]);
+
+        if (!class_exists(Dompdf::class)) {
+            $this->addFlash('error', 'Dompdf non installé. Exécutez : composer require dompdf/dompdf');
+            return $this->redirectToRoute('back_parcours');
+        }
+
+        $options = new Options();
+        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $output = $dompdf->output();
+
+        return new Response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="parcours.pdf"'
+        ]);
+    }
 
 #[Route('/update-parcours/{id}', name: 'update_parcours', methods: ['POST'])]
 public function updateParcours(Request $request, Parcours $parcours, EntityManagerInterface $entityManager): JsonResponse

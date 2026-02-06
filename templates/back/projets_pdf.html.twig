@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 12px; }
+      h1 { text-align: center; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+      th, td { border: 1px solid #ddd; padding: 6px; }
+      th { background: #f2f2f2; }
+      .project { margin-bottom: 12px; }
+      .resources { margin-left: 8px; font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <h1>Projets - Export</h1>
+    <p>Export généré le {{ "now"|date('d/m/Y H:i') }}</p>
+
+    {% for projet in projets %}
+      <div class="project">
+        <table>
+          <tr>
+            <th style="width:10%">ID</th>
+            <th style="width:40%">Titre</th>
+            <th style="width:20%">Type</th>
+            <th style="width:30%">Technologies</th>
+          </tr>
+          <tr>
+            <td>{{ projet.id }}</td>
+            <td>{{ projet.titre }}</td>
+            <td>{{ projet.type }}</td>
+            <td>{{ projet.technologies }}</td>
+          </tr>
+        </table>
+
+        <div>
+          <strong>Description:</strong>
+          <div>{{ projet.description|nl2br }}</div>
+        </div>
+
+        <div class="resources">
+          <strong>Ressources ({{ projet.ressources|length }}):</strong>
+          {% if projet.ressources|length > 0 %}
+            <table>
+              <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Type</th>
+                <th>URL</th>
+              </tr>
+              {% for res in projet.ressources %}
+                <tr>
+                  <td>{{ res.id }}</td>
+                  <td>{{ res.nom }}</td>
+                  <td>{{ res.typeRessource ? res.typeRessource.name : '' }}</td>
+                  <td>{{ res.urlRessource }}</td>
+                </tr>
+              {% endfor %}
+            </table>
+          {% else %}
+            <div>Aucune ressource</div>
+          {% endif %}
+        </div>
+
+      </div>
+    {% endfor %}
+  </body>
+</html>

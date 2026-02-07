@@ -3,60 +3,156 @@
 
 {% block body %}
 <main class="main">
-  <div class="page-title light-background">
-    <div class="container d-lg-flex justify-content-between align-items-center">
-      <h1 class="mb-2 mb-lg-0">Mes Parcours</h1>
+  <div class="page-title" style="background-color: #9dbbce;">
+    <div class="container d-lg-flex justify-content-between align-items-center py-4">
+      <h1 class="mb-2 mb-lg-0" style="color: #102c59;">Mes Parcours</h1>
     </div>
   </div>
 
-  <section class="section">
+  <section class="section" style="background-color: #f8f9fa;">
     <div class="container" data-aos="fade-up" data-aos-delay="100">
       <div class="section-title mb-4">
-        <h2>Parcours de votre compte</h2>
+        <h2 style="color: #102c59; border-bottom: 3px solid #d52e28; padding-bottom: 10px;">Parcours de votre compte</h2>
       </div>
 
       {% if parcours is defined and parcours|length > 0 %}
         <div class="table-responsive">
-          <table class="table table-striped table-hover">
-            <thead class="table-dark sticky-top">
+          <table class="table table-hover" style="border: 1px solid #dee2e6;">
+            <thead class="sticky-top" style="background-color: #102c59; color: white;">
               <tr>
-                <th>ID</th>
-                <th>Type</th>
-                <th>Titre</th>
-                <th>Dates</th>
-                <th>Détails</th>
-                <th>Projet associé</th>
+                <th style="border-color: #0d2347;">ID</th>
+                <th style="border-color: #0d2347;">Type</th>
+                <th style="border-color: #0d2347;">Titre</th>
+                <th style="border-color: #0d2347;">Dates</th>
+                <th style="border-color: #0d2347;">Détails</th>
+                <th style="border-color: #0d2347;">Projet associé</th>
               </tr>
             </thead>
             <tbody>
               {% for p in parcours %}
-                <tr>
-                  <td>{{ p.id }}</td>
-                  <td>{{ p.typeParcours }}</td>
-                  <td>{{ p.titre }}</td>
+                <tr style="background-color: white;">
                   <td>
-                    {% if p.dateDebut %}{{ p.dateDebut|date('d/m/Y') }}{% endif %}
-                    {% if p.dateFin %} → {{ p.dateFin|date('d/m/Y') }}{% endif %}
+                    <span class="badge" style="background-color: #9dbbce; color: #102c59;">{{ p.id }}</span>
                   </td>
                   <td>
-                    <div><strong>Description:</strong> {{ p.description|slice(0,120) }}{% if p.description|length > 120 %}...{% endif %}</div>
-                    <div class="mt-1 small text-muted">
-                      {% if p.typeParcours == 'scolaire' %}
-                        Établissement: {{ p.etablissement }} · Diplôme: {{ p.diplome }} · Spécialité: {{ p.specialite }}
-                      {% elseif p.typeParcours == 'professionnel' %}
-                        Entreprise: {{ p.entreprise }} · Poste: {{ p.poste }} · Contrat: {{ p.typeContrat }}
-                      {% else %}
-                        Organisme: {{ p.etablissement }} · Certification: {{ p.diplome }}
+                    {% if p.typeParcours == 'scolaire' %}
+                      <span class="badge" style="background-color: #d52e28; color: white;">
+                        <i class="fas fa-graduation-cap me-1"></i>Scolaire
+                      </span>
+                    {% elseif p.typeParcours == 'professionnel' %}
+                      <span class="badge" style="background-color: #102c59; color: white;">
+                        <i class="fas fa-briefcase me-1"></i>Professionnel
+                      </span>
+                    {% else %}
+                      <span class="badge" style="background-color: #9dbbce; color: #102c59;">
+                        <i class="fas fa-certificate me-1"></i>Formation
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <strong style="color: #102c59;">{{ p.titre }}</strong>
+                  </td>
+                  <td>
+                    <div class="timeline-dates">
+                      {% if p.dateDebut %}
+                        <div class="date-item mb-1">
+                          <i class="fas fa-play-circle me-1" style="color: #9dbbce;"></i>
+                          <span style="color: #102c59; font-weight: 500;">{{ p.dateDebut|date('d/m/Y') }}</span>
+                        </div>
+                      {% endif %}
+                      {% if p.dateFin %}
+                        <div class="date-item">
+                          <i class="fas fa-flag-checkered me-1" style="color: #9dbbce;"></i>
+                          <span style="color: #555;">{{ p.dateFin|date('d/m/Y') }}</span>
+                        </div>
+                      {% endif %}
+                      {% if p.dateDebut and p.dateFin %}
+                        <div class="timeline-bar mt-2" style="height: 4px; background-color: #9dbbce; border-radius: 2px;"></div>
                       {% endif %}
                     </div>
                   </td>
                   <td>
+                    <div class="parcours-details">
+                      <!-- Description -->
+                      <div class="description mb-2">
+                        <i class="fas fa-align-left me-1" style="color: #9dbbce; font-size: 0.9em;"></i>
+                        <span style="color: #555;">{{ p.description|slice(0,120) }}{% if p.description|length > 120 %}...{% endif %}</span>
+                      </div>
+                      
+                      <!-- Détails selon le type -->
+                      <div class="details-card p-2" style="background-color: #f0f4f8; border-radius: 6px; border-left: 3px solid #d52e28;">
+                        {% if p.typeParcours == 'scolaire' %}
+                          <div class="detail-item">
+                            <i class="fas fa-university me-1" style="color: #102c59;"></i>
+                            <span style="color: #102c59; font-weight: 500;">{{ p.etablissement }}</span>
+                          </div>
+                          <div class="detail-item mt-1">
+                            <i class="fas fa-scroll me-1" style="color: #102c59;"></i>
+                            <span style="color: #102c59;">{{ p.diplome }}</span>
+                            {% if p.specialite %}
+                              <span class="badge ms-2" style="background-color: #9dbbce; color: #102c59; font-size: 0.75em;">
+                                {{ p.specialite }}
+                              </span>
+                            {% endif %}
+                          </div>
+                          
+                        {% elseif p.typeParcours == 'professionnel' %}
+                          <div class="detail-item">
+                            <i class="fas fa-building me-1" style="color: #102c59;"></i>
+                            <span style="color: #102c59; font-weight: 500;">{{ p.entreprise }}</span>
+                          </div>
+                          <div class="detail-item mt-1">
+                            <i class="fas fa-user-tie me-1" style="color: #102c59;"></i>
+                            <span style="color: #102c59;">{{ p.poste }}</span>
+                            {% if p.typeContrat %}
+                              <span class="badge ms-2" style="background-color: #d52e28; color: white; font-size: 0.75em;">
+                                {{ p.typeContrat }}
+                              </span>
+                            {% endif %}
+                          </div>
+                          
+                        {% else %}
+                          <div class="detail-item">
+                            <i class="fas fa-chalkboard-teacher me-1" style="color: #102c59;"></i>
+                            <span style="color: #102c59; font-weight: 500;">{{ p.etablissement }}</span>
+                          </div>
+                          <div class="detail-item mt-1">
+                            <i class="fas fa-certificate me-1" style="color: #102c59;"></i>
+                            <span style="color: #102c59;">{{ p.diplome }}</span>
+                            {% if p.specialite %}
+                              <span class="badge ms-2" style="background-color: #9dbbce; color: #102c59; font-size: 0.75em;">
+                                {{ p.specialite }}
+                              </span>
+                            {% endif %}
+                          </div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <td>
                     {% if p.projets is defined and p.projets|length > 0 %}
-                      {% for proj in p.projets %}
-                        <div><a href="{{ path('front_projets') }}#projet-{{ proj.id }}">{{ proj.titre }}</a></div>
-                      {% endfor %}
+                      <div class="projets-list">
+                        {% for proj in p.projets %}
+                          <a href="{{ path('front_mesprojets') }}#projet-{{ proj.id }}" 
+                             class="projet-link d-block mb-2 p-2" 
+                             style="background-color: #f0f4f8; border-radius: 6px; border: 1px solid #9dbbce; color: #102c59; text-decoration: none; transition: all 0.3s ease;">
+                            <div class="d-flex align-items-center">
+                              <i class="fas fa-project-diagram me-2" style="color: #d52e28;"></i>
+                              <div>
+                                <strong>{{ proj.titre|slice(0,30) }}{% if proj.titre|length > 30 %}...{% endif %}</strong>
+                                <div class="small" style="color: #9dbbce;">
+                                  {{ proj.type }}
+                                </div>
+                              </div>
+                            </div>
+                          </a>
+                        {% endfor %}
+                      </div>
                     {% else %}
-                      <span class="text-muted">-</span>
+                      <div class="text-center py-2">
+                        <i class="fas fa-times-circle mb-2" style="color: #9dbbce; font-size: 1.5em;"></i>
+                        <div class="small" style="color: #9dbbce;">Aucun projet</div>
+                      </div>
                     {% endif %}
                   </td>
                 </tr>
@@ -65,14 +161,210 @@
           </table>
         </div>
       {% else %}
-        <div class="alert alert-info">
-          <h4 class="alert-heading">Aucun parcours trouvé</h4>
-          <p>Vous n'avez pas encore de parcours enregistré.</p>
+        <div class="alert" style="background-color: #9dbbce; border: 1px solid #8aa9c0; color: #102c59;">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-info-circle me-3" style="font-size: 1.5em;"></i>
+            <div>
+              <h4 class="alert-heading mb-1" style="color: #102c59;">Aucun parcours trouvé</h4>
+              <p class="mb-0">Vous n'avez pas encore de parcours enregistré.</p>
+            </div>
+          </div>
         </div>
       {% endif %}
     </div>
   </section>
 </main>
 
-{% endblock %}
+<style>
+  /* Variables pour la charte graphique */
+  :root {
+    --color-light-blue: #9dbbce;
+    --color-dark-blue: #102c59;
+    --color-red: #d52e28;
+    --color-light-bg: #f8f9fa;
+    --color-hover-bg: #f0f4f8;
+  }
+  
+  .sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .table-hover tbody tr:hover {
+    background-color: #f0f4f8 !important;
+    transition: background-color 0.3s ease;
+  }
+  
+  /* Style pour les badges */
+  .badge {
+    font-weight: 500;
+    padding: 0.4em 0.8em;
+    border-radius: 4px;
+  }
+  
+  /* Style pour les timeline */
+  .timeline-dates {
+    position: relative;
+  }
+  
+  .date-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .timeline-bar {
+    position: relative;
+  }
+  
+  .timeline-bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-red);
+    border-radius: 50%;
+  }
+  
+  .timeline-bar::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-dark-blue);
+    border-radius: 50%;
+  }
+  
+  /* Style pour les détails */
+  .parcours-details .description {
+    line-height: 1.4;
+  }
+  
+  .detail-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Style pour les liens de projets */
+  .projet-link:hover {
+    background-color: var(--color-dark-blue) !important;
+    color: white !important;
+    transform: translateX(5px);
+    border-color: var(--color-dark-blue) !important;
+  }
+  
+  .projet-link:hover i {
+    color: white !important;
+  }
+  
+  .projet-link:hover .small {
+    color: var(--color-light-blue) !important;
+  }
+  
+  /* Animation pour les lignes du tableau */
+  table td, table th {
+    padding: 15px;
+    vertical-align: middle;
+    transition: all 0.3s ease;
+  }
+  
+  /* Style pour l'alerte */
+  .alert {
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .table-responsive {
+      border: 0;
+    }
+    
+    table {
+      display: block;
+    }
+    
+    thead {
+      display: none;
+    }
+    
+    tbody, tr, td {
+      display: block;
+      width: 100%;
+    }
+    
+    tr {
+      margin-bottom: 20px;
+      border: 1px solid var(--color-light-blue) !important;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    td {
+      text-align: left;
+      border: none;
+      position: relative;
+      padding-left: 50%;
+    }
+    
+    td::before {
+      content: attr(data-label);
+      position: absolute;
+      left: 15px;
+      width: 45%;
+      padding-right: 10px;
+      font-weight: bold;
+      color: var(--color-dark-blue);
+    }
+  }
+</style>
 
+<script>
+// Rendre le tableau responsive
+document.addEventListener('DOMContentLoaded', function() {
+  // Ajouter des labels pour le responsive
+  const headers = document.querySelectorAll('thead th');
+  const rows = document.querySelectorAll('tbody tr');
+  
+  if (window.innerWidth <= 768) {
+    headers.forEach((header, index) => {
+      const label = header.textContent;
+      rows.forEach(row => {
+        const cell = row.querySelectorAll('td')[index];
+        if (cell) {
+          cell.setAttribute('data-label', label);
+        }
+      });
+    });
+  }
+  
+  // Animation pour les liens de projets
+  const projetLinks = document.querySelectorAll('.projet-link');
+  projetLinks.forEach(link => {
+    link.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateX(5px)';
+    });
+    
+    link.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateX(0)';
+    });
+  });
+  
+  // Animation pour les lignes du tableau
+  const tableRows = document.querySelectorAll('tbody tr');
+  tableRows.forEach(row => {
+    row.addEventListener('mouseenter', function() {
+      this.style.boxShadow = '0 4px 12px rgba(16, 44, 89, 0.1)';
+    });
+    
+    row.addEventListener('mouseleave', function() {
+      this.style.boxShadow = 'none';
+    });
+  });
+});
+</script>
+{% endblock %}

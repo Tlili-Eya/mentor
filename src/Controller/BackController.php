@@ -2,9 +2,19 @@
 
 namespace App\Controller;
 
+use App\Entity\Projet;
+use App\Entity\Ressource;
+use App\Repository\ProjetRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\Parcours;
+use App\Repository\ParcoursRepository;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 #[Route('/admin', name: 'back_')]
 final class BackController extends AbstractController
@@ -21,11 +31,7 @@ final class BackController extends AbstractController
         return $this->render('back/about.html.twig');
     }
 
-    #[Route('/courses', name: 'courses')]
-    public function courses(): Response
-    {
-        return $this->render('back/courses.html.twig');
-    }
+
 
     #[Route('/course-details', name: 'course_details')]
     public function courseDetails(): Response
@@ -33,10 +39,51 @@ final class BackController extends AbstractController
         return $this->render('back/course-details.html.twig');
     }
 
-    #[Route('/instructors', name: 'instructors')]
-    public function instructors(): Response
+#[Route('/projets', name: 'projets')]
+public function projets(ProjetRepository $projetRepository, Request $request): Response
+{
+    // Récupérer les paramètres de recherche et tri
+    $search = $request->query->get('search', '');
+    $sort = $request->query->get('sort', '');
+    
+    // Utiliser la nouvelle méthode du repository
+    $projets = $projetRepository->findBySearchAndSort($search, $sort);
+    
+    return $this->render('back/projets.html.twig', [
+        'projets' => $projets,
+    ]);
+}
+
+    #[Route('/projets/export-pdf', name: 'projets_export_pdf', methods: ['GET'])]
+    public function exportProjetsPdf(ProjetRepository $projetRepository, Request $request): Response
     {
-        return $this->render('back/instructors.html.twig');
+        $search = $request->query->get('search', '');
+        $sort = $request->query->get('sort', '');
+
+        $projets = $projetRepository->findBySearchAndSort($search, $sort);
+
+        // Render HTML for PDF
+        $html = $this->renderView('back/projets_pdf.html.twig', [
+            'projets' => $projets,
+        ]);
+
+        if (!class_exists(Dompdf::class)) {
+            $this->addFlash('error', 'Dompdf non installé. Exécutez : composer require dompdf/dompdf');
+            return $this->redirectToRoute('back_projets');
+        }
+
+        $options = new Options();
+        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $output = $dompdf->output();
+
+        return new Response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="projets.pdf"'
+        ]);
     }
 
     #[Route('/instructor-profile', name: 'instructor_profile')]
@@ -74,4 +121,156 @@ final class BackController extends AbstractController
     {
         return $this->render('back/contact.html.twig');
     }
+
+    #[Route('/update-projet/{id}', name: 'update_projet', methods: ['POST'])]
+    public function updateProjet(Request $request, Projet $projet, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $projet->setTitre($data['titre'] ?? $projet->getTitre());
+        $projet->setType($data['type'] ?? $projet->getType());
+        $projet->setDescription($data['description'] ?? $projet->getDescription());
+        $projet->setTechnologies($data['technologies'] ?? $projet->getTechnologies());
+        $entityManager->flush();
+
+        return new JsonResponse(['status' => 'Projet mis à jour avec succès']);
+    }
+
+    #[Route('/delete-projet/{id}', name: 'delete_projet', methods: ['DELETE'])]
+    public function deleteProjet(Projet $projet, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $entityManager->remove($projet);
+        $entityManager->flush();
+
+        return new JsonResponse(['status' => 'Projet supprimé avec succès']);
+    }
+
+    #[Route('/update-ressource/{id}', name: 'update_ressource', methods: ['POST'])]
+    public function updateRessource(Request $request, Ressource $ressource, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $ressource->setNom($data['nom'] ?? $ressource->getNom());
+        $ressource->setDescription($data['description'] ?? $ressource->getDescription());
+        $ressource->setUrlRessource($data['urlRessource'] ?? $ressource->getUrlRessource());
+        $entityManager->flush();
+
+        return new JsonResponse(['status' => 'Ressource mise à jour avec succès']);
+    }
+
+    #[Route('/delete-ressource/{id}', name: 'delete_ressource', methods: ['DELETE'])]
+    public function deleteRessource(Ressource $ressource, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $entityManager->remove($ressource);
+        $entityManager->flush();
+
+        return new JsonResponse(['status' => 'Ressource supprimée avec succès']);
+    }
+
+
+    // BackController.php
+#[Route('/parcours', name: 'parcours')]
+public function parcours(ParcoursRepository $parcoursRepository, Request $request): Response
+{
+    // Récupérer les paramètres de recherche et tri
+    $search = $request->query->get('search', '');
+    $sort = $request->query->get('sort', '');
+    
+    // Utiliser une nouvelle méthode du repository
+    $parcours = $parcoursRepository->findBySearchAndSort($search, $sort);
+    
+    return $this->render('back/parcours.html.twig', [
+        'parcours' => $parcours,
+    ]);
+}
+
+    #[Route('/parcours/export-pdf', name: 'parcours_export_pdf', methods: ['GET'])]
+    public function exportParcoursPdf(ParcoursRepository $parcoursRepository, Request $request): Response
+    {
+        $search = $request->query->get('search', '');
+        $sort = $request->query->get('sort', '');
+
+        $parcours = $parcoursRepository->findBySearchAndSort($search, $sort);
+
+        $html = $this->renderView('back/parcours_pdf.html.twig', [
+            'parcours' => $parcours,
+        ]);
+
+        if (!class_exists(Dompdf::class)) {
+            $this->addFlash('error', 'Dompdf non installé. Exécutez : composer require dompdf/dompdf');
+            return $this->redirectToRoute('back_parcours');
+        }
+
+        $options = new Options();
+        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $output = $dompdf->output();
+
+        return new Response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="parcours.pdf"'
+        ]);
+    }
+
+#[Route('/update-parcours/{id}', name: 'update_parcours', methods: ['POST'])]
+public function updateParcours(Request $request, Parcours $parcours, EntityManagerInterface $entityManager): JsonResponse
+{
+    $data = json_decode($request->getContent(), true);
+    
+    // Mettre à jour les champs de base
+    $parcours->setTitre($data['titre'] ?? $parcours->getTitre());
+    $parcours->setTypeParcours($data['type_parcours'] ?? $parcours->getTypeParcours());
+    $parcours->setDescription($data['description'] ?? $parcours->getDescription());
+    
+    // Mettre à jour les champs spécifiques
+    if (isset($data['etablissement'])) {
+        $parcours->setEtablissement($data['etablissement']);
+    }
+    if (isset($data['diplome'])) {
+        $parcours->setDiplome($data['diplome']);
+    }
+    if (isset($data['specialite'])) {
+        $parcours->setSpecialite($data['specialite']);
+    }
+    if (isset($data['entreprise'])) {
+        $parcours->setEntreprise($data['entreprise']);
+    }
+    if (isset($data['poste'])) {
+        $parcours->setPoste($data['poste']);
+    }
+    if (isset($data['type_contrat'])) {
+        $parcours->setTypeContrat($data['type_contrat']);
+    }
+    
+    // Mettre à jour les dates
+    if (isset($data['date_debut']) && !empty($data['date_debut'])) {
+        try {
+            $parcours->setDateDebut(new \DateTime($data['date_debut']));
+        } catch (\Exception $e) {
+            // Gérer l'erreur si nécessaire
+        }
+    }
+    
+    if (isset($data['date_fin']) && !empty($data['date_fin'])) {
+        try {
+            $parcours->setDateFin(new \DateTime($data['date_fin']));
+        } catch (\Exception $e) {
+            // Gérer l'erreur si nécessaire
+        }
+    }
+    
+    $entityManager->flush();
+
+    return new JsonResponse(['status' => 'Parcours mis à jour avec succès']);
+}
+
+#[Route('/delete-parcours/{id}', name: 'delete_parcours', methods: ['DELETE'])]
+public function deleteParcours(Parcours $parcours, EntityManagerInterface $entityManager): JsonResponse
+{
+    $entityManager->remove($parcours);
+    $entityManager->flush();
+
+    return new JsonResponse(['status' => 'Parcours supprimé avec succès']);
+}
 }

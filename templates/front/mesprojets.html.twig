@@ -1,0 +1,728 @@
+{% extends 'front/base.html.twig' %}
+{% block title %}Mes Projets - MentorAI{% endblock %}
+
+{% block body %}
+<main class="main">
+  <div class="page-title" style="background-color: #9dbbce;">
+    <div class="container d-lg-flex justify-content-between align-items-center py-4">
+      <h1 class="mb-2 mb-lg-0" style="color: #102c59;">Mes Projets</h1>
+    </div>
+  </div>
+
+  <section class="section" style="background-color: #f8f9fa;">
+    <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <div class="section-title mb-4">
+        <h2 style="color: #102c59; border-bottom: 3px solid #d52e28; padding-bottom: 10px;">Projets de votre compte</h2>
+      </div>
+
+      {% if projets is defined and projets|length > 0 %}
+        <div class="table-responsive">
+          <table class="table table-hover" style="border: 1px solid #dee2e6;">
+            <thead class="sticky-top" style="background-color: #102c59; color: white;">
+              <tr>
+                <th style="border-color: #0d2347;">ID</th>
+                <th style="border-color: #0d2347;">Titre</th>
+                <th style="border-color: #0d2347;">Type</th>
+                <th style="border-color: #0d2347;">Technologies</th>
+                <th style="border-color: #0d2347;">Dates</th>
+                <th style="border-color: #0d2347;">Ressources</th>
+                <th style="border-color: #0d2347;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for projet in projets %}
+                <tr style="background-color: white;">
+                  <td>{{ projet.id }}</td>
+                  <td><strong style="color: #102c59;">{{ projet.titre }}</strong></td>
+                  <td><span class="badge" style="background-color: #9dbbce; color: #102c59;">{{ projet.type }}</span></td>
+                  <td>{{ projet.technologies }}</td>
+                  <td>
+                    {% if projet.dateDebut %}
+                      <span style="color: #102c59;">{{ projet.dateDebut|date('d/m/Y') }}</span>
+                    {% endif %}
+                    {% if projet.dateFin %}
+                      <span class="text-muted"> → {{ projet.dateFin|date('d/m/Y') }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if projet.ressources|length > 0 %}
+                      <button class="btn btn-sm" 
+                              data-bs-toggle="collapse" 
+                              data-bs-target="#res-{{ projet.id }}"
+                              style="background-color: #d52e28; color: white; border-color: #b32420;">
+                        <i class="fas fa-file-alt me-1"></i>{{ projet.ressources|length }} ressource(s)
+                      </button>
+                    {% else %}
+                      <span class="badge" style="background-color: #9dbbce; color: #102c59;">0</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <button class="btn btn-sm" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#editProjetModal"
+                            data-projet-id="{{ projet.id }}"
+                            onclick="loadProjetData({{ projet.id }})"
+                            style="background-color: #102c59; color: white; border-color: #0d2347; margin-right: 5px;">
+                      <i class="fas fa-edit me-1"></i>Modifier
+                    </button>
+                    <button class="btn btn-sm btn-danger" 
+                            onclick="deleteProjet({{ projet.id }})"
+                            style="background-color: #d52e28; color: white; border-color: #b32420;">
+                      <i class="fas fa-trash me-1"></i>Supprimer
+                    </button>
+                  </td>
+                </tr>
+                {% if projet.ressources|length > 0 %}
+                  <tr class="collapse" id="res-{{ projet.id }}">
+                    <td colspan="6" class="p-0">
+                      <div class="p-4" style="background-color: #f0f4f8;">
+                        <h6 style="color: #102c59; border-left: 4px solid #d52e28; padding-left: 10px;">
+                          <strong>Ressources pour {{ projet.titre }}</strong>
+                        </h6>
+                        <div class="row mt-3">
+                          {% for r in projet.ressources %}
+                            <div class="col-md-6 mb-4">
+                              <div class="card h-100 shadow-sm" style="border: 1px solid #9dbbce; border-top: 3px solid #102c59;">
+                                <div class="card-body">
+                                  <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="card-title mb-0" style="color: #102c59;">
+                                      <strong>{{ r.nom }}</strong>
+                                    </h6>
+                                    <span class="badge" style="background-color: #9dbbce; color: #102c59;">
+                                      {{ r.typeRessource ? r.typeRessource.name : '' }}
+                                    </span>
+                                  </div>
+                                  
+                                  {% if r.description %}
+                                    <p class="card-text small mb-3" style="color: #555;">
+                                      <i class="fas fa-align-left me-1" style="color: #9dbbce;"></i>
+                                      {{ r.description }}
+                                    </p>
+                                  {% endif %}
+                                  
+                                  {# Vérifier si c'est une URL YouTube #}
+                                  {% if 'youtube.com' in r.urlRessource or 'youtu.be' in r.urlRessource %}
+                                    {# Extraire l'ID de la vidéo YouTube #}
+                                    {% set youtube_id = null %}
+                                    
+                                    {# Pattern pour youtube.com/watch?v=VIDEO_ID #}
+                                    {% if 'youtube.com/watch?v=' in r.urlRessource %}
+                                      {% set youtube_id = r.urlRessource|split('v=')|last|split('&')|first %}
+                                    {# Pattern pour youtu.be/VIDEO_ID #}
+                                    {% elseif 'youtu.be/' in r.urlRessource %}
+                                      {% set youtube_id = r.urlRessource|split('youtu.be/')|last|split('?')|first %}
+                                    {# Pattern pour youtube.com/embed/VIDEO_ID #}
+                                    {% elseif 'youtube.com/embed/' in r.urlRessource %}
+                                      {% set youtube_id = r.urlRessource|split('embed/')|last|split('?')|first %}
+                                    {% endif %}
+                                    
+                                    {# Si on a trouvé un ID YouTube, afficher le lecteur #}
+                                    {% if youtube_id %}
+                                      <div class="ratio ratio-16x9 mb-3">
+                                        <iframe 
+                                          src="https://www.youtube.com/embed/{{ youtube_id }}" 
+                                          title="YouTube video player" 
+                                          frameborder="0" 
+                                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                          allowfullscreen>
+                                        </iframe>
+                                      </div>
+                                      <p class="small mb-2">
+                                        <i class="fab fa-youtube me-1" style="color: #d52e28;"></i>
+                                        <a href="{{ r.urlRessource }}" target="_blank" class="text-decoration-none" style="color: #102c59;">
+                                          <strong>Voir sur YouTube</strong>
+                                        </a>
+                                      </p>
+                                    {% else %}
+                                      {# Si on ne peut pas extraire l'ID, montrer juste le lien #}
+                                      <p class="small mb-2">
+                                        <i class="fas fa-link me-1" style="color: #9dbbce;"></i>
+                                        <a href="{{ r.urlRessource }}" target="_blank" class="text-decoration-none" style="color: #102c59;">
+                                          {{ r.urlRessource|slice(0, 50) }}...
+                                        </a>
+                                      </p>
+                                    {% endif %}
+                                  {% else %}
+                                    {# Pour les autres types de liens #}
+                                    <p class="small mb-2">
+                                      <i class="fas fa-link me-1" style="color: #9dbbce;"></i>
+                                      <a href="{{ r.urlRessource }}" target="_blank" class="text-decoration-none" style="color: #102c59;">
+                                        {{ r.urlRessource|slice(0, 50) }}...
+                                      </a>
+                                    </p>
+                                  {% endif %}
+                                  
+                                  <div class="small mt-3" style="color: #9dbbce;">
+                                    <i class="far fa-calendar me-1"></i>
+                                    Ajouté le {{ r.dateCreation ? r.dateCreation|date('d/m/Y') : '' }}
+                                  </div>
+                                  <div class="mt-3 d-flex gap-2">
+                                    <button class="btn btn-sm" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editRessourceModal"
+                                            data-ressource-id="{{ r.id }}"
+                                            onclick="loadRessourceData({{ r.id }})"
+                                            style="background-color: #102c59; color: white; border-color: #0d2347; flex: 1;">
+                                      <i class="fas fa-edit me-1"></i>Modifier
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" 
+                                            onclick="deleteRessource({{ r.id }})"
+                                            style="background-color: #d52e28; color: white; border-color: #b32420;">
+                                      <i class="fas fa-trash"></i>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          {% endfor %}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="alert" style="background-color: #9dbbce; border: 1px solid #8aa9c0; color: #102c59;">
+          <h4 class="alert-heading" style="color: #102c59;">
+            <i class="fas fa-info-circle me-2"></i>Aucun projet trouvé
+          </h4>
+          <p class="mb-0">Vous n'avez pas encore de projet enregistré.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+</main>
+
+<!-- Modal Édition Projet -->
+<div class="modal fade" id="editProjetModal" tabindex="-1" aria-labelledby="editProjetModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #102c59; color: white;">
+        <h5 class="modal-title" id="editProjetModalLabel">Modifier le projet</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editProjetForm">
+        <div class="modal-body">
+          <input type="hidden" id="editProjetId">
+          
+          <div class="mb-3">
+            <label for="editProjetTitre" class="form-label">Titre</label>
+            <input type="text" class="form-control" id="editProjetTitre" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editProjetType" class="form-label">Type</label>
+            <input type="text" class="form-control" id="editProjetType" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editProjetTechnologies" class="form-label">Technologies</label>
+            <input type="text" class="form-control" id="editProjetTechnologies" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editProjetDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="editProjetDescription" rows="3"></textarea>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="editProjetDateDebut" class="form-label">Date début</label>
+              <input type="date" class="form-control" id="editProjetDateDebut">
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label for="editProjetDateFin" class="form-label">Date fin</label>
+              <input type="date" class="form-control" id="editProjetDateFin">
+            </div>
+          </div>
+          
+          <div id="editProjetErrors" style="color: #d52e28;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn" onclick="submitEditProjet()" style="background-color: #102c59; color: white;">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Édition Ressource -->
+<div class="modal fade" id="editRessourceModal" tabindex="-1" aria-labelledby="editRessourceModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #102c59; color: white;">
+        <h5 class="modal-title" id="editRessourceModalLabel">Modifier la ressource</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editRessourceForm">
+        <div class="modal-body">
+          <input type="hidden" id="editRessourceId">
+          
+          <div class="mb-3">
+            <label for="editRessourceNom" class="form-label">Nom</label>
+            <input type="text" class="form-control" id="editRessourceNom" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editRessourceType" class="form-label">Type</label>
+            <select class="form-control" id="editRessourceType" required>
+              <option value="">Sélectionner un type</option>
+              <option value="VIDEO">Vidéo</option>
+              <option value="DOCUMENT">Document</option>
+              <option value="ARTICLE">Article</option>
+              <option value="LIEN">Lien</option>
+              <option value="LIVRE">Livre</option>
+              <option value="COURS">Cours</option>
+              <option value="OTHER">Autre</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editRessourceUrl" class="form-label">URL</label>
+            <input type="url" class="form-control" id="editRessourceUrl" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editRessourceDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="editRessourceDescription" rows="3"></textarea>
+          </div>
+          
+          <div id="editRessourceErrors" style="color: #d52e28;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn" onclick="submitEditRessource()" style="background-color: #102c59; color: white;">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de notification (succès/erreur) -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" id="notificationContent">
+      <div class="modal-body text-center py-5">
+        <div id="notificationIcon" class="mb-3"></div>
+        <h5 id="notificationTitle" class="mb-2"></h5>
+        <p id="notificationMessage" class="mb-0"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation suppression -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #d52e28; color: white;">
+        <h5 class="modal-title" id="confirmDeleteLabel">Confirmer la suppression</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmDeleteMessage" class="mb-0"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn" id="confirmDeleteBtn" style="background-color: #d52e28; color: white;">Supprimer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Variables pour la charte graphique */
+  :root {
+    --color-light-blue: #9dbbce;
+    --color-dark-blue: #102c59;
+    --color-red: #d52e28;
+    --color-light-bg: #f8f9fa;
+    --color-hover-bg: #f0f4f8;
+  }
+  
+  .sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .table-hover tbody tr:hover {
+    background-color: #f0f4f8 !important;
+    transition: background-color 0.3s ease;
+  }
+  
+  .collapse {
+    display: table-row;
+  }
+  
+  .collapse:not(.show) {
+    display: none;
+  }
+  
+  .ratio-16x9 {
+    --bs-aspect-ratio: 56.25%; /* 16:9 aspect ratio */
+  }
+  
+  .card {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(16, 44, 89, 0.1) !important;
+    border-color: var(--color-dark-blue) !important;
+  }
+  
+  iframe {
+    border-radius: 6px;
+    border: 1px solid var(--color-light-blue);
+  }
+  
+  .badge {
+    font-weight: 500;
+    padding: 0.4em 0.8em;
+    border-radius: 4px;
+  }
+  
+  .btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+  
+  /* Animation pour l'ouverture des ressources */
+  .collapse.show {
+    animation: fadeIn 0.5s ease;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Style pour les liens */
+  a[style*="color: #102c59"]:hover {
+    color: var(--color-red) !important;
+    text-decoration: underline !important;
+  }
+  
+  /* Style pour les bordures du tableau */
+  table td, table th {
+    padding: 12px 15px;
+    vertical-align: middle;
+  }
+  
+  /* Style pour les icônes */
+  .fas, .fab, .far {
+    transition: color 0.3s ease;
+  }
+</style>
+
+<script>
+// Fonction pour afficher une notification
+function showNotification(type, title, message) {
+  const notificationContent = document.getElementById('notificationContent');
+  const notificationIcon = document.getElementById('notificationIcon');
+  const notificationTitle = document.getElementById('notificationTitle');
+  const notificationMessage = document.getElementById('notificationMessage');
+
+  if (type === 'success') {
+    notificationContent.style.borderTop = '4px solid #28a745';
+    notificationIcon.innerHTML = '<i class="fas fa-check-circle" style="font-size: 3rem; color: #28a745;"></i>';
+    notificationTitle.style.color = '#28a745';
+  } else if (type === 'error') {
+    notificationContent.style.borderTop = '4px solid #d52e28';
+    notificationIcon.innerHTML = '<i class="fas fa-times-circle" style="font-size: 3rem; color: #d52e28;"></i>';
+    notificationTitle.style.color = '#d52e28';
+  }
+
+  notificationTitle.textContent = title;
+  notificationMessage.textContent = message;
+
+  const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+  modal.show();
+
+  // Fermer automatiquement après 3 secondes
+  setTimeout(() => {
+    modal.hide();
+  }, 3000);
+}
+
+// Amélioration pour détecter plus de formats YouTube
+function extractYouTubeId(url) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /youtube\.com\/v\/([^&\n?#]+)/,
+    /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+    /youtu\.be\/([^&\n?#]+)/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  return null;
+}
+
+// Charger les données du projet pour l'édition
+async function loadProjetData(projetId) {
+  try {
+    const response = await fetch(`/api/projet/${projetId}`);
+    if (!response.ok) {
+      alert('Erreur lors du chargement du projet');
+      return;
+    }
+    
+    const data = await response.json();
+    document.getElementById('editProjetId').value = data.id;
+    document.getElementById('editProjetTitre').value = data.titre || '';
+    document.getElementById('editProjetType').value = data.type || '';
+    document.getElementById('editProjetTechnologies').value = data.technologies || '';
+    document.getElementById('editProjetDescription').value = data.description || '';
+    document.getElementById('editProjetDateDebut').value = data.dateDebut || '';
+    document.getElementById('editProjetDateFin').value = data.dateFin || '';
+    document.getElementById('editProjetErrors').innerHTML = '';
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert('Erreur lors du chargement du projet');
+  }
+}
+
+// Soumettre l'édition du projet
+async function submitEditProjet() {
+  const projetId = document.getElementById('editProjetId').value;
+  const data = {
+    titre: document.getElementById('editProjetTitre').value,
+    type: document.getElementById('editProjetType').value,
+    technologies: document.getElementById('editProjetTechnologies').value,
+    description: document.getElementById('editProjetDescription').value,
+    dateDebut: document.getElementById('editProjetDateDebut').value || null,
+    dateFin: document.getElementById('editProjetDateFin').value || null,
+  };
+
+  try {
+    const response = await fetch(`/api/projet/${projetId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      showNotification('success', 'Succès', 'Projet modifié avec succès');
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+    } else {
+      // Afficher les erreurs
+      let errorHtml = '<ul>';
+      for (const [field, message] of Object.entries(result.errors || {})) {
+        errorHtml += `<li>${message}</li>`;
+      }
+      errorHtml += '</ul>';
+      document.getElementById('editProjetErrors').innerHTML = errorHtml;
+    }
+  } catch (error) {
+    console.error('Erreur:', error);
+    showNotification('error', 'Erreur', 'Erreur lors de la modification du projet');
+  }
+}
+
+// Charger les données de la ressource pour l'édition
+async function loadRessourceData(ressourceId) {
+  try {
+    const response = await fetch(`/api/ressource/${ressourceId}`);
+    if (!response.ok) {
+      alert('Erreur lors du chargement de la ressource');
+      return;
+    }
+    
+    const data = await response.json();
+    document.getElementById('editRessourceId').value = data.id;
+    document.getElementById('editRessourceNom').value = data.nom || '';
+    document.getElementById('editRessourceType').value = data.type || '';
+    document.getElementById('editRessourceUrl').value = data.url || '';
+    document.getElementById('editRessourceDescription').value = data.description || '';
+    document.getElementById('editRessourceErrors').innerHTML = '';
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert('Erreur lors du chargement de la ressource');
+  }
+}
+
+// Soumettre l'édition de la ressource
+async function submitEditRessource() {
+  const ressourceId = document.getElementById('editRessourceId').value;
+  const data = {
+    nom: document.getElementById('editRessourceNom').value,
+    type: document.getElementById('editRessourceType').value,
+    url: document.getElementById('editRessourceUrl').value,
+    description: document.getElementById('editRessourceDescription').value,
+  };
+
+  try {
+    const response = await fetch(`/api/ressource/${ressourceId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      showNotification('success', 'Succès', 'Ressource modifiée avec succès');
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+    } else {
+      // Afficher les erreurs
+      let errorHtml = '<ul>';
+      for (const [field, message] of Object.entries(result.errors || {})) {
+        errorHtml += `<li>${message}</li>`;
+      }
+      errorHtml += '</ul>';
+      document.getElementById('editRessourceErrors').innerHTML = errorHtml;
+    }
+  } catch (error) {
+    console.error('Erreur:', error);
+    showNotification('error', 'Erreur', 'Erreur lors de la modification de la ressource');
+  }
+}
+
+// Supprimer une ressource
+async function deleteRessource(ressourceId) {
+  const confirmDeleteMessage = document.getElementById('confirmDeleteMessage');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  
+  confirmDeleteMessage.textContent = 'Êtes-vous sûr de vouloir supprimer cette ressource ?';
+  
+  const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+  modal.show();
+  
+  // Gérer le clic sur le bouton de suppression
+  const handleDelete = async () => {
+    modal.hide();
+    
+    try {
+      const response = await fetch(`/api/resource/delete/${ressourceId}`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showNotification('success', 'Succès', 'Ressource supprimée avec succès');
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
+      } else {
+        showNotification('error', 'Erreur', 'Erreur lors de la suppression de la ressource');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      showNotification('error', 'Erreur', 'Erreur lors de la suppression de la ressource');
+    }
+  };
+  
+  // Supprimer les anciens event listeners et en ajouter un nouveau
+  const newBtn = confirmDeleteBtn.cloneNode(true);
+  confirmDeleteBtn.parentNode.replaceChild(newBtn, confirmDeleteBtn);
+  document.getElementById('confirmDeleteBtn').addEventListener('click', handleDelete);
+}
+
+// Supprimer un projet
+async function deleteProjet(projetId) {
+  const confirmDeleteMessage = document.getElementById('confirmDeleteMessage');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  
+  confirmDeleteMessage.textContent = 'Êtes-vous sûr de vouloir supprimer ce projet ? Toutes les ressources associées seront également supprimées.';
+  
+  const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+  modal.show();
+  
+  // Gérer le clic sur le bouton de suppression
+  const handleDelete = async () => {
+    modal.hide();
+    
+    try {
+      const response = await fetch(`/api/projet/delete/${projetId}`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showNotification('success', 'Succès', 'Projet supprimé avec succès');
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
+      } else {
+        showNotification('error', 'Erreur', 'Erreur lors de la suppression du projet');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      showNotification('error', 'Erreur', 'Erreur lors de la suppression du projet');
+    }
+  };
+  
+  // Supprimer les anciens event listeners et en ajouter un nouveau
+  const newBtn = confirmDeleteBtn.cloneNode(true);
+  confirmDeleteBtn.parentNode.replaceChild(newBtn, confirmDeleteBtn);
+  document.getElementById('confirmDeleteBtn').addEventListener('click', handleDelete);
+}
+
+// Animation pour les boutons de ressources (code existant)
+document.addEventListener('DOMContentLoaded', function() {
+  const resourceButtons = document.querySelectorAll('[data-bs-toggle="collapse"]');
+  
+  resourceButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const targetId = this.getAttribute('data-bs-target');
+      const target = document.querySelector(targetId);
+      
+      // Changer l'icône du bouton
+      const icon = this.querySelector('i');
+      if (target.classList.contains('show')) {
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-file-alt');
+      } else {
+        icon.classList.remove('fa-file-alt');
+        icon.classList.add('fa-chevron-up');
+      }
+    });
+  });
+  
+  // Animation pour les cartes au survol
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card => {
+    card.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-5px)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+    });
+  });
+});
+</script>
+{% endblock %}

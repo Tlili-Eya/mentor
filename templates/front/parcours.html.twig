@@ -1,0 +1,388 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Parcours - MentorAI{% endblock %}
+
+{% block body %}
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title light-background">
+    <div class="container d-lg-flex justify-content-between align-items-center">
+      <h1 class="mb-2 mb-lg-0">Parcours</h1>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{{ path('front_home') }}">Home</a></li>
+          <li class="current">Parcours</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+  <!-- End Page Title -->
+
+  <!-- Add Parcours Section -->
+  <section id="add-parcours" class="enroll section">
+
+    <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+      <div class="section-title text-center mb-5">
+        <h2>Créer un Nouveau Parcours</h2>
+        <p>Ajoutez un parcours pour enrichir votre profil</p>
+      </div>
+
+      <!-- Flash Messages -->
+      {% if app.flashes %}
+        {% for label, messages in app.flashes %}
+          {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+              {% if label == 'error' %}
+                <i class="bi bi-exclamation-circle"></i>
+              {% elseif label == 'success' %}
+                <i class="bi bi-check-circle"></i>
+              {% endif %}
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endfor %}
+      {% endif %}
+
+      <!-- Form -->
+      <div class="row justify-content-center" data-aos="fade-up" data-aos-delay="200">
+        <div class="col-lg-8">
+          <div class="enrollment-form-wrapper">
+            <h4 class="mb-4"><i class="bi bi-file-earmark-text"></i> Informations du Parcours</h4>
+            <form method="POST" action="{{ path('front_parcours') }}" class="enrollment-form" id="parcours-form">
+              
+              <div class="form-group mb-3">
+                <label for="type_parcours" class="form-label">Type de Parcours <span class="text-danger">*</span></label>
+                <select class="form-control {% if errors.type_parcours is defined %}is-invalid{% endif %}" id="type_parcours" name="type_parcours" onchange="toggleFields()">
+                  <option value="">-- Sélectionnez un type --</option>
+                  <option value="scolaire" {% if (form_data.type_parcours ?? '') == 'scolaire' %}selected{% endif %}>Scolaire</option>
+                  <option value="professionnel" {% if (form_data.type_parcours ?? '') == 'professionnel' %}selected{% endif %}>Professionnel</option>
+                  <option value="formation" {% if (form_data.type_parcours ?? '') == 'formation' %}selected{% endif %}>Formation</option>
+                </select>
+                {% if errors.type_parcours is defined %}
+                  <div class="invalid-feedback d-block">
+                    {{ errors.type_parcours }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="titre" class="form-label">Titre du Parcours <span class="text-danger">*</span></label>
+                <input type="text" class="form-control {% if errors.titre is defined %}is-invalid{% endif %}" id="titre" name="titre" placeholder="Ex: Master en Informatique" value="{{ form_data.titre ?? '' }}">
+                {% if errors.titre is defined %}
+                  <div class="invalid-feedback d-block">
+                    {{ errors.titre }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="date_debut" class="form-label">Date de Début</label>
+                    <input type="date" class="form-control {% if errors.date_debut is defined %}is-invalid{% endif %}" id="date_debut" name="date_debut" value="{{ form_data.date_debut ?? '' }}">
+                    {% if errors.date_debut is defined %}
+                      <div class="invalid-feedback d-block">
+                        {{ errors.date_debut }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="date_fin" class="form-label">Date de Fin</label>
+                    <input type="date" class="form-control {% if errors.date_fin is defined %}is-invalid{% endif %}" id="date_fin" name="date_fin" value="{{ form_data.date_fin ?? '' }}">
+                    {% if errors.date_fin is defined %}
+                      <div class="invalid-feedback d-block">
+                        {{ errors.date_fin }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                <textarea class="form-control {% if errors.description is defined %}is-invalid{% endif %}" id="description" name="description" rows="5" placeholder="Décrivez votre parcours en détail...">{{ form_data.description ?? '' }}</textarea>
+                {% if errors.description is defined %}
+                  <div class="invalid-feedback d-block">
+                    {{ errors.description }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Champs pour Scolaire -->
+              <div id="scolaire-fields" class="hidden-fields" style="display: {% if (form_data.type_parcours ?? '') == 'scolaire' %}block{% else %}none{% endif %};">
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="etablissement" class="form-label">Établissement <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control {% if errors.etablissement is defined %}is-invalid{% endif %}" id="etablissement" name="etablissement" placeholder="Ex: Université Paris-Saclay" value="{{ form_data.etablissement ?? '' }}">
+                      {% if errors.etablissement is defined %}
+                        <div class="invalid-feedback d-block">
+                          {{ errors.etablissement }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="diplome" class="form-label">Diplôme <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control {% if errors.diplome is defined %}is-invalid{% endif %}" id="diplome" name="diplome" placeholder="Ex: Master 2 Informatique" value="{{ form_data.diplome ?? '' }}">
+                      {% if errors.diplome is defined %}
+                        <div class="invalid-feedback d-block">
+                          {{ errors.diplome }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group mb-3">
+                  <label for="specialite" class="form-label">Spécialité</label>
+                  <input type="text" class="form-control {% if errors.specialite is defined %}is-invalid{% endif %}" id="specialite" name="specialite" placeholder="Ex: Intelligence Artificielle" value="{{ form_data.specialite ?? '' }}">
+                  {% if errors.specialite is defined %}
+                    <div class="invalid-feedback d-block">
+                      {{ errors.specialite }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Champs pour Professionnel -->
+              <div id="professionnel-fields" class="hidden-fields" style="display: {% if (form_data.type_parcours ?? '') == 'professionnel' %}block{% else %}none{% endif %};">
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="entreprise" class="form-label">Entreprise <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control {% if errors.entreprise is defined %}is-invalid{% endif %}" id="entreprise" name="entreprise" placeholder="Ex: Google Inc." value="{{ form_data.entreprise ?? '' }}">
+                      {% if errors.entreprise is defined %}
+                        <div class="invalid-feedback d-block">
+                          {{ errors.entreprise }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="poste" class="form-label">Poste <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control {% if errors.poste is defined %}is-invalid{% endif %}" id="poste" name="poste" placeholder="Ex: Développeur Full Stack" value="{{ form_data.poste ?? '' }}">
+                      {% if errors.poste is defined %}
+                        <div class="invalid-feedback d-block">
+                          {{ errors.poste }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group mb-3">
+                  <label for="type_contrat" class="form-label">Type de Contrat</label>
+                  <select class="form-control {% if errors.type_contrat is defined %}is-invalid{% endif %}" id="type_contrat" name="type_contrat">
+                    <option value="">-- Sélectionnez --</option>
+                    <option value="CDI" {% if (form_data.type_contrat ?? '') == 'CDI' %}selected{% endif %}>CDI</option>
+                    <option value="CDD" {% if (form_data.type_contrat ?? '') == 'CDD' %}selected{% endif %}>CDD</option>
+                    <option value="Stage" {% if (form_data.type_contrat ?? '') == 'Stage' %}selected{% endif %}>Stage</option>
+                    <option value="Alternance" {% if (form_data.type_contrat ?? '') == 'Alternance' %}selected{% endif %}>Alternance</option>
+                    <option value="Freelance" {% if (form_data.type_contrat ?? '') == 'Freelance' %}selected{% endif %}>Freelance</option>
+                  </select>
+                  {% if errors.type_contrat is defined %}
+                    <div class="invalid-feedback d-block">
+                      {{ errors.type_contrat }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Champs pour Formation (montre tout) -->
+              <div id="formation-fields" class="hidden-fields" style="display: {% if (form_data.type_parcours ?? '') == 'formation' %}block{% else %}none{% endif %};">
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="etablissement_formation" class="form-label">Établissement/Organisme</label>
+                      <input type="text" class="form-control {% if errors.etablissement is defined %}is-invalid{% endif %}" id="etablissement_formation" name="etablissement" placeholder="Ex: OpenClassrooms" value="{{ form_data.etablissement ?? '' }}">
+                      {% if errors.etablissement is defined %}
+                        <div class="invalid-feedback d-block">
+                          {{ errors.etablissement }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="diplome_formation" class="form-label">Certification/Diplôme</label>
+                      <input type="text" class="form-control {% if errors.diplome is defined %}is-invalid{% endif %}" id="diplome_formation" name="diplome" placeholder="Ex: Certificat Développeur Web" value="{{ form_data.diplome ?? '' }}">
+                      {% if errors.diplome is defined %}
+                        <div class="invalid-feedback d-block">
+                          {{ errors.diplome }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group mb-3">
+                  <label for="specialite_formation" class="form-label">Spécialité/Domaine</label>
+                  <input type="text" class="form-control {% if errors.specialite is defined %}is-invalid{% endif %}" id="specialite_formation" name="specialite" placeholder="Ex: Développement Web" value="{{ form_data.specialite ?? '' }}">
+                  {% if errors.specialite is defined %}
+                    <div class="invalid-feedback d-block">
+                      {{ errors.specialite }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="text-center mt-4">
+                <button type="submit" class="btn-enroll">
+                  <span>Ajouter Parcours</span>
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- List of Parcours -->
+  <section id="list-parcours" class="section">
+    <div class="container" data-aos="fade-up" data-aos-delay="200">
+      <div class="section-title text-center mb-5">
+        <h2>Liste des Parcours</h2>
+      </div>
+      
+      {% if parcours|length > 0 %}
+        <div class="row">
+          {% for parcours_item in parcours %}
+            <div class="col-md-6 col-lg-4 mb-4">
+              <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="card-title mb-0">{{ parcours_item.titre }}</h5>
+                    <span class="badge bg-{% if parcours_item.typeParcours == 'scolaire' %}primary
+                                       {% elseif parcours_item.typeParcours == 'professionnel' %}success
+                                       {% elseif parcours_item.typeParcours == 'formation' %}warning
+                                       {% elseif parcours_item.typeParcours == 'personnel' %}info
+                                       {% else %}secondary{% endif %}">
+                      {{ parcours_item.typeParcours|capitalize }}
+                    </span>
+                  </div>
+                  
+                  <p class="card-text text-muted mb-3">{{ parcours_item.description|slice(0, 100) }}...</p>
+                  
+                  <div class="small mb-3">
+                    {% if parcours_item.dateDebut %}
+                      <div><strong>Début:</strong> {{ parcours_item.dateDebut|date('d/m/Y') }}</div>
+                    {% endif %}
+                    {% if parcours_item.dateFin %}
+                      <div><strong>Fin:</strong> {{ parcours_item.dateFin|date('d/m/Y') }}</div>
+                    {% endif %}
+                  </div>
+                  
+                  {% if parcours_item.typeParcours == 'scolaire' %}
+                    <div class="small">
+                      <div><strong>Établissement:</strong> {{ parcours_item.etablissement }}</div>
+                      <div><strong>Diplôme:</strong> {{ parcours_item.diplome }}</div>
+                      {% if parcours_item.specialite %}
+                        <div><strong>Spécialité:</strong> {{ parcours_item.specialite }}</div>
+                      {% endif %}
+                    </div>
+                  {% elseif parcours_item.typeParcours == 'professionnel' %}
+                    <div class="small">
+                      {% if parcours_item.entreprise %}
+                        <div><strong>Entreprise:</strong> {{ parcours_item.entreprise }}</div>
+                      {% endif %}
+                      {% if parcours_item.poste %}
+                        <div><strong>Poste:</strong> {{ parcours_item.poste }}</div>
+                      {% endif %}
+                      {% if parcours_item.typeContrat %}
+                        <div><strong>Contrat:</strong> {{ parcours_item.typeContrat }}</div>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                  
+                  <div class="mt-3 pt-3 border-top">
+                    <small class="text-muted">
+                      <i class="bi bi-calendar"></i> Ajouté le {{ parcours_item.dateCreation|date('d/m/Y') }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info text-center">
+          <h4 class="alert-heading">Aucun parcours trouvé</h4>
+          <p class="mb-0">Commencez par créer votre premier parcours ci-dessus !</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+</main>
+
+<script>
+function toggleFields() {
+    const type = document.getElementById('type_parcours').value;
+    
+    // Masquer tous les champs
+    document.querySelectorAll('.hidden-fields').forEach(field => {
+        field.style.display = 'none';
+    });
+    
+    // Afficher les champs correspondants au type sélectionné
+    if (type === 'scolaire') {
+        document.getElementById('scolaire-fields').style.display = 'block';
+    } else if (type === 'professionnel') {
+        document.getElementById('professionnel-fields').style.display = 'block';
+    } else if (type === 'formation') {
+        document.getElementById('formation-fields').style.display = 'block';
+    }
+}
+
+// Initialiser les champs au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    const type = document.getElementById('type_parcours').value;
+    if (type) {
+        toggleFields();
+    }
+});
+</script>
+
+<style>
+.hidden-fields {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.card {
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+}
+
+.is-invalid {
+    border-color: #dc3545;
+}
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+}
+</style>
+
+{% endblock %}

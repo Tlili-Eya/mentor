@@ -58,7 +58,7 @@ class Parcours
     /**
      * @var Collection<int, Projet>
      */
-    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: 'parcours')]
+    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: 'parcours' , orphanRemoval:true)]
     private Collection $projets;
 
     public function __construct()

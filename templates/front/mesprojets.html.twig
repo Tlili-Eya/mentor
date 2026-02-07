@@ -26,6 +26,7 @@
                 <th style="border-color: #0d2347;">Technologies</th>
                 <th style="border-color: #0d2347;">Dates</th>
                 <th style="border-color: #0d2347;">Ressources</th>
+                <th style="border-color: #0d2347;">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -54,6 +55,21 @@
                     {% else %}
                       <span class="badge" style="background-color: #9dbbce; color: #102c59;">0</span>
                     {% endif %}
+                  </td>
+                  <td>
+                    <button class="btn btn-sm" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#editProjetModal"
+                            data-projet-id="{{ projet.id }}"
+                            onclick="loadProjetData({{ projet.id }})"
+                            style="background-color: #102c59; color: white; border-color: #0d2347; margin-right: 5px;">
+                      <i class="fas fa-edit me-1"></i>Modifier
+                    </button>
+                    <button class="btn btn-sm btn-danger" 
+                            onclick="deleteProjet({{ projet.id }})"
+                            style="background-color: #d52e28; color: white; border-color: #b32420;">
+                      <i class="fas fa-trash me-1"></i>Supprimer
+                    </button>
                   </td>
                 </tr>
                 {% if projet.ressources|length > 0 %}
@@ -140,6 +156,21 @@
                                     <i class="far fa-calendar me-1"></i>
                                     Ajouté le {{ r.dateCreation ? r.dateCreation|date('d/m/Y') : '' }}
                                   </div>
+                                  <div class="mt-3 d-flex gap-2">
+                                    <button class="btn btn-sm" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editRessourceModal"
+                                            data-ressource-id="{{ r.id }}"
+                                            onclick="loadRessourceData({{ r.id }})"
+                                            style="background-color: #102c59; color: white; border-color: #0d2347; flex: 1;">
+                                      <i class="fas fa-edit me-1"></i>Modifier
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" 
+                                            onclick="deleteRessource({{ r.id }})"
+                                            style="background-color: #d52e28; color: white; border-color: #b32420;">
+                                      <i class="fas fa-trash"></i>
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -164,6 +195,145 @@
     </div>
   </section>
 </main>
+
+<!-- Modal Édition Projet -->
+<div class="modal fade" id="editProjetModal" tabindex="-1" aria-labelledby="editProjetModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #102c59; color: white;">
+        <h5 class="modal-title" id="editProjetModalLabel">Modifier le projet</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editProjetForm">
+        <div class="modal-body">
+          <input type="hidden" id="editProjetId">
+          
+          <div class="mb-3">
+            <label for="editProjetTitre" class="form-label">Titre</label>
+            <input type="text" class="form-control" id="editProjetTitre" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editProjetType" class="form-label">Type</label>
+            <input type="text" class="form-control" id="editProjetType" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editProjetTechnologies" class="form-label">Technologies</label>
+            <input type="text" class="form-control" id="editProjetTechnologies" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editProjetDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="editProjetDescription" rows="3"></textarea>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="editProjetDateDebut" class="form-label">Date début</label>
+              <input type="date" class="form-control" id="editProjetDateDebut">
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label for="editProjetDateFin" class="form-label">Date fin</label>
+              <input type="date" class="form-control" id="editProjetDateFin">
+            </div>
+          </div>
+          
+          <div id="editProjetErrors" style="color: #d52e28;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn" onclick="submitEditProjet()" style="background-color: #102c59; color: white;">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Édition Ressource -->
+<div class="modal fade" id="editRessourceModal" tabindex="-1" aria-labelledby="editRessourceModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #102c59; color: white;">
+        <h5 class="modal-title" id="editRessourceModalLabel">Modifier la ressource</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editRessourceForm">
+        <div class="modal-body">
+          <input type="hidden" id="editRessourceId">
+          
+          <div class="mb-3">
+            <label for="editRessourceNom" class="form-label">Nom</label>
+            <input type="text" class="form-control" id="editRessourceNom" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editRessourceType" class="form-label">Type</label>
+            <select class="form-control" id="editRessourceType" required>
+              <option value="">Sélectionner un type</option>
+              <option value="VIDEO">Vidéo</option>
+              <option value="DOCUMENT">Document</option>
+              <option value="ARTICLE">Article</option>
+              <option value="LIEN">Lien</option>
+              <option value="LIVRE">Livre</option>
+              <option value="COURS">Cours</option>
+              <option value="OTHER">Autre</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editRessourceUrl" class="form-label">URL</label>
+            <input type="url" class="form-control" id="editRessourceUrl" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="editRessourceDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="editRessourceDescription" rows="3"></textarea>
+          </div>
+          
+          <div id="editRessourceErrors" style="color: #d52e28;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn" onclick="submitEditRessource()" style="background-color: #102c59; color: white;">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de notification (succès/erreur) -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" id="notificationContent">
+      <div class="modal-body text-center py-5">
+        <div id="notificationIcon" class="mb-3"></div>
+        <h5 id="notificationTitle" class="mb-2"></h5>
+        <p id="notificationMessage" class="mb-0"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation suppression -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #d52e28; color: white;">
+        <h5 class="modal-title" id="confirmDeleteLabel">Confirmer la suppression</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmDeleteMessage" class="mb-0"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn" id="confirmDeleteBtn" style="background-color: #d52e28; color: white;">Supprimer</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <style>
   /* Variables pour la charte graphique */
@@ -262,6 +432,35 @@
 </style>
 
 <script>
+// Fonction pour afficher une notification
+function showNotification(type, title, message) {
+  const notificationContent = document.getElementById('notificationContent');
+  const notificationIcon = document.getElementById('notificationIcon');
+  const notificationTitle = document.getElementById('notificationTitle');
+  const notificationMessage = document.getElementById('notificationMessage');
+
+  if (type === 'success') {
+    notificationContent.style.borderTop = '4px solid #28a745';
+    notificationIcon.innerHTML = '<i class="fas fa-check-circle" style="font-size: 3rem; color: #28a745;"></i>';
+    notificationTitle.style.color = '#28a745';
+  } else if (type === 'error') {
+    notificationContent.style.borderTop = '4px solid #d52e28';
+    notificationIcon.innerHTML = '<i class="fas fa-times-circle" style="font-size: 3rem; color: #d52e28;"></i>';
+    notificationTitle.style.color = '#d52e28';
+  }
+
+  notificationTitle.textContent = title;
+  notificationMessage.textContent = message;
+
+  const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+  modal.show();
+
+  // Fermer automatiquement après 3 secondes
+  setTimeout(() => {
+    modal.hide();
+  }, 3000);
+}
+
 // Amélioration pour détecter plus de formats YouTube
 function extractYouTubeId(url) {
   const patterns = [
@@ -280,7 +479,219 @@ function extractYouTubeId(url) {
   return null;
 }
 
-// Animation pour les boutons de ressources
+// Charger les données du projet pour l'édition
+async function loadProjetData(projetId) {
+  try {
+    const response = await fetch(`/api/projet/${projetId}`);
+    if (!response.ok) {
+      alert('Erreur lors du chargement du projet');
+      return;
+    }
+    
+    const data = await response.json();
+    document.getElementById('editProjetId').value = data.id;
+    document.getElementById('editProjetTitre').value = data.titre || '';
+    document.getElementById('editProjetType').value = data.type || '';
+    document.getElementById('editProjetTechnologies').value = data.technologies || '';
+    document.getElementById('editProjetDescription').value = data.description || '';
+    document.getElementById('editProjetDateDebut').value = data.dateDebut || '';
+    document.getElementById('editProjetDateFin').value = data.dateFin || '';
+    document.getElementById('editProjetErrors').innerHTML = '';
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert('Erreur lors du chargement du projet');
+  }
+}
+
+// Soumettre l'édition du projet
+async function submitEditProjet() {
+  const projetId = document.getElementById('editProjetId').value;
+  const data = {
+    titre: document.getElementById('editProjetTitre').value,
+    type: document.getElementById('editProjetType').value,
+    technologies: document.getElementById('editProjetTechnologies').value,
+    description: document.getElementById('editProjetDescription').value,
+    dateDebut: document.getElementById('editProjetDateDebut').value || null,
+    dateFin: document.getElementById('editProjetDateFin').value || null,
+  };
+
+  try {
+    const response = await fetch(`/api/projet/${projetId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      showNotification('success', 'Succès', 'Projet modifié avec succès');
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+    } else {
+      // Afficher les erreurs
+      let errorHtml = '<ul>';
+      for (const [field, message] of Object.entries(result.errors || {})) {
+        errorHtml += `<li>${message}</li>`;
+      }
+      errorHtml += '</ul>';
+      document.getElementById('editProjetErrors').innerHTML = errorHtml;
+    }
+  } catch (error) {
+    console.error('Erreur:', error);
+    showNotification('error', 'Erreur', 'Erreur lors de la modification du projet');
+  }
+}
+
+// Charger les données de la ressource pour l'édition
+async function loadRessourceData(ressourceId) {
+  try {
+    const response = await fetch(`/api/ressource/${ressourceId}`);
+    if (!response.ok) {
+      alert('Erreur lors du chargement de la ressource');
+      return;
+    }
+    
+    const data = await response.json();
+    document.getElementById('editRessourceId').value = data.id;
+    document.getElementById('editRessourceNom').value = data.nom || '';
+    document.getElementById('editRessourceType').value = data.type || '';
+    document.getElementById('editRessourceUrl').value = data.url || '';
+    document.getElementById('editRessourceDescription').value = data.description || '';
+    document.getElementById('editRessourceErrors').innerHTML = '';
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert('Erreur lors du chargement de la ressource');
+  }
+}
+
+// Soumettre l'édition de la ressource
+async function submitEditRessource() {
+  const ressourceId = document.getElementById('editRessourceId').value;
+  const data = {
+    nom: document.getElementById('editRessourceNom').value,
+    type: document.getElementById('editRessourceType').value,
+    url: document.getElementById('editRessourceUrl').value,
+    description: document.getElementById('editRessourceDescription').value,
+  };
+
+  try {
+    const response = await fetch(`/api/ressource/${ressourceId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      showNotification('success', 'Succès', 'Ressource modifiée avec succès');
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+    } else {
+      // Afficher les erreurs
+      let errorHtml = '<ul>';
+      for (const [field, message] of Object.entries(result.errors || {})) {
+        errorHtml += `<li>${message}</li>`;
+      }
+      errorHtml += '</ul>';
+      document.getElementById('editRessourceErrors').innerHTML = errorHtml;
+    }
+  } catch (error) {
+    console.error('Erreur:', error);
+    showNotification('error', 'Erreur', 'Erreur lors de la modification de la ressource');
+  }
+}
+
+// Supprimer une ressource
+async function deleteRessource(ressourceId) {
+  const confirmDeleteMessage = document.getElementById('confirmDeleteMessage');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  
+  confirmDeleteMessage.textContent = 'Êtes-vous sûr de vouloir supprimer cette ressource ?';
+  
+  const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+  modal.show();
+  
+  // Gérer le clic sur le bouton de suppression
+  const handleDelete = async () => {
+    modal.hide();
+    
+    try {
+      const response = await fetch(`/api/resource/delete/${ressourceId}`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showNotification('success', 'Succès', 'Ressource supprimée avec succès');
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
+      } else {
+        showNotification('error', 'Erreur', 'Erreur lors de la suppression de la ressource');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      showNotification('error', 'Erreur', 'Erreur lors de la suppression de la ressource');
+    }
+  };
+  
+  // Supprimer les anciens event listeners et en ajouter un nouveau
+  const newBtn = confirmDeleteBtn.cloneNode(true);
+  confirmDeleteBtn.parentNode.replaceChild(newBtn, confirmDeleteBtn);
+  document.getElementById('confirmDeleteBtn').addEventListener('click', handleDelete);
+}
+
+// Supprimer un projet
+async function deleteProjet(projetId) {
+  const confirmDeleteMessage = document.getElementById('confirmDeleteMessage');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  
+  confirmDeleteMessage.textContent = 'Êtes-vous sûr de vouloir supprimer ce projet ? Toutes les ressources associées seront également supprimées.';
+  
+  const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+  modal.show();
+  
+  // Gérer le clic sur le bouton de suppression
+  const handleDelete = async () => {
+    modal.hide();
+    
+    try {
+      const response = await fetch(`/api/projet/delete/${projetId}`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showNotification('success', 'Succès', 'Projet supprimé avec succès');
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
+      } else {
+        showNotification('error', 'Erreur', 'Erreur lors de la suppression du projet');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      showNotification('error', 'Erreur', 'Erreur lors de la suppression du projet');
+    }
+  };
+  
+  // Supprimer les anciens event listeners et en ajouter un nouveau
+  const newBtn = confirmDeleteBtn.cloneNode(true);
+  confirmDeleteBtn.parentNode.replaceChild(newBtn, confirmDeleteBtn);
+  document.getElementById('confirmDeleteBtn').addEventListener('click', handleDelete);
+}
+
+// Animation pour les boutons de ressources (code existant)
 document.addEventListener('DOMContentLoaded', function() {
   const resourceButtons = document.querySelectorAll('[data-bs-toggle="collapse"]');
   

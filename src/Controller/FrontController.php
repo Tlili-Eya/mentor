@@ -253,7 +253,7 @@ final class FrontController extends AbstractController
     }
 
     #[Route('api/resource/delete/{id}', name: 'api_resource_delete', methods: ['POST'])]
-    public function deleteResource(int $id, EntityManagerInterface $em, RessourceRepository $ressourceRepo): Response
+    public function deleteResource(int $id, EntityManagerInterface $em, RessourceRepository $ressourceRepo, ManagerRegistry $doctrine): Response
     {
         $ressource = $ressourceRepo->find($id);
         
@@ -261,12 +261,47 @@ final class FrontController extends AbstractController
             return $this->json(['error' => 'Ressource not found'], 404);
         }
 
+        $user = $this->getUser();
+        if (!$user) {
+            $user = $doctrine->getRepository(Utilisateur::class)->find(1);
+        }
+
         // Vérifier que l'utilisateur est propriétaire du projet
-        if ($ressource->getProjet()?->getUtilisateur() !== $this->getUser()) {
+        if ($ressource->getProjet()?->getUtilisateur() !== $user) {
             return $this->json(['error' => 'Unauthorized'], 403);
         }
 
         $em->remove($ressource);
+        $em->flush();
+
+        return $this->json(['success' => true]);
+    }
+
+    #[Route('api/projet/delete/{id}', name: 'api_projet_delete', methods: ['POST'])]
+    public function deleteProjet(int $id, EntityManagerInterface $em, ProjetRepository $projetRepository, ManagerRegistry $doctrine): Response
+    {
+        $projet = $projetRepository->find($id);
+        
+        if (!$projet) {
+            return $this->json(['error' => 'Projet not found'], 404);
+        }
+
+        $user = $this->getUser();
+        if (!$user) {
+            $user = $doctrine->getRepository(Utilisateur::class)->find(1);
+        }
+
+        // Vérifier que l'utilisateur est propriétaire
+        if ($projet->getUtilisateur() !== $user) {
+            return $this->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Supprimer toutes les ressources associées
+        foreach ($projet->getRessources() as $ressource) {
+            $em->remove($ressource);
+        }
+
+        $em->remove($projet);
         $em->flush();
 
         return $this->json(['success' => true]);
@@ -350,6 +385,227 @@ final class FrontController extends AbstractController
         return $this->render('front/mesparcours.html.twig', [
             'parcours' => $parcours,
         ]);
+    }
+
+    #[Route('api/projet/{id}', name: 'api_projet_get', methods: ['GET'])]
+    public function getProjet(int $id, ProjetRepository $projetRepository, ManagerRegistry $doctrine): Response
+    {
+        $projet = $projetRepository->find($id);
+        
+        if (!$projet) {
+            return $this->json(['error' => 'Projet not found'], 404);
+        }
+
+        $user = $this->getUser();
+        if (!$user) {
+            $user = $doctrine->getRepository(Utilisateur::class)->find(1);
+        }
+
+        // Vérifier que l'utilisateur est propriétaire
+        if ($projet->getUtilisateur() !== $user) {
+            return $this->json(['error' => 'Unauthorized'], 403);
+        }
+
+        return $this->json([
+            'id' => $projet->getId(),
+            'titre' => $projet->getTitre(),
+            'type' => $projet->getType(),
+            'technologies' => $projet->getTechnologies(),
+            'description' => $projet->getDescription(),
+            'dateDebut' => $projet->getDateDebut()?->format('Y-m-d'),
+            'dateFin' => $projet->getDateFin()?->format('Y-m-d'),
+        ]);
+    }
+
+    #[Route('api/projet/{id}', name: 'api_projet_update', methods: ['PUT'])]
+    public function updateProjet(int $id, Request $request, ProjetRepository $projetRepository, EntityManagerInterface $em, ManagerRegistry $doctrine): Response
+    {
+        $projet = $projetRepository->find($id);
+        
+        if (!$projet) {
+            return $this->json(['error' => 'Projet not found'], 404);
+        }
+
+        $user = $this->getUser();
+        if (!$user) {
+            $user = $doctrine->getRepository(Utilisateur::class)->find(1);
+        }
+
+        // Vérifier que l'utilisateur est propriétaire
+        if ($projet->getUtilisateur() !== $user) {
+            return $this->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $errors = [];
+
+        // Validation du titre
+        if (!empty($data['titre'])) {
+            $titre = trim($data['titre']);
+            if (strlen($titre) < 3) {
+                $errors['titre'] = 'Le titre doit contenir au moins 3 caractères.';
+            } elseif (strlen($titre) > 255) {
+                $errors['titre'] = 'Le titre ne doit pas dépasser 255 caractères.';
+            } else {
+                $projet->setTitre($titre);
+            }
+        }
+
+        // Validation du type
+        if (!empty($data['type'])) {
+            $type = trim($data['type']);
+            if (strlen($type) > 100) {
+                $errors['type'] = 'Le type ne doit pas dépasser 100 caractères.';
+            } else {
+                $projet->setType($type);
+            }
+        }
+
+        // Validation des technologies
+        if (!empty($data['technologies'])) {
+            $technologies = trim($data['technologies']);
+            if (strlen($technologies) > 500) {
+                $errors['technologies'] = 'Les technologies ne doivent pas dépasser 500 caractères.';
+            } else {
+                $projet->setTechnologies($technologies);
+            }
+        }
+
+        // Description
+        if (isset($data['description'])) {
+            $projet->setDescription(trim($data['description']));
+        }
+
+        // Validation des dates
+        $dateDebut = $data['dateDebut'] ?? null;
+        $dateFin = $data['dateFin'] ?? null;
+
+        if (!empty($dateDebut)) {
+            try {
+                $projet->setDateDebut(new \DateTime($dateDebut));
+            } catch (\Exception $e) {
+                $errors['dateDebut'] = 'La date de début est invalide.';
+            }
+        } else {
+            $projet->setDateDebut(null);
+        }
+
+        if (!empty($dateFin)) {
+            try {
+                $projet->setDateFin(new \DateTime($dateFin));
+            } catch (\Exception $e) {
+                $errors['dateFin'] = 'La date de fin est invalide.';
+            }
+        } else {
+            $projet->setDateFin(null);
+        }
+
+        if (empty($errors)) {
+            $em->flush();
+            return $this->json(['success' => true, 'message' => 'Projet modifié avec succès.']);
+        }
+
+        return $this->json(['errors' => $errors], 400);
+    }
+
+    // Routes for editing resources
+    #[Route('api/ressource/{id}', name: 'api_ressource_get', methods: ['GET'])]
+    public function getRessource(int $id, RessourceRepository $ressourceRepository, ManagerRegistry $doctrine): Response
+    {
+        $ressource = $ressourceRepository->find($id);
+        
+        if (!$ressource) {
+            return $this->json(['error' => 'Ressource not found'], 404);
+        }
+
+        $user = $this->getUser();
+        if (!$user) {
+            $user = $doctrine->getRepository(Utilisateur::class)->find(1);
+        }
+
+        // Vérifier que l'utilisateur est propriétaire du projet
+        if ($ressource->getProjet()?->getUtilisateur() !== $user) {
+            return $this->json(['error' => 'Unauthorized'], 403);
+        }
+
+        return $this->json([
+            'id' => $ressource->getId(),
+            'nom' => $ressource->getNom(),
+            'type' => $ressource->getTypeRessource()?->value,
+            'url' => $ressource->getUrlRessource(),
+            'description' => $ressource->getDescription(),
+        ]);
+    }
+
+    #[Route('api/ressource/{id}', name: 'api_ressource_update', methods: ['PUT'])]
+    public function updateRessource(int $id, Request $request, RessourceRepository $ressourceRepository, EntityManagerInterface $em, ManagerRegistry $doctrine): Response
+    {
+        $ressource = $ressourceRepository->find($id);
+        
+        if (!$ressource) {
+            return $this->json(['error' => 'Ressource not found'], 404);
+        }
+
+        $user = $this->getUser();
+        if (!$user) {
+            $user = $doctrine->getRepository(Utilisateur::class)->find(1);
+        }
+
+        // Vérifier que l'utilisateur est propriétaire du projet
+        if ($ressource->getProjet()?->getUtilisateur() !== $user) {
+            return $this->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $errors = [];
+
+        // Validation du nom
+        if (!empty($data['nom'])) {
+            $nom = trim($data['nom']);
+            if (strlen($nom) < 1) {
+                $errors['nom'] = 'Le nom est requis.';
+            } elseif (strlen($nom) > 255) {
+                $errors['nom'] = 'Le nom ne doit pas dépasser 255 caractères.';
+            } else {
+                $ressource->setNom($nom);
+            }
+        }
+
+        // Validation de l'URL
+        if (!empty($data['url'])) {
+            $url = trim($data['url']);
+            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                $errors['url'] = 'L\'URL est invalide.';
+            } else {
+                $ressource->setUrlRessource($url);
+            }
+        }
+
+        // Description
+        if (isset($data['description'])) {
+            $ressource->setDescription(trim($data['description']));
+        }
+
+        // Type
+        if (!empty($data['type'])) {
+            $typeStr = strtoupper(trim($data['type']));
+            try {
+                $typeEnum = TypeRessource::tryFrom($typeStr);
+                if ($typeEnum === null) {
+                    $typeEnum = TypeRessource::OTHER;
+                }
+                $ressource->setTypeRessource($typeEnum);
+            } catch (\Exception $e) {
+                $ressource->setTypeRessource(TypeRessource::OTHER);
+            }
+        }
+
+        if (empty($errors)) {
+            $em->flush();
+            return $this->json(['success' => true, 'message' => 'Ressource modifiée avec succès.']);
+        }
+
+        return $this->json(['errors' => $errors], 400);
     }
 
         

@@ -7984,3 +7984,144 @@ section,
 .starter-section {
   /* Add your styles here */
 }
+/* ===== FEEDBACK PAGE ===== */
+
+.feedback-tabs {
+    display: flex;
+    width: 100%;
+    background: #1e1e2f;
+}
+
+.feedback-tabs .tab {
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.feedback-tabs .tab.active {
+    background: #6c63ff;
+}
+
+.feedback-form {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #f9f9f9;
+    border-radius: 10px;
+}
+
+/* STAR RATING */
+.star-rating {
+    font-size: 32px;
+    color: #ccc;
+    cursor: pointer;
+}
+
+.star-rating span.active,
+.star-rating span:hover,
+.star-rating span:hover ~ span {
+    color: gold;
+}
+
+.feedback-form textarea {
+    width: 100%;
+    min-height: 120px;
+    margin-top: 15px;
+    padding: 10px;
+}
+
+.feedback-form button {
+    margin-top: 20px;
+    padding: 12px;
+    width: 100%;
+    background: #6c63ff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+/* assets/styles/app.css ou ton fichier CSS */
+select option[disabled][selected] {
+    display: none;          /* essaie de cacher quand ouvert */
+    color: #999;            /* gris placeholder */
+}
+
+select:required:invalid {
+    color: #999;            /* gris quand rien choisi */
+}
+
+select option {
+    color: #000;            /* texte normal une fois choisi */
+}
+.hero-feedback {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;          /* coins plus doux */
+    max-width: 900px;             /* limite la largeur pour éviter étirement */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-feedback img {
+    width: 100%;
+    height: auto;
+    max-height: 280px;            /* même valeur que dans le style inline */
+    object-fit: cover;
+    object-position: center;
+    image-rendering: -webkit-optimize-contrast;  /* boost netteté sur Chrome/Safari */
+    image-rendering: crisp-edges;                /* aide sur certains navigateurs */
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.65));
+    opacity: 0.85;
+    transition: opacity 0.3s ease;
+}
+
+.hero-feedback:hover .hero-overlay {
+    opacity: 1;
+}
+
+/* Texte plus lisible et adapté à petite taille */
+.hero-overlay h2 {
+    font-size: 2rem;          /* plus petit que display-5 pour petite image */
+}
+
+.hero-overlay p {
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+.hero-feedback {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.contact-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.contact-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+.star-rating span {
+  font-size: 2rem;
+  cursor: pointer;
+  color: #ddd;
+}
+
+.star-rating span.selected,
+.star-rating span:hover,
+.star-rating span:hover ~ span {
+  color: #f1c40f;
+}

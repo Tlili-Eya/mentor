@@ -1,0 +1,166 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Modifier Traitement{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('back_home') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('back_contact') }}">Feedbacks</a></li>
+            <li class="breadcrumb-item active">Modifier Traitement</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- COLONNE GAUCHE : Info feedback (lecture seule) -->
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Feedback #{{ feedback.id }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Utilisateur :</strong><br>
+                        {{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Type :</strong><br>
+                        <span class="badge bg-info">{{ feedback.typefeedback|capitalize }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Note :</strong> {{ feedback.note }}/5
+                    </div>
+                    <div>
+                        <strong>Message :</strong><br>
+                        <div class="p-2 bg-light rounded mt-2">
+                            {{ feedback.contenu }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLONNE DROITE : Formulaire de modification -->
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil me-2"></i>
+                        Modifier le Traitement
+                    </h5>
+                </div>
+                <div class="card-body">
+
+                    <!-- Messages flash -->
+                    {% for message in app.flashes('success') %}
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="bi bi-check-circle me-2"></i>{{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% for message in app.flashes('error') %}
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="bi bi-exclamation-triangle me-2"></i>{{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    <form method="post" 
+                          action="{{ path('back_traitement_edit', {id: traitement.id}) }}" 
+                          class="needs-validation" 
+                          novalidate>
+
+                        <!-- Type de traitement -->
+                        <div class="mb-4">
+                            <label for="type_traitement" class="form-label fw-semibold">
+                                Type de traitement <span class="text-danger">*</span>
+                            </label>
+                            <select id="type_traitement" name="type_traitement" 
+                                    class="form-select form-select-lg" required>
+                                <option value="">-- Sélectionner --</option>
+                                <option value="remboursement" 
+                                    {% if traitement and traitement.typetraitement == 'remboursement' %}selected{% endif %}>
+                                    💰 Remboursement
+                                </option>
+                                <option value="prolongation_abonnement" 
+                                    {% if traitement and traitement.typetraitement == 'prolongation_abonnement' %}selected{% endif %}>
+                                    ⏰ Prolongation d'abonnement
+                                </option>
+                                <option value="geste_commercial" 
+                                    {% if traitement and traitement.typetraitement == 'geste_commercial' %}selected{% endif %}>
+                                    🎁 Geste commercial
+                                </option>
+                            </select>
+                            <div class="invalid-feedback">Veuillez sélectionner un type.</div>
+                        </div>
+
+                        <!-- Décision / Réponse -->
+                        <div class="mb-4">
+                            <label for="decision" class="form-label fw-semibold">
+                                Réponse à l'utilisateur <span class="text-danger">*</span>
+                            </label>
+                            <textarea 
+                                id="decision" 
+                                name="decision" 
+                                class="form-control form-control-lg" 
+                                rows="8" 
+                                required
+                                minlength="20">{{ traitement.description }}</textarea>
+                            <div class="form-text">Minimum 20 caractères</div>
+                            <div class="invalid-feedback">
+                                Veuillez saisir une réponse (minimum 20 caractères).
+                            </div>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Date de création :</strong> 
+                            {{ traitement.datetraitement|date('d/m/Y à H:i') }}
+                            <br>
+                            <small>La date sera automatiquement mise à jour lors de la modification.</small>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg px-4">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Enregistrer les modifications
+                            </button>
+                            <a href="{{ path('back_contact') }}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-x-circle me-2"></i>Annuler
+                            </a>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    'use strict';
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
+{% endblock %}

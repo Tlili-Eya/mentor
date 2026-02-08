@@ -338,7 +338,7 @@ public function show(Objectif $objectif): Response
 }
 
 #[Route('/events/{id}', name: 'objectif_delete', methods: ['POST'])]
-public function delete(Request $request, Objectif $objectif, EntityManagerInterface $entityManager): Response
+public function deleteobjectif(Request $request, Objectif $objectif, EntityManagerInterface $entityManager): Response
 {
     if ($this->isCsrfTokenValid('delete' . $objectif->getId(), $request->request->get('_token'))) {
         
@@ -488,21 +488,20 @@ public function exportWord(ObjectifRepository $repo): Response
         return $this->render('front/starter-page.html.twig');
     }
 
-    #[Route('404', name: '404')]
-    public function error404(): Response
-    {
-        return $this->render('front/404.html.twig');
-    }
+#[Route('404', name: '404')]
+public function error404(): Response
+{
+    return $this->render('front/404.html.twig');
 }
 
-    // ============================================================
-    // CRUD FEEDBACK (avec utilisateur mocké)
-    // ============================================================
+// ============================================================
+// CRUD FEEDBACK (avec utilisateur mocké)
+// ============================================================
 
-    /**
-     * ✨ VALIDATION PHP pour le feedback
-     */
-    private function validateFeedbackData(string $typeFeedback, string $contenu, $rating): array
+/**
+ * ✨ VALIDATION PHP pour le feedback
+ */
+private function validateFeedbackData(string $typeFeedback, string $contenu, $rating): array
     {
         $errors = [];
         
@@ -1125,9 +1124,5 @@ public function exportWord(ObjectifRepository $repo): Response
             ]);
         }
 */
-
-
-
-
 }
 

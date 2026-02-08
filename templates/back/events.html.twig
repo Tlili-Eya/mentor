@@ -6,176 +6,186 @@
 <main class="main">
 
   <!-- Page Title -->
-  <div class="page-title light-background">
+  <div class="page-title" style="background-color: rgba(157, 187, 206, 0.1);">
     <div class="container d-lg-flex justify-content-between align-items-center flex-wrap gap-3">
-      <h1 class="mb-2 mb-lg-0">LISTE OBJECTIFS</h1>
+      <h1 class="mb-2 mb-lg-0" style="color: #102c59;">LISTE OBJECTIFS</h1>
 
       <div class="d-flex align-items-center gap-3 flex-wrap">
         <!-- Recherche par titre -->
         <form method="GET" class="d-flex align-items-center gap-2" style="width: 350px;">
-  <div class="position-relative flex-grow-1">
-    <input type="text" name="titre" 
-           class="form-control rounded-pill ps-4 pe-5 py-2" 
-           placeholder="Rechercher par titre objectif..."
-           value="{{ app.request.query.get('titre')|default('') }}">
-    <button type="submit" class="btn position-absolute top-50 end-0 translate-middle-y me-3">
-      <i class="bi bi-search"></i>
-    </button>
-  </div>
+          <div class="position-relative flex-grow-1">
+            <input type="text" name="titre" 
+                   class="form-control rounded-pill ps-4 pe-5 py-2" 
+                   placeholder="Rechercher par titre objectif..."
+                   value="{{ app.request.query.get('titre')|default('') }}"
+                   style="border-color: #9dbbce;">
+            <button type="submit" class="btn position-absolute top-50 end-0 translate-middle-y me-3"
+                    style="color: #102c59;">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
 
-  {% if app.request.query.get('titre') %}
-    <a href="{{ path('back_events') }}" class="btn btn-outline-secondary btn-sm rounded-pill">
-      Effacer
-    </a>
-  {% endif %}
-</form>
+          {% if app.request.query.get('titre') %}
+            <a href="{{ path('back_events') }}" 
+               class="btn btn-outline-secondary btn-sm rounded-pill"
+               style="border-color: #9dbbce; color: #102c59;">
+              Effacer
+            </a>
+          {% endif %}
+        </form>
 
         <!-- Tri -->
         <form method="get" action="" class="d-flex align-items-center">
-  <label for="sort" class="me-2">Trier:</label>
-  <select name="sort"
-        id="sort"
-        class="form-select form-select-sm rounded-pill"
-        onchange="this.form.submit()">
+          <label for="sort" class="me-2" style="color: #102c59;">Trier:</label>
+          <select name="sort"
+                id="sort"
+                class="form-select form-select-sm rounded-pill"
+                onchange="this.form.submit()"
+                style="border-color: #9dbbce; color: #102c59;">
 
-  <option value="datedebut"
-    {{ app.request.get('sort', 'datedebut') == 'datedebut' ? 'selected' : '' }}>
-    Date début
-  </option>
+            <option value="datedebut"
+              {{ app.request.get('sort', 'datedebut') == 'datedebut' ? 'selected' : '' }}>
+              Date début
+            </option>
 
-  <option value="datefin"
-    {{ app.request.get('sort') == 'datefin' ? 'selected' : '' }}>
-    Date fin
-  </option>
+            <option value="datefin"
+              {{ app.request.get('sort') == 'datefin' ? 'selected' : '' }}>
+              Date fin
+            </option>
 
-  <option value="statut"
-    {{ app.request.get('sort') == 'statut' ? 'selected' : '' }}>
-    Statut
-  </option>
+            <option value="statut"
+              {{ app.request.get('sort') == 'statut' ? 'selected' : '' }}>
+              Statut
+            </option>
 
-  <option value="titre"
-    {{ app.request.get('sort') == 'titre' ? 'selected' : '' }}>
-    Titre
-  </option>
+            <option value="titre"
+              {{ app.request.get('sort') == 'titre' ? 'selected' : '' }}>
+              Titre
+            </option>
 
-</select>
-
-</form>
+          </select>
+        </form>
       </div>
     </div>
   </div>
 
-  <!-- Compteurs -->
   <!-- Liste des objectifs -->
   <section id="mes-objectifs" class="section courses-events">
     <div class="container" data-aos="fade-up">
 
       <div class="table-responsive">
-   <div class="mb-4 d-flex flex-wrap gap-3">
-   <div class="mb-4 d-flex flex-wrap gap-3">
-    <!-- Total -->
-    <div class="badge" style="background-color: rgba(122, 154, 173, 0.15); color: #7a9aad; border: 1px solid rgba(122, 154, 173, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
-        <i class="bi bi-list-ul me-2"></i>
-        Total : {{ total }} objectif{{ total > 1 ? 's' : '' }}
-    </div>
+        <div class="mb-4 d-flex flex-wrap gap-3">
+          <!-- Total -->
+          <div class="badge" style="background-color: rgba(157, 187, 206, 0.15); color: #102c59; border: 1px solid rgba(157, 187, 206, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
+            <i class="bi bi-list-ul me-2"></i>
+            Total : {{ total }} objectif{{ total > 1 ? 's' : '' }}
+          </div>
 
-    <!-- Atteints -->
-    <div class="badge" style="background-color: rgba(122, 154, 173, 0.15); color: #7a9aad; border: 1px solid rgba(122, 154, 173, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
-        <i class="bi bi-check-circle me-2"></i>
-        Atteints : {{ atteints }}
-    </div>
+          <!-- Atteints -->
+          <div class="badge" style="background-color: rgba(40, 167, 69, 0.15); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
+            <i class="bi bi-check-circle me-2"></i>
+            Atteints : {{ atteints }}
+          </div>
 
-    <!-- En cours -->
-    <div class="badge" style="background-color: rgba(122, 154, 173, 0.15); color: #7a9aad; border: 1px solid rgba(122, 154, 173, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
-        <i class="bi bi-hourglass me-2"></i>
-        En cours : {{ enCours }}
-    </div>
+          <!-- En cours -->
+          <div class="badge" style="background-color: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
+            <i class="bi bi-hourglass me-2"></i>
+            En cours : {{ enCours }}
+          </div>
 
-    <!-- Abandonnés -->
-    <div class="badge" style="background-color: rgba(122, 154, 173, 0.15); color: #7a9aad; border: 1px solid rgba(122, 154, 173, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
-        <i class="bi bi-x-circle me-2"></i>
-        Abandonnés : {{ abandonnes }}
-    </div>
-</div>
-  </div>
+          <!-- Abandonnés -->
+          <div class="badge" style="background-color: rgba(213, 46, 40, 0.15); color: #d52e28; border: 1px solid rgba(213, 46, 40, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
+            <i class="bi bi-x-circle me-2"></i>
+            Abandonnés : {{ abandonnes }}
+          </div>
+        </div>
 
-  <!-- Exports + Table -->
-  <table class="table table-hover align-middle objectif-table">
-      <div class="mb-4 d-flex justify-content-end gap-2">
-    <a href="{{ path('back_events_export_excel') }}" class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-4 py-2 rounded-pill shadow-sm">
-        <i class="bi bi-file-earmark-excel-fill me-2"></i>
-        Exporter Excel
-    </a>
+        <div class="mb-4 d-flex justify-content-end gap-2">
+          <a href="{{ path('back_events_export_excel') }}" 
+             class="badge fs-6 px-4 py-2 rounded-pill shadow-sm"
+             style="background-color: rgba(40, 167, 69, 0.15); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.3);">
+            <i class="bi bi-file-earmark-excel-fill me-2"></i>
+            Exporter Excel
+          </a>
 
-    <a href="{{ path('back_events_export_word') }}" class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-4 py-2 rounded-pill shadow-sm">
-        <i class="bi bi-file-earmark-word-fill me-2"></i>
-        Exporter Word
-    </a>
-</div>
+          <a href="{{ path('back_events_export_word') }}" 
+             class="badge fs-6 px-4 py-2 rounded-pill shadow-sm"
+             style="background-color: rgba(157, 187, 206, 0.15); color: #102c59; border: 1px solid rgba(157, 187, 206, 0.3);">
+            <i class="bi bi-file-earmark-word-fill me-2"></i>
+            Exporter Word
+          </a>
+        </div>
 
+        <div class="table-responsive">
+          <table class="table table-hover objectif-table">
+            <thead>
+              <tr>
+                <th class="text-center" style="color: #102c59;">N°</th>
+                <th style="color: #102c59;">ID Objectif</th>
+                <th style="color: #102c59;">Titre objectif</th>
+                <th style="color: #102c59;">Date début</th>
+                <th style="color: #102c59;">Date fin</th>
+                <th style="color: #102c59;">Statut</th>
+                <th class="text-end" style="color: #102c59;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if objectifs is defined and objectifs|length > 0 %}
+                {% for objectif in objectifs %}
+                  <tr>
+                    <td class="text-center fw-bold" style="color: #102c59;">{{ loop.index }}</td>
+                    <td><strong style="color: #102c59;">{{ objectif.idObjectif ?? ('PPD' ~ objectif.id) }}</strong></td>
+                    <td style="color: #102c59;">{{ objectif.titre ?? 'Sans titre' }}</td>
+                    <td style="color: #102c59;">{{ objectif.datedebut ? objectif.datedebut|date('d/m/Y') : '—' }}</td>
+                    <td style="color: #102c59;">{{ objectif.datefin ? objectif.datefin|date('d/m/Y') : '—' }}</td>
 
-      <div class="table-responsive">
-        <table class="table table-hover objectif-table">
-          <thead>
-            <tr>
-              <th class="text-center">N°</th>
-              <th>ID Objectif</th>
-              <th>Titre objectif</th>
-              <th>Date début</th>
-              <th>Date fin</th>
-              <th>Statut</th>
-              <th class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if objectifs is defined and objectifs|length > 0 %}
-              {% for objectif in objectifs %}
+                    <td>
+                      <span class="badge rounded-pill px-3 py-2 fs-6"
+                        style="{% if objectif.statut.value == 'validee' %}
+                                 background-color: #28a745; color: white;
+                               {% elseif objectif.statut.value == 'en_cours' %}
+                                 background-color: #ffc107; color: #102c59;
+                               {% elseif objectif.statut.value == 'refusee' %}
+                                 background-color: #d52e28; color: white;
+                               {% else %}
+                                 background-color: #6c757d; color: white;
+                               {% endif %}">
+                        {{ objectif.statut ? objectif.statut.value|capitalize : 'Inconnu' }}
+                      </span>
+                    </td>
+
+                    <td class="text-end">
+                      <div class="d-flex gap-2 justify-content-end flex-wrap">
+                        <!-- Voir le programme -->
+                        <a href="{{ path('back_programme_show', {id: objectif.programme.id}) }}"
+                           class="btn btn-sm btn-outline-primary rounded-circle"
+                           title="Voir le programme"
+                           style="border-color: #102c59; color: #102c59;">
+                          <i class="bi bi-list-check"></i>
+                        </a>
+
+                        <!-- Voir les détails de l'objectif -->
+                        <a href="{{ path('back_objectif_show', {id: objectif.id}) }}"
+                           class="btn btn-sm btn-outline-info rounded-circle"
+                           title="Détails de l'objectif"
+                           style="border-color: #9dbbce; color: #102c59;">
+                          <i class="bi bi-eye"></i>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
                 <tr>
-                  <td class="text-center fw-bold">{{ loop.index }}</td>
-                  <td><strong>{{ objectif.idObjectif ?? ('PPD' ~ objectif.id) }}</strong></td>
-                  <td>{{ objectif.titre ?? 'Sans titre' }}</td>
-                  <td>{{ objectif.datedebut ? objectif.datedebut|date('d/m/Y') : '—' }}</td>
-                  <td>{{ objectif.datefin ? objectif.datefin|date('d/m/Y') : '—' }}</td>
-
-                  <td>
-                    <span class="badge rounded-pill px-3 py-2 fs-6
-                      {% if objectif.statut.value == 'validee' %}bg-success text-white
-                      {% elseif objectif.statut.value == 'en_cours' %}bg-warning text-dark
-                      {% elseif objectif.statut.value == 'refusee' %}bg-danger text-white
-                      {% else %}bg-secondary text-white{% endif %}">
-                      {{ objectif.statut ? objectif.statut.value|capitalize : 'Inconnu' }}
-                    </span>
-                  </td>
-
-                  <td class="text-end">
-                    <div class="d-flex gap-2 justify-content-end flex-wrap">
-                      <!-- Voir le programme -->
-                      <a href="{{ path('back_programme_show', {id: objectif.programme.id}) }}"
-                         class="btn btn-sm btn-outline-primary rounded-circle"
-                         title="Voir le programme">
-                        <i class="bi bi-list-check"></i>
-                      </a>
-
-                      <!-- Voir les détails de l'objectif -->
-                      <a href="{{ path('back_objectif_show', {id: objectif.id}) }}"
-                         class="btn btn-sm btn-outline-info rounded-circle"
-                         title="Détails de l'objectif">
-                        <i class="bi bi-eye"></i>
-                      </a>
-                    </div>
+                  <td colspan="7" class="text-center py-5 text-muted">
+                    <i class="bi bi-journal-x display-4 d-block mb-3" style="color: #9dbbce;"></i>
+                    Aucun objectif enregistré pour le moment.
                   </td>
                 </tr>
-              {% endfor %}
-            {% else %}
-              <tr>
-                <td colspan="7" class="text-center py-5 text-muted">
-                  <i class="bi bi-journal-x display-4 d-block mb-3"></i>
-                  Aucun objectif enregistré pour le moment.
-                </td>
-              </tr>
-            {% endif %}
-          </tbody>
-        </table>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </section>
@@ -190,19 +200,15 @@
       text-transform: uppercase;
       font-size: 0.85rem;
       letter-spacing: 0.5px;
-      color: var(--default-color);
-      opacity: 0.8;
       font-weight: 600;
-      border-bottom: 2px solid color-mix(in srgb, var(--accent-color), transparent 80%);
+      border-bottom: 2px solid #9dbbce;
     }
     .objectif-table td { vertical-align: middle; font-size: 0.98rem; }
-    .objectif-table tr:hover { background-color: color-mix(in srgb, var(--accent-color), transparent 96%); transition: background-color 0.2s; }
+    .objectif-table tr:hover { background-color: rgba(157, 187, 206, 0.05); }
     .objectif-table .btn-rounded-circle {
       width: 32px; height: 32px; padding: 0;
       display: inline-flex; align-items: center; justify-content: center;
       border-radius: 50% !important;
-      transition: all 0.25s;
     }
-    .objectif-table .btn-rounded-circle:hover { transform: scale(1.15); }
   </style>
 {% endblock %}

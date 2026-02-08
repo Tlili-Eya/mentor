@@ -12,7 +12,7 @@ use App\Repository\SortieAIRepository;
 use App\Repository\CategorieArticleRepository;
 
 #[Route('/back')]
-class BackController extends AbstractController
+class mBackController extends AbstractController
 {
     #[Route('/', name: 'back_home')]
     public function dashboard(

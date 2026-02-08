@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier Utilisateur</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+{% block body %}
+
+<div class="container py-5">
+    <!-- Header avec navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{{ path('app_utilisateur_index') }}">Utilisateurs</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_utilisateur_show', {'id': utilisateur.id}) }}">Profil</a></li>
+                    <li class="breadcrumb-item active">Modifier</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="fas fa-user-edit me-2 text-primary"></i>
+                Modifier l'utilisateur
+            </h2>
+            <p class="text-muted mt-2 mb-0">Mettez à jour les informations de {{ utilisateur.prenom }} {{ utilisateur.nom }}</p>
+        </div>
+        <a href="{{ path('app_utilisateur_index') }}" class="btn btn-outline-secondary btn-modern-outline px-4 py-2">
+            <i class="fas fa-arrow-left me-2"></i> Retour à la liste
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Colonne gauche - Aperçu profil -->
+        <div class="col-lg-4">
+            <div class="card profile-preview border-0 shadow-modern rounded-4 overflow-hidden sticky-top" style="top: 2rem;">
+                <div class="profile-header">
+                    <div class="profile-bg"></div>
+                    <div class="profile-avatar-container">
+                        {% if utilisateur.pdpUrl %}
+                            <img src="{{ asset('uploads/pdp/' ~ utilisateur.pdpUrl) }}" 
+                                 alt="{{ utilisateur.prenom }}" 
+                                 class="profile-avatar"
+                                 id="avatarPreview">
+                        {% else %}
+                            <div class="profile-avatar profile-avatar-placeholder" id="avatarPreview">
+                                <span>{{ utilisateur.prenom|slice(0, 1) }}{{ utilisateur.nom|slice(0, 1) }}</span>
+                            </div>
+                        {% endif %}
+                        <div class="edit-avatar-badge">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body text-center pt-5 pb-4">
+                    <h5 class="fw-bold mb-1" id="namePreview">{{ utilisateur.prenom }} {{ utilisateur.nom }}</h5>
+                    <p class="text-muted mb-3" id="emailPreview">{{ utilisateur.email }}</p>
+                    
+                    <div class="info-badge">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Aperçu en temps réel
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card border-0 shadow-modern rounded-4 overflow-hidden mt-4">
+                
+                <div class="card-body p-4">
+                    <p class="text-muted small mb-3">La suppression de cet utilisateur est irréversible. Toutes les données associées seront perdues.</p>
+                    <button type="button" class="btn-danger-action" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Supprimer cet utilisateur</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne droite - Formulaire -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-modern rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 p-4">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="fas fa-edit me-2 text-primary"></i>
+                        Informations de l'utilisateur
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    {{ form_start(form, {'attr': {'class': 'modern-form', 'id': 'editForm'}}) }}
+                    
+                    <div class="row g-4">
+                        <!-- Prénom -->
+                        <div class="col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">
+                                    <i class="fas fa-user me-2"></i>
+                                    Prénom
+                                </label>
+                                {{ form_widget(form.prenom, {
+                                    'attr': {
+                                        'class': 'form-control-modern',
+                                        'placeholder': 'Entrez le prénom',
+                                        'onkeyup': 'updatePreview()'
+                                    }
+                                }) }}
+                                {{ form_errors(form.prenom) }}
+                            </div>
+                        </div>
+
+                        <!-- Nom -->
+                        <div class="col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">
+                                    <i class="fas fa-user-tag me-2"></i>
+                                    Nom
+                                </label>
+                                {{ form_widget(form.nom, {
+                                    'attr': {
+                                        'class': 'form-control-modern',
+                                        'placeholder': 'Entrez le nom',
+                                        'onkeyup': 'updatePreview()'
+                                    }
+                                }) }}
+                                {{ form_errors(form.nom) }}
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-12">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    Adresse email
+                                </label>
+                                {{ form_widget(form.email, {
+                                    'attr': {
+                                        'class': 'form-control-modern',
+                                        'placeholder': 'exemple@email.com',
+                                        'onkeyup': 'updatePreview()'
+                                    }
+                                }) }}
+                                {{ form_errors(form.email) }}
+                            </div>
+                        </div>
+
+                        <!-- Mot de passe -->
+                        <div class="col-12">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">
+                                    <i class="fas fa-lock me-2"></i>
+                                    Mot de passe
+                                    <span class="badge bg-info-subtle text-info ms-2">Facultatif</span>
+                                </label>
+                                {{ form_widget(form.mdp, {
+                                    'attr': {
+                                        'class': 'form-control-modern',
+                                        'placeholder': 'Laissez vide pour conserver l\'actuel'
+                                    }
+                                }) }}
+                                {{ form_errors(form.mdp) }}
+                                <small class="form-text text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Laissez ce champ vide si vous ne souhaitez pas modifier le mot de passe
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Rôle -->
+                        <div class="col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">
+                                    <i class="fas fa-user-shield me-2"></i>
+                                    Rôle
+                                </label>
+                                {{ form_widget(form.role, {
+                                    'attr': {
+                                        'class': 'form-control-modern form-select-modern'
+                                    }
+                                }) }}
+                                {{ form_errors(form.role) }}
+                            </div>
+                        </div>
+
+                        <!-- Date d'inscription -->
+                        <div class="col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">
+                                    <i class="fas fa-calendar-check me-2"></i>
+                                    Date d'inscription
+                                </label>
+                                {{ form_widget(form.date_inscription, {
+                                    'attr': {
+                                        'class': 'form-control-modern'
+                                    }
+                                }) }}
+                                {{ form_errors(form.date_inscription) }}
+                            </div>
+                        </div>
+
+                        <!-- Photo de profil URL -->
+                        <div class="col-12">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">
+                                    <i class="fas fa-image me-2"></i>
+                                    URL de la photo de profil
+                                </label>
+                                {{ form_widget(form.pdp_url, {
+                                    'attr': {
+                                        'class': 'form-control-modern',
+                                        'placeholder': 'photo.jpg'
+                                    }
+                                }) }}
+                                {{ form_errors(form.pdp_url) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{ form_rest(form) }}
+
+                    <!-- Action Buttons -->
+                    <div class="form-actions mt-5">
+                        <button type="submit" class="btn-submit-action">
+                            <i class="fas fa-save"></i>
+                            <span>Enregistrer les modifications</span>
+                        </button>
+                        
+                        <a href="{{ path('app_utilisateur_show', {'id': utilisateur.id}) }}" class="btn-cancel-action">
+                            <i class="fas fa-times"></i>
+                            <span>Annuler</span>
+                        </a>
+
+                        <button type="reset" class="btn-reset-action">
+                            <i class="fas fa-undo"></i>
+                            <span>Réinitialiser</span>
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="card border-0 shadow-modern rounded-4 overflow-hidden mt-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-semibold mb-3">
+                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                        Conseils
+                    </h6>
+                    <ul class="tips-list">
+                        <li><i class="fas fa-check-circle text-success me-2"></i> Utilisez un email valide pour les notifications</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i> Choisissez un mot de passe fort (min. 8 caractères)</li>
+                        <li><i class="fas fa-check-circle text-success me-2"></i> Le rôle détermine les permissions de l'utilisateur</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                    Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <div class="alert alert-danger border-0 rounded-3 mb-3">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Attention :</strong> Cette action est irréversible !
+                </div>
+                <p class="text-muted mb-0">Êtes-vous absolument sûr de vouloir supprimer l'utilisateur <strong>{{ utilisateur.prenom }} {{ utilisateur.nom }}</strong> ? Toutes les données associées seront définitivement perdues.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i> Annuler
+                </button>
+                {{ include('utilisateur/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-color: #6366f1;
+        --primary-light: #818cf8;
+        --primary-dark: #4f46e5;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --info-color: #3b82f6;
+        --dark-color: #1f2937;
+        --light-color: #f9fafb;
+        --border-color: #e5e7eb;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        min-height: 100vh;
+    }
+
+    .shadow-modern {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+        background: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .breadcrumb-item a {
+        color: #6b7280;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .breadcrumb-item a:hover {
+        color: var(--primary-color);
+    }
+
+    .breadcrumb-item.active {
+        color: var(--dark-color);
+        font-weight: 600;
+    }
+
+    /* Bouton retour */
+    .btn-modern-outline {
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-modern-outline:hover {
+        border-color: var(--primary-color);
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Profile Preview */
+    .profile-preview {
+        position: relative;
+    }
+
+    .profile-header {
+        position: relative;
+        height: 120px;
+    }
+
+    .profile-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 120px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    }
+
+    .profile-avatar-container {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 20px;
+        border: 4px solid white;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        object-fit: cover;
+    }
+
+    .profile-avatar-placeholder {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .edit-avatar-badge {
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        width: 32px;
+        height: 32px;
+        background: var(--warning-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        animation: pulse-camera 2s infinite;
+    }
+
+    @keyframes pulse-camera {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+
+    .info-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary-color);
+        border-radius: 10px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+    }
+
+    /* Form moderne */
+    .modern-form {
+        animation: fadeInUp 0.5s ease;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-group-modern {
+        margin-bottom: 0;
+    }
+
+    .form-label-modern {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 0.75rem;
+        font-size: 0.9375rem;
+    }
+
+    .form-label-modern i {
+        color: var(--primary-color);
+        font-size: 0.875rem;
+    }
+
+    .form-control-modern,
+    .form-select-modern {
+        padding: 0.875rem 1.25rem;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 0.9375rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: white;
+    }
+
+    .form-control-modern:focus,
+    .form-select-modern:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        outline: none;
+        transform: translateY(-2px);
+    }
+
+    .form-control-modern:hover,
+    .form-select-modern:hover {
+        border-color: var(--primary-light);
+    }
+
+    /* Form Actions - GROS BOUTONS VISIBLES */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        padding-top: 2rem;
+        border-top: 2px dashed var(--border-color);
+        flex-wrap: wrap;
+    }
+
+    .btn-submit-action,
+    .btn-cancel-action,
+    .btn-reset-action,
+    .btn-danger-action {
+        flex: 1;
+        min-width: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.25rem 1.5rem;
+        border-radius: 16px;
+        border: 2px solid;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-submit-action i,
+    .btn-cancel-action i,
+    .btn-reset-action i,
+    .btn-danger-action i {
+        font-size: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit-action span,
+    .btn-cancel-action span,
+    .btn-reset-action span,
+    .btn-danger-action span {
+        font-size: 0.9375rem;
+        letter-spacing: 0.3px;
+    }
+
+    /* Bouton Enregistrer */
+    .btn-submit-action {
+        background: linear-gradient(135deg, var(--success-color), #059669);
+        color: white;
+        border-color: var(--success-color);
+    }
+
+    .btn-submit-action:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+        transform: translateY(-5px);
+        box-shadow: 0 16px 32px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-submit-action:hover i {
+        transform: scale(1.2) rotate(15deg);
+    }
+
+    /* Bouton Annuler */
+    .btn-cancel-action {
+        background: white;
+        color: #6b7280;
+        border-color: var(--border-color);
+    }
+
+    .btn-cancel-action:hover {
+        background: linear-gradient(135deg, #6b7280, #4b5563);
+        color: white;
+        border-color: #6b7280;
+        transform: translateY(-5px);
+        box-shadow: 0 16px 32px rgba(107, 114, 128, 0.3);
+    }
+
+    .btn-cancel-action:hover i {
+        transform: scale(1.2) rotate(-180deg);
+    }
+
+    /* Bouton Réinitialiser */
+    .btn-reset-action {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-color);
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-reset-action:hover {
+        background: linear-gradient(135deg, var(--warning-color), #d97706);
+        color: white;
+        border-color: var(--warning-color);
+        transform: translateY(-5px);
+        box-shadow: 0 16px 32px rgba(245, 158, 11, 0.35);
+    }
+
+    .btn-reset-action:hover i {
+        transform: scale(1.2) rotate(-360deg);
+    }
+
+    /* Bouton Danger (Supprimer) */
+    .btn-danger-action {
+        width: 100%;
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger-action:hover {
+        background: linear-gradient(135deg, var(--danger-color), #dc2626);
+        color: white;
+        border-color: var(--danger-color);
+        transform: translateY(-5px);
+        box-shadow: 0 16px 32px rgba(239, 68, 68, 0.35);
+    }
+
+    .btn-danger-action:hover i {
+        transform: scale(1.2) rotate(-10deg);
+        animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0) scale(1.2) rotate(-10deg); }
+        25% { transform: translateX(-5px) scale(1.2) rotate(-10deg); }
+        75% { transform: translateX(5px) scale(1.2) rotate(-10deg); }
+    }
+
+    /* Tips List */
+    .tips-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .tips-list li {
+        padding: 0.75rem 0;
+        color: #6b7280;
+        font-size: 0.9375rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .tips-list li i {
+        font-size: 0.875rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-submit-action,
+        .btn-cancel-action,
+        .btn-reset-action {
+            min-width: 100%;
+        }
+    }
+
+    /* Animation d'entrée pour les groupes de formulaire */
+    .form-group-modern {
+        animation: slideIn 0.5s ease backwards;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .row .col-md-6:nth-child(1) .form-group-modern { animation-delay: 0.1s; }
+    .row .col-md-6:nth-child(2) .form-group-modern { animation-delay: 0.15s; }
+    .row .col-12:nth-child(3) .form-group-modern { animation-delay: 0.2s; }
+    .row .col-12:nth-child(4) .form-group-modern { animation-delay: 0.25s; }
+    .row .col-md-6:nth-child(5) .form-group-modern { animation-delay: 0.3s; }
+    .row .col-md-6:nth-child(6) .form-group-modern { animation-delay: 0.35s; }
+    .row .col-12:nth-child(7) .form-group-modern { animation-delay: 0.4s; }
+</style>
+
+<script>
+    // Mise à jour de l'aperçu en temps réel
+    function updatePreview() {
+        const prenom = document.querySelector('input[name*="prenom"]')?.value || '';
+        const nom = document.querySelector('input[name*="nom"]')?.value || '';
+        const email = document.querySelector('input[name*="email"]')?.value || '';
+
+        const namePreview = document.getElementById('namePreview');
+        const emailPreview = document.getElementById('emailPreview');
+
+        if (namePreview) {
+            namePreview.textContent = `${prenom} ${nom}`.trim() || 'Nom Prénom';
+        }
+
+        if (emailPreview) {
+            emailPreview.textContent = email || 'email@exemple.com';
+        }
+    }
+
+    // Initialiser l'aperçu au chargement
+    document.addEventListener('DOMContentLoaded', function() {
+        updatePreview();
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+</body>
+</html>

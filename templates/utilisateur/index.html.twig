@@ -1,0 +1,616 @@
+{% block title %}Utilisateurs - Gestion{% endblock %}
+
+{% block body %}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Gestion des utilisateurs</h2>
+            <p class="text-muted mb-0">Gérez et supervisez tous les comptes utilisateurs</p>
+        </div>
+        <a href="{{ path('app_utilisateur_new') }}"
+           class="btn btn-primary btn-modern px-4 py-3 rounded-3 shadow-sm">
+            <i class="fas fa-plus me-2"></i> Nouvel utilisateur
+        </a>
+    </div>
+
+    {# Statistiques rapides #}
+    <div class="row mb-4 g-3">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary-soft">
+                    <i class="fas fa-users text-primary"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ utilisateurs|length }}</h3>
+                    <p class="stat-label">Total utilisateurs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-modern rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-0 p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-semibold">Liste des utilisateurs</h5>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" placeholder="Rechercher...">
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-modern mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th class="ps-4 py-4">ID</th>
+                        <th class="py-4">Utilisateur</th>
+                        <th class="py-4">Contact</th>
+                        <th class="py-4">Rôle</th>
+                        <th class="py-4">Inscrit le</th>
+                        <th class="text-end pe-4 py-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for utilisateur in utilisateurs %}
+                    <tr class="table-row-modern">
+                        <td class="ps-4 py-4">
+                            <span class="id-badge">#{{ utilisateur.id }}</span>
+                        </td>
+
+                        <td class="py-4">
+                            <div class="d-flex align-items-center">
+                                {% if utilisateur.pdpUrl %}
+                                    <div class="avatar-wrapper">
+                                        <img src="{{ asset('uploads/pdp/' ~ utilisateur.pdpUrl) }}"
+                                             alt="{{ utilisateur.prenom }}"
+                                             class="avatar">
+                                        <div class="avatar-status"></div>
+                                    </div>
+                                {% else %}
+                                    <div class="avatar-wrapper">
+                                        <div class="avatar avatar-placeholder">
+                                            <span>{{ utilisateur.prenom|slice(0, 1) }}{{ utilisateur.nom|slice(0, 1) }}</span>
+                                        </div>
+                                        <div class="avatar-status"></div>
+                                    </div>
+                                {% endif %}
+                                <div class="ms-3">
+                                    <div class="user-name">{{ utilisateur.prenom }} {{ utilisateur.nom }}</div>
+                                    <small class="user-subtitle">Membre actif</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="py-4">
+                            <div class="contact-info">
+                                <i class="fas fa-envelope me-2"></i>
+                                <span>{{ utilisateur.email }}</span>
+                            </div>
+                        </td>
+
+                        <td class="py-4">
+                            <span class="role-badge role-{{ utilisateur.role|lower }}">
+                                <i class="fas fa-circle me-2"></i>
+                                {{ utilisateur.role|capitalize }}
+                            </span>
+                        </td>
+
+                        <td class="py-4">
+                            <div class="date-info">
+                                <i class="far fa-calendar me-2"></i>
+                                {{ utilisateur.dateInscription ? utilisateur.dateInscription|date('d/m/Y') : '—' }}
+                            </div>
+                        </td>
+
+                        <td class="text-end pe-4 py-4">
+                            <div class="action-buttons">
+                                <a href="{{ path('app_utilisateur_show', {'id': utilisateur.id}) }}"
+                                   class="action-btn action-view"
+                                   data-bs-toggle="tooltip" title="Voir le profil">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ path('app_utilisateur_edit', {'id': utilisateur.id}) }}"
+                                   class="action-btn action-edit"
+                                   data-bs-toggle="tooltip" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{{ path('app_utilisateur_delete', {'id': utilisateur.id}) }}"
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');"
+                                      style="display:inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ utilisateur.id) }}">
+                                    <button class="action-btn action-delete" type="submit"
+                                            data-bs-toggle="tooltip" title="Supprimer">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fas fa-users-slash"></i>
+                                </div>
+                                <h5 class="empty-title">Aucun utilisateur</h5>
+                                <p class="empty-text">Commencez par créer votre premier utilisateur</p>
+                                <a href="{{ path('app_utilisateur_new') }}" class="btn btn-primary btn-modern mt-3">
+                                    <i class="fas fa-plus me-2"></i> Créer un utilisateur
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card-footer bg-light border-0 p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ utilisateurs|length }} utilisateur{{ utilisateurs|length > 1 ? 's' : '' }} trouvé{{ utilisateurs|length > 1 ? 's' : '' }}
+                </span>
+                {# Vous pouvez ajouter une pagination ici #}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-color: #6366f1;
+        --primary-light: #818cf8;
+        --primary-dark: #4f46e5;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --info-color: #3b82f6;
+        --dark-color: #1f2937;
+        --light-color: #f9fafb;
+        --border-color: #e5e7eb;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Card moderne avec shadow élégante */
+    .shadow-modern {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Bouton moderne */
+    .btn-modern {
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+    }
+
+    .btn-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(99, 102, 241, 0.25);
+    }
+
+    .btn-modern:active {
+        transform: translateY(0);
+    }
+
+    /* Stat cards */
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .bg-primary-soft {
+        background: rgba(99, 102, 241, 0.1);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    /* Search box */
+    .search-box {
+        position: relative;
+        width: 280px;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 0.875rem;
+    }
+
+    .search-box input {
+        padding-left: 2.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    /* Table moderne */
+    .table-modern {
+        font-size: 0.9375rem;
+    }
+
+    .table-modern thead {
+        background: linear-gradient(to bottom, #f9fafb 0%, #f3f4f6 100%);
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .table-modern thead th {
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+
+    .table-modern tbody tr {
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    /* Row hover effect moderne et fluide */
+    .table-row-modern {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .table-row-modern::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 3px;
+        height: 0;
+        background: linear-gradient(to bottom, var(--primary-color), var(--primary-light));
+        transition: height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 0 3px 3px 0;
+    }
+
+    .table-row-modern:hover {
+        background: linear-gradient(to right, rgba(99, 102, 241, 0.03) 0%, rgba(99, 102, 241, 0.01) 100%);
+        transform: translateX(2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .table-row-modern:hover::before {
+        height: 100%;
+    }
+
+    /* ID Badge */
+    .id-badge {
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.875rem;
+        font-family: 'Courier New', monospace;
+    }
+
+    /* Avatar moderne */
+    .avatar-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 2px solid white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .avatar-placeholder {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .table-row-modern:hover .avatar {
+        transform: scale(1.1) rotate(2deg);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .avatar-status {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        background: var(--success-color);
+        border: 2px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* User info */
+    .user-name {
+        font-weight: 600;
+        color: var(--dark-color);
+        font-size: 0.9375rem;
+        margin-bottom: 2px;
+        transition: color 0.3s ease;
+    }
+
+    .table-row-modern:hover .user-name {
+        color: var(--primary-color);
+    }
+
+    .user-subtitle {
+        color: #9ca3af;
+        font-size: 0.8125rem;
+    }
+
+    /* Contact info */
+    .contact-info {
+        color: #6b7280;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .contact-info i {
+        color: #9ca3af;
+        font-size: 0.75rem;
+    }
+
+    /* Role badges modernes */
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        transition: all 0.3s ease;
+    }
+
+    .role-badge i {
+        font-size: 0.5rem;
+    }
+
+    .role-admin {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .role-doctor {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+        color: var(--primary-dark);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .role-nurse {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+        color: #2563eb;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .table-row-modern:hover .role-badge {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Date info */
+    .date-info {
+        color: #6b7280;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .date-info i {
+        color: #9ca3af;
+        font-size: 0.75rem;
+    }
+
+    /* Action buttons modernes */
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .action-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid;
+        background: white;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        font-size: 1.1rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        position: relative;
+    }
+
+    .action-btn i {
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-4px) scale(1.08);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-view {
+        color: #3b82f6;
+        border-color: rgba(59, 130, 246, 0.3);
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .action-view:hover {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        border-color: #2563eb;
+        color: white;
+    }
+
+    .action-view:hover i {
+        transform: scale(1.2);
+    }
+
+    .action-edit {
+        color: #f59e0b;
+        border-color: rgba(245, 158, 11, 0.3);
+        background: rgba(245, 158, 11, 0.05);
+    }
+
+    .action-edit:hover {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border-color: #d97706;
+        color: white;
+    }
+
+    .action-edit:hover i {
+        transform: scale(1.2) rotate(15deg);
+    }
+
+    .action-delete {
+        color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.3);
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    .action-delete:hover {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        border-color: #dc2626;
+        color: white;
+    }
+
+    .action-delete:hover i {
+        transform: scale(1.2) rotate(-10deg);
+    }
+
+    /* Empty state */
+    .empty-state {
+        padding: 4rem 2rem;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--primary-color);
+    }
+
+    .empty-title {
+        color: var(--dark-color);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-text {
+        color: #9ca3af;
+        margin-bottom: 0;
+    }
+
+    /* Card header */
+    .card-header h5 {
+        color: var(--dark-color);
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .table-row-modern {
+        animation: fadeInUp 0.4s ease backwards;
+    }
+
+    .table-row-modern:nth-child(1) { animation-delay: 0.05s; }
+    .table-row-modern:nth-child(2) { animation-delay: 0.1s; }
+    .table-row-modern:nth-child(3) { animation-delay: 0.15s; }
+    .table-row-modern:nth-child(4) { animation-delay: 0.2s; }
+    .table-row-modern:nth-child(5) { animation-delay: 0.25s; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .search-box {
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        .action-buttons {
+            opacity: 1;
+        }
+    }
+</style>
+
+{% endblock %}

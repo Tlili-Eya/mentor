@@ -249,6 +249,25 @@ class Utilisateur
 
         return $this;
     }
+    public function getPassword(): ?string
+    {
+        return $this->mdp;
+    }
+
+    public function getRoles(): array
+    {
+        // Convert your 'role' string to Symfony ROLE_ format
+        $role = $this->role ? 'ROLE_' . strtoupper($this->role) : 'ROLE_USER';
+        return [$role];
+    }
+
+    /**
+     * Required by UserInterface – usually empty unless you have temporary credentials
+     */
+    public function eraseCredentials(): void
+    {
+        // Nothing to do here for now
+    }
 
     public function removeProjet(Projet $projet): static
     {

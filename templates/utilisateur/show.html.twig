@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Utilisateur</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+{% block body %}
+<div class="container py-5">
+    <!-- Header avec navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{{ path('app_utilisateur_index') }}">Utilisateurs</a></li>
+                    <li class="breadcrumb-item active">Profil</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-dark mb-0">Profil Utilisateur</h2>
+        </div>
+        <a href="{{ path('app_utilisateur_index') }}" class="btn btn-outline-secondary btn-modern-outline px-4 py-2">
+            <i class="fas fa-arrow-left me-2"></i> Retour à la liste
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Colonne gauche - Card profil -->
+        <div class="col-lg-4">
+            <div class="card profile-card border-0 shadow-modern rounded-4 overflow-hidden">
+                <div class="profile-header">
+                    <div class="profile-bg"></div>
+                    <div class="profile-avatar-container">
+                        {% if utilisateur.pdpUrl %}
+                            <img src="{{ asset('uploads/pdp/' ~ utilisateur.pdpUrl) }}" 
+                                 alt="{{ utilisateur.prenom }}" 
+                                 class="profile-avatar">
+                        {% else %}
+                            <div class="profile-avatar profile-avatar-placeholder">
+                                <span>{{ utilisateur.prenom|slice(0, 1) }}{{ utilisateur.nom|slice(0, 1) }}</span>
+                            </div>
+                        {% endif %}
+                        <div class="status-indicator"></div>
+                    </div>
+                </div>
+                
+                <div class="card-body text-center pt-5 pb-4">
+                    <h4 class="fw-bold mb-1">{{ utilisateur.prenom }} {{ utilisateur.nom }}</h4>
+                    <p class="text-muted mb-3">{{ utilisateur.email }}</p>
+                    
+                    <div class="d-flex justify-content-center mb-4">
+                        <span class="role-badge-large role-{{ utilisateur.role|lower }}">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            {{ utilisateur.role|capitalize }}
+                        </span>
+                    </div>
+
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div>
+                                <div class="stat-label">Membre depuis</div>
+                                <div class="stat-value">{{ utilisateur.dateInscription ? utilisateur.dateInscription|date('d M Y') : 'N/A' }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="profile-actions mt-4">
+                        <a href="{{ path('app_utilisateur_edit', {'id': utilisateur.id}) }}" 
+                           class="btn-action btn-action-edit">
+                            <i class="fas fa-edit"></i>
+                            <span>Modifier</span>
+                        </a>
+                        
+                        <button type="button" class="btn-action btn-action-delete" 
+                                data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Supprimer</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne droite - Détails -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-modern rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 p-4">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>
+                        Informations Détaillées
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="info-grid">
+                        <!-- ID -->
+                        <div class="info-item">
+                            <div class="info-icon info-icon-primary">
+                                <i class="fas fa-fingerprint"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Identifiant</div>
+                                <div class="info-value">#{{ utilisateur.id }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Nom -->
+                        <div class="info-item">
+                            <div class="info-icon info-icon-success">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Nom</div>
+                                <div class="info-value">{{ utilisateur.nom }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Prénom -->
+                        <div class="info-item">
+                            <div class="info-icon info-icon-info">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Prénom</div>
+                                <div class="info-value">{{ utilisateur.prenom }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="info-item">
+                            <div class="info-icon info-icon-warning">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Email</div>
+                                <div class="info-value email-value">
+                                    {{ utilisateur.email }}
+                                    <button class="copy-btn" onclick="copyToClipboard('{{ utilisateur.email }}')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mot de passe -->
+                        <div class="info-item">
+                            <div class="info-icon info-icon-danger">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Mot de passe</div>
+                                <div class="info-value">
+                                    <span class="password-hidden">••••••••••••</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Photo de profil -->
+                        <div class="info-item">
+                            <div class="info-icon info-icon-purple">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Photo de profil</div>
+                                <div class="info-value">
+                                    {% if utilisateur.pdpUrl %}
+                                        <span class="text-success">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            {{ utilisateur.pdpUrl }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">Aucune photo</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date inscription -->
+                        <div class="info-item">
+                            <div class="info-icon info-icon-teal">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Date d'inscription</div>
+                                <div class="info-value">
+                                    {{ utilisateur.dateInscription ? utilisateur.dateInscription|date('d/m/Y à H:i') : 'Non définie' }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rôle -->
+                        <div class="info-item">
+                            <div class="info-icon info-icon-indigo">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Rôle</div>
+                                <div class="info-value">
+                                    <span class="role-badge-small role-{{ utilisateur.role|lower }}">
+                                        {{ utilisateur.role|capitalize }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                    Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="text-muted mb-0">Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{{ utilisateur.prenom }} {{ utilisateur.nom }}</strong> ? Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                {{ include('utilisateur/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-color: #6366f1;
+        --primary-light: #818cf8;
+        --primary-dark: #4f46e5;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --info-color: #3b82f6;
+        --purple-color: #a855f7;
+        --teal-color: #14b8a6;
+        --indigo-color: #6366f1;
+        --dark-color: #1f2937;
+        --light-color: #f9fafb;
+        --border-color: #e5e7eb;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        min-height: 100vh;
+    }
+
+    .shadow-modern {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+        background: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .breadcrumb-item a {
+        color: #6b7280;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .breadcrumb-item a:hover {
+        color: var(--primary-color);
+    }
+
+    .breadcrumb-item.active {
+        color: var(--dark-color);
+        font-weight: 600;
+    }
+
+    /* Bouton retour moderne */
+    .btn-modern-outline {
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-modern-outline:hover {
+        border-color: var(--primary-color);
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Profile Card */
+    .profile-card {
+        overflow: visible;
+    }
+
+    .profile-header {
+        position: relative;
+        height: 140px;
+    }
+
+    .profile-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 140px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    }
+
+    .profile-avatar-container {
+        position: absolute;
+        bottom: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 24px;
+        border: 5px solid white;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        object-fit: cover;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .profile-avatar:hover {
+        transform: scale(1.08) rotate(3deg);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-avatar-placeholder {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+
+    .status-indicator {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        width: 20px;
+        height: 20px;
+        background: var(--success-color);
+        border: 4px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+        50% {
+            box-shadow: 0 2px 16px rgba(16, 185, 129, 0.8);
+        }
+    }
+
+    /* Role badge large */
+    .role-badge-large {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        transition: all 0.3s ease;
+    }
+
+    .role-admin {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
+        color: #dc2626;
+        border: 2px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .role-doctor {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.08));
+        color: var(--primary-dark);
+        border: 2px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .role-nurse {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.08));
+        color: #2563eb;
+        border: 2px solid rgba(59, 130, 246, 0.3);
+    }
+
+    /* Profile stats */
+    .profile-stats {
+        background: var(--light-color);
+        border-radius: 16px;
+        padding: 1.25rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .stat-item i {
+        font-size: 1.75rem;
+        color: var(--primary-color);
+    }
+
+    .stat-label {
+        font-size: 0.8125rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+
+    /* Profile actions - Gros boutons visibles */
+    .profile-actions {
+        display: flex;
+        gap: 1rem;
+        padding-top: 1rem;
+        border-top: 2px dashed var(--border-color);
+    }
+
+    .btn-action {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.25rem 1rem;
+        border-radius: 16px;
+        border: 2px solid;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .btn-action i {
+        font-size: 1.75rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-action span {
+        font-size: 0.875rem;
+        letter-spacing: 0.3px;
+    }
+
+    .btn-action-edit {
+        color: #f59e0b;
+        border-color: rgba(245, 158, 11, 0.3);
+        background: rgba(245, 158, 11, 0.05);
+    }
+
+    .btn-action-edit:hover {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border-color: #d97706;
+        color: white;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-action-edit:hover i {
+        transform: scale(1.2) rotate(15deg);
+    }
+
+    .btn-action-delete {
+        color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.3);
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    .btn-action-delete:hover {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        border-color: #dc2626;
+        color: white;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-action-delete:hover i {
+        transform: scale(1.2) rotate(-10deg);
+    }
+
+    /* Info Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: var(--light-color);
+        border-radius: 16px;
+        border: 2px solid transparent;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .info-item:hover {
+        background: white;
+        border-color: var(--primary-color);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.15);
+    }
+
+    .info-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+    .info-item:hover .info-icon {
+        transform: scale(1.15) rotate(5deg);
+    }
+
+    .info-icon-primary {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary-color);
+    }
+
+    .info-icon-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+    }
+
+    .info-icon-info {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--info-color);
+    }
+
+    .info-icon-warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-color);
+    }
+
+    .info-icon-danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+    }
+
+    .info-icon-purple {
+        background: rgba(168, 85, 247, 0.1);
+        color: var(--purple-color);
+    }
+
+    .info-icon-teal {
+        background: rgba(20, 184, 166, 0.1);
+        color: var(--teal-color);
+    }
+
+    .info-icon-indigo {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--indigo-color);
+    }
+
+    .info-content {
+        flex: 1;
+    }
+
+    .info-label {
+        font-size: 0.8125rem;
+        color: #6b7280;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        font-size: 1.0625rem;
+        color: var(--dark-color);
+        font-weight: 600;
+        word-break: break-word;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .email-value {
+        font-size: 0.9375rem;
+    }
+
+    .copy-btn {
+        padding: 0.375rem 0.625rem;
+        border: none;
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary-color);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+    }
+
+    .copy-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .password-hidden {
+        font-family: monospace;
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+
+    .role-badge-small {
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: 2px solid;
+    }
+
+    /* Modal moderne */
+    .modal-content {
+        overflow: hidden;
+    }
+
+    .modal-header .modal-title {
+        color: var(--dark-color);
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .info-item {
+        animation: fadeInUp 0.5s ease backwards;
+    }
+
+    .info-item:nth-child(1) { animation-delay: 0.05s; }
+    .info-item:nth-child(2) { animation-delay: 0.1s; }
+    .info-item:nth-child(3) { animation-delay: 0.15s; }
+    .info-item:nth-child(4) { animation-delay: 0.2s; }
+    .info-item:nth-child(5) { animation-delay: 0.25s; }
+    .info-item:nth-child(6) { animation-delay: 0.3s; }
+    .info-item:nth-child(7) { animation-delay: 0.35s; }
+    .info-item:nth-child(8) { animation-delay: 0.4s; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .profile-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Animation de succès
+            event.target.closest('.copy-btn').innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => {
+                event.target.closest('.copy-btn').innerHTML = '<i class="fas fa-copy"></i>';
+            }, 2000);
+        });
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+</body>
+</html>

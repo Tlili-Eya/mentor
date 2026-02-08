@@ -1,77 +1,55 @@
 <?php
+// src/Controller/BackController.php
 
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\ReferenceArticleRepository;
+use App\Repository\PlanActionsRepository;
+use App\Repository\SortieAIRepository;
+use App\Repository\CategorieArticleRepository;
 
-#[Route('/admin', name: 'back_')]
-final class BackController extends AbstractController
+#[Route('/back')]
+class BackController extends AbstractController
 {
-    #[Route('', name: 'home')]
-    public function home(): Response
-    {
-        return $this->render('back/home.html.twig');
-    }
+    #[Route('/', name: 'back_home')]
+    public function dashboard(
+        ReferenceArticleRepository $articleRepo,
+        PlanActionsRepository $planRepo,
+        SortieAIRepository $sortieRepo,
+        CategorieArticleRepository $categorieRepo
+    ): Response {
+        // Statistiques pour l'admin
+        $stats = [
+            'total_articles' => $articleRepo->count([]),
+            'total_plans' => $planRepo->count([]),
+            'total_sorties' => $sortieRepo->count([]),
+            'total_categories' => $categorieRepo->count([]),
+            'articles_publies' => $articleRepo->count(['published' => true]),
+            'articles_non_publies' => $articleRepo->count(['published' => false]),
+        ];
 
-    #[Route('/about', name: 'about')]
-    public function about(): Response
-    {
-        return $this->render('back/about.html.twig');
-    }
+        // Stats par statut pour les plans
+        $plans_par_statut = [
+            'en_attente' => $planRepo->count(['statut' => \App\Enum\Statut::EnAttente]),
+            'en_cours' => $planRepo->count(['statut' => \App\Enum\Statut::EnCours]),
+            'fini' => $planRepo->count(['statut' => \App\Enum\Statut::Fini]),
+            'rejete' => $planRepo->count(['statut' => \App\Enum\Statut::Rejete]),
+        ];
 
-    #[Route('/courses', name: 'courses')]
-    public function courses(): Response
-    {
-        return $this->render('back/courses.html.twig');
-    }
+        // Récents
+        $derniers_articles = $articleRepo->findBy([], ['createdAt' => 'DESC'], 5);
+        $derniers_plans = $planRepo->findBy([], ['createdAt' => 'DESC'], 5);
+        $dernieres_sorties = $sortieRepo->findBy([], ['createdAt' => 'DESC'], 5);
 
-    #[Route('/course-details', name: 'course_details')]
-    public function courseDetails(): Response
-    {
-        return $this->render('back/course-details.html.twig');
-    }
-
-    #[Route('/instructors', name: 'instructors')]
-    public function instructors(): Response
-    {
-        return $this->render('back/instructors.html.twig');
-    }
-
-    #[Route('/instructor-profile', name: 'instructor_profile')]
-    public function instructorProfile(): Response
-    {
-        return $this->render('back/instructor-profile.html.twig');
-    }
-
-    #[Route('/events', name: 'events')]
-    public function events(): Response
-    {
-        return $this->render('back/events.html.twig');
-    }
-
-    #[Route('/pricing', name: 'pricing')]
-    public function pricing(): Response
-    {
-        return $this->render('back/pricing.html.twig');
-    }
-
-    #[Route('/blog', name: 'blog')]
-    public function blog(): Response
-    {
-        return $this->render('back/blog.html.twig');
-    }
-
-    #[Route('/blog-details', name: 'blog_details')]
-    public function blogDetails(): Response
-    {
-        return $this->render('back/blog-details.html.twig');
-    }
-
-    #[Route('/contact', name: 'contact')]
-    public function contact(): Response
-    {
-        return $this->render('back/contact.html.twig');
+        return $this->render('back/dashboard.html.twig', [
+            'stats' => $stats,
+            'plans_par_statut' => $plans_par_statut,
+            'derniers_articles' => $derniers_articles,
+            'derniers_plans' => $derniers_plans,
+            'dernieres_sorties' => $dernieres_sorties,
+        ]);
     }
 }

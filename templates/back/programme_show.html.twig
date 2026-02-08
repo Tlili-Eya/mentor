@@ -1,47 +1,53 @@
-{% extends 'front/base.html.twig' %}
+{% extends 'back/base.html.twig' %}
 
 {% block title %}Programme : {{ programme.titre }}{% endblock %}
 
 {% block body %}
-<main class="container my-5 position-relative">
+<main class="container my-5 position-relative" style="min-height: calc(100vh - 200px);">
 
-  <!-- Bouton retour en haut à droite -->
- <div class="position-absolute top-0 start-0 mt-4 ms-4">
-  <a href="{{ path('back_events') }}"
-     class="btn btn-outline-primary btn-sm rounded-circle d-flex align-items-center justify-content-center"
-     style="width: 38px; height: 38px;"
-     title="Retour">
-    <i class="bi bi-arrow-left"></i>
-  </a>
-</div>
-
-
+  <!-- Bouton retour en haut à gauche -->
+  <div class="position-absolute top-0 start-0 mt-4 ms-4">
+    <a href="{{ path('front_events') }}"
+       class="btn rounded-circle d-flex align-items-center justify-content-center"
+       style="width: 42px; height: 42px; background-color: #102c59; color: white; border: 2px solid #9dbbce;"
+       title="Retour aux événements"
+       onmouseover="this.style.backgroundColor='#0a1f3a'; this.style.transform='translateY(-2px)';"
+       onmouseout="this.style.backgroundColor='#102c59'; this.style.transform='translateY(0)';">
+      <i class="bi bi-arrow-left fs-5"></i>
+    </a>
+  </div>
 
   <!-- Titre + date + message motivant -->
   <div class="text-center mb-5 pt-5">
-    <h1 class="display-4 fw-bold" style="color: var(--heading-color);">
+    <h1 class="display-4 fw-bold mb-3" style="color: #102c59;">
       {{ programme.titre }}
     </h1>
-    <p class="lead" style="color: var(--default-color);">
-      Généré le {{ programme.dategeneration|date('d/m/Y') }}
+    <p class="lead mb-4" style="color: #9dbbce; font-size: 1.25rem;">
+      <i class="bi bi-calendar3 me-2"></i>Généré le {{ programme.dategeneration|date('d/m/Y') }}
     </p>
 
     {% if programme.motivation|length > 0 %}
       {% set dernier = programme.motivation|sort((a,b) => b.dategeneratiomm <=> a.dategeneratiomm)|first %}
-      <div class="motivation-box mt-4 p-4 rounded shadow-sm" style="background-color: var(--surface-color); border: 1px solid var(--default-color);">
-        <h5 class="mb-3" style="color: var(--accent-color);">
-          <i class="bi bi-chat-heart-fill me-2"></i>Message motivant
-        </h5>
-        <p class="fs-5 mb-2" style="color: var(--default-color); white-space: pre-line;">
-          {{ dernier.messagemotivant|default('En cours de génération...') }}
-        </p>
-        <small style="color: var(--default-color); opacity: 0.7;">
-          {{ dernier.dategeneratiomm|date('d/m/Y H:i') }}
-        </small>
+      <div class="motivation-box mt-4 p-4 rounded-4 shadow-lg mx-auto" style="background-color: rgba(157, 187, 206, 0.15); border: 2px solid #9dbbce; max-width: 800px;">
+        <div class="d-flex align-items-start mb-3">
+          <div class="icon-box me-3" style="background-color: #102c59; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-chat-heart-fill fs-4"></i>
+          </div>
+          <div>
+            <h5 class="mb-2" style="color: #102c59;">Message motivant</h5>
+            <p class="mb-2" style="color: #102c59; white-space: pre-line; font-size: 1.1rem;">
+              {{ dernier.messagemotivant|default('En cours de génération...') }}
+            </p>
+            <small style="color: #102c59; opacity: 0.7;">
+              <i class="bi bi-clock me-1"></i>{{ dernier.dategeneratiomm|date('d/m/Y H:i') }}
+            </small>
+          </div>
+        </div>
       </div>
     {% else %}
-      <div class="alert alert-light mt-4 text-center py-4" style="background-color: var(--surface-color); color: var(--default-color);">
-        Aucun message motivant pour le moment
+      <div class="alert alert-light mt-4 p-4 rounded-4 text-center mx-auto" style="background-color: rgba(157, 187, 206, 0.1); border: 1px solid #9dbbce; color: #102c59; max-width: 800px;">
+        <i class="bi bi-chat-square-dots fs-1 d-block mb-3" style="color: #9dbbce;"></i>
+        <p class="mb-0">Aucun message motivant pour le moment</p>
       </div>
     {% endif %}
   </div>
@@ -57,33 +63,51 @@
       {% endif %}
     {% endfor %}
 
+    <!-- Score total -->
     <div class="col-md-5 col-lg-4">
-      <div class="card h-100 shadow-sm text-center" style="background-color: var(--surface-color); border-color: var(--default-color);">
-        <div class="card-body d-flex flex-column justify-content-center py-5">
-          <h5 class="card-title mb-3" style="color: var(--heading-color);">
+      <div class="card h-100 shadow-lg border-0 text-center" style="background: linear-gradient(135deg, #102c59 0%, #1a3a7a 100%); color: white; border-radius: 1rem;">
+        <div class="card-body d-flex flex-column justify-content-center py-5 px-4">
+          <div class="icon-box mb-4 mx-auto" style="background-color: rgba(255, 255, 255, 0.2); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-trophy fs-2"></i>
+          </div>
+          <h5 class="card-title mb-3" style="color: white; font-size: 1.2rem;">
             Score total
           </h5>
-          <div class="display-4 fw-bold" style="color: var(--accent-color);">
+          <div class="display-3 fw-bold" style="color: #9dbbce;">
             {{ totalScore }}
           </div>
+          <small class="mt-2" style="opacity: 0.8;">
+            points accumulés
+          </small>
         </div>
       </div>
     </div>
 
+    <!-- Médaille obtenue -->
     <div class="col-md-5 col-lg-4">
-      <div class="card h-100 shadow-sm text-center" style="background-color: var(--surface-color); border-color: var(--default-color);">
-        <div class="card-body d-flex flex-column justify-content-center py-5">
-          <h5 class="card-title mb-3" style="color: var(--heading-color);">
+      <div class="card h-100 shadow-lg border-0 text-center" style="background: linear-gradient(135deg, #9dbbce 0%, #b5d1e0 100%); color: #102c59; border-radius: 1rem;">
+        <div class="card-body d-flex flex-column justify-content-center py-5 px-4">
+          <div class="icon-box mb-4 mx-auto" style="background-color: rgba(16, 44, 89, 0.2); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-award fs-2" style="color: #102c59;"></i>
+          </div>
+          <h5 class="card-title mb-3" style="color: #102c59; font-size: 1.2rem;">
             Médaille obtenue
           </h5>
           {% if medailleMax %}
-            <div class="fs-1 fw-bold" style="color: var(--accent-color);">
-              {% if medailleMax.value == 'Or' %}🥇{% elseif medailleMax.value == 'Argent' %}🥈{% else %}🥉{% endif %}
+            <div class="display-1 fw-bold mb-2">
+              {% if medailleMax.value == 'Or' %}🥇
+              {% elseif medailleMax.value == 'Argent' %}🥈
+              {% else %}🥉{% endif %}
+            </div>
+            <div class="fs-3 fw-bold" style="color: #102c59;">
               {{ medailleMax.value }}
             </div>
           {% else %}
-            <p class="fs-5 mt-2" style="color: var(--default-color); opacity: 0.8;">
-              Aucune médaille pour l’instant
+            <div class="fs-1 mb-3" style="color: #102c59; opacity: 0.5;">
+              <i class="bi bi-award"></i>
+            </div>
+            <p class="fs-6" style="color: #102c59; opacity: 0.7;">
+              Aucune médaille pour l'instant
             </p>
           {% endif %}
         </div>
@@ -92,47 +116,95 @@
   </div>
 
   <!-- Tableau des tâches -->
-  <div class="card shadow-sm mb-5" style="background-color: var(--surface-color); border-color: var(--default-color);">
-    <div class="card-header" style="background-color: var(--default-color); color: var(--contrast-color);">
-      <h5 class="mb-0">
-        <i class="bi bi-list-check me-2"></i>Tâches
-      </h5>
+  <div class="card shadow-lg border-0 mb-5 overflow-hidden" style="border-radius: 1rem;">
+    <div class="card-header py-4" style="background-color: #102c59; color: white;">
+      <div class="d-flex align-items-center">
+        <div class="icon-box me-3" style="background-color: rgba(255, 255, 255, 0.2); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-list-check fs-5"></i>
+        </div>
+        <div>
+          <h5 class="mb-0">Tâches du programme</h5>
+          <small class="opacity-75">{{ programme.tache|length }} tâche(s) au total</small>
+        </div>
+      </div>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-hover mb-0 text-center">
-          <thead style="background-color: rgba(102, 146, 188, 0.1);">
+        <table class="table table-hover mb-0">
+          <thead style="background-color: rgba(157, 187, 206, 0.15);">
             <tr>
-              <th style="color: var(--heading-color);">Ordre</th>
-              <th style="color: var(--heading-color);">Description</th>
-              <th style="color: var(--heading-color);">État</th>
+              <th style="color: #102c59; font-weight: 600; padding: 1rem; border-bottom: 2px solid #9dbbce; width: 80px;">
+                <i class="bi bi-hash me-1"></i>Ordre
+              </th>
+              <th style="color: #102c59; font-weight: 600; padding: 1rem; border-bottom: 2px solid #9dbbce;">
+                <i class="bi bi-card-text me-1"></i>Description
+              </th>
+              <th style="color: #102c59; font-weight: 600; padding: 1rem; border-bottom: 2px solid #9dbbce; width: 150px;">
+                <i class="bi bi-clock-history me-1"></i>État
+              </th>
             </tr>
           </thead>
           <tbody>
             {% if programme.tache|length > 0 %}
-              {% for tache in programme.tache %}
-                <tr>
-                  <td class="fw-bold" style="color: var(--default-color);">{{ tache.ordre }}</td>
-                  <td class="text-start" style="color: var(--default-color);">
-                    {{ tache.description|default('—') }}
+              {% for tache in programme.tache|sort((a, b) => a.ordre <=> b.ordre) %}
+                <tr style="transition: all 0.2s; {% if loop.index is odd %}background-color: rgba(157, 187, 206, 0.05);{% endif %}">
+                  <td style="padding: 1rem; color: #102c59; font-weight: 600; font-size: 1.1rem;">
+                    #{{ tache.ordre }}
                   </td>
-                  <td>
-                    {% set classes = {
-                      'realisee': 'bg-success text-white',
-                      'encours': 'bg-info text-white',
-                      'Abandonner': 'bg-danger text-white'
-                    } %}
-                    <span class="badge rounded-pill px-4 py-2 fs-6 {{ classes[tache.etat.value|default('')] ?? 'bg-secondary text-white' }}">
-                      {{ tache.etat ? tache.etat.value|capitalize : '—' }}
-                    </span>
+                  <td style="padding: 1rem; color: #102c59;">
+                    <div class="d-flex align-items-center">
+                      <div class="me-3" style="width: 30px; height: 30px; background-color: rgba(157, 187, 206, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-check2" style="color: #102c59; font-size: 0.9rem;"></i>
+                      </div>
+                      {{ tache.description|default('—') }}
+                    </div>
+                  </td>
+                  <td style="padding: 1rem;">
+                    {% set etat = tache.etat.value|default('') %}
+                    {% if etat == 'realisee' %}
+                      <span class="badge px-3 py-2 d-inline-flex align-items-center" style="background-color: rgba(25, 135, 84, 0.1); color: #198754; border: 1px solid #198754; border-radius: 50px;">
+                        <i class="bi bi-check-circle-fill me-2"></i>Réalisée
+                      </span>
+                    {% elseif etat == 'encours' %}
+                      <span class="badge px-3 py-2 d-inline-flex align-items-center" style="background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; border: 1px solid #0d6efd; border-radius: 50px;">
+                        <i class="bi bi-clock-fill me-2"></i>En cours
+                      </span>
+                    {% elseif etat == 'Abandonner' %}
+                      <span class="badge px-3 py-2 d-inline-flex align-items-center" style="background-color: rgba(213, 46, 40, 0.1); color: #d52e28; border: 1px solid #d52e28; border-radius: 50px;">
+                        <i class="bi bi-x-circle-fill me-2"></i>Abandonnée
+                      </span>
+                    {% else %}
+                      <span class="badge px-3 py-2 d-inline-flex align-items-center" style="background-color: rgba(157, 187, 206, 0.3); color: #102c59; border: 1px solid #9dbbce; border-radius: 50px;">
+                        <i class="bi bi-question-circle me-2"></i>—
+                      </span>
+                    {% endif %}
+                    
+                    <!-- Score et médaille sous l'état -->
+                    {% if tache.score is defined or tache.medaille is defined %}
+                      <div class="mt-2">
+                        {% if tache.score is defined and tache.score > 0 %}
+                          <small class="d-block" style="color: #9dbbce;">
+                            <i class="bi bi-star-fill me-1"></i>{{ tache.score }} points
+                          </small>
+                        {% endif %}
+                        {% if tache.medaille is defined and tache.medaille is not null %}
+                          <small class="d-block" style="color: #102c59;">
+                            <i class="bi bi-award me-1"></i>{{ tache.medaille.value }}
+                          </small>
+                        {% endif %}
+                      </div>
+                    {% endif %}
                   </td>
                 </tr>
               {% endfor %}
             {% else %}
               <tr>
-                <td colspan="3" class="py-5 text-center" style="color: var(--default-color);">
-                  <i class="bi bi-journal-x fs-3 d-block mb-3"></i>
-                  Aucune tâche pour le moment
+                <td colspan="3" class="py-5 text-center" style="color: #9dbbce;">
+                  <div class="py-5">
+                    <i class="bi bi-journal-x fs-1 d-block mb-3" style="color: #9dbbce;"></i>
+                    <h5 style="color: #102c59;">Aucune tâche pour le moment</h5>
+                    <p class="mb-0" style="color: #9dbbce;">Commencez par ajouter des tâches à votre programme</p>
+                  </div>
                 </td>
               </tr>
             {% endif %}
@@ -140,7 +212,111 @@
         </table>
       </div>
     </div>
+    {% if programme.tache|length > 0 %}
+    <div class="card-footer py-3" style="background-color: rgba(157, 187, 206, 0.1); border-top: 1px solid #9dbbce;">
+      <div class="d-flex justify-content-between align-items-center">
+        <small style="color: #102c59;">
+          <i class="bi bi-info-circle me-1"></i>
+          {{ programme.tache|filter(t => t.etat.value == 'realisee')|length }}/{{ programme.tache|length }} tâches réalisées
+        </small>
+        <small style="color: #102c59;">
+          Dernière mise à jour : {{ programme.dategeneration|date('d/m/Y H:i') }}
+        </small>
+      </div>
+    </div>
+    {% endif %}
   </div>
 
 </main>
+
+<style>
+  /* Styles globaux */
+  body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  }
+  
+  /* Effets hover sur les cartes */
+  .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Effets sur les lignes du tableau */
+  .table-hover tbody tr:hover {
+    background-color: rgba(157, 187, 206, 0.15) !important;
+  }
+  
+  /* Animation d'entrée */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .motivation-box, .card, .table {
+    animation: fadeInUp 0.5s ease-out;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .display-4 {
+      font-size: 2.5rem;
+    }
+    
+    .card-body {
+      padding: 1.5rem !important;
+    }
+    
+    .table-responsive {
+      font-size: 0.9rem;
+    }
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Animation des cartes au chargement
+  const cards = document.querySelectorAll('.card');
+  cards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+      card.style.transition = 'opacity 0.5s, transform 0.5s';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 100);
+  });
+  
+  // Effet hover sur les boutons
+  const buttons = document.querySelectorAll('.btn');
+  buttons.forEach(button => {
+    button.addEventListener('mouseenter', function() {
+      this.style.transition = 'all 0.2s';
+    });
+  });
+  
+  // Animation des lignes du tableau
+  const tableRows = document.querySelectorAll('tbody tr');
+  tableRows.forEach((row, index) => {
+    row.style.opacity = '0';
+    row.style.transform = 'translateX(-10px)';
+    
+    setTimeout(() => {
+      row.style.transition = 'opacity 0.3s, transform 0.3s';
+      row.style.opacity = '1';
+      row.style.transform = 'translateX(0)';
+    }, index * 50);
+  });
+});
+</script>
 {% endblock %}

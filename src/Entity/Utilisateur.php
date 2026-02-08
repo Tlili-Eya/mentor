@@ -53,7 +53,7 @@ class Utilisateur
      * @var Collection<int, Projet>
      */
     #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: 'utilisateur')]
-    private Collection $projet;
+    private Collection $projets;
 
     /**
      * @var Collection<int, Feedback>
@@ -77,7 +77,7 @@ class Utilisateur
     {
         $this->categorieArticles = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
-        $this->projet = new ArrayCollection();
+        $this->projets = new ArrayCollection();
         $this->feedback = new ArrayCollection();
         $this->objectifs = new ArrayCollection();
         $this->parcours = new ArrayCollection();
@@ -235,15 +235,15 @@ class Utilisateur
     /**
      * @return Collection<int, Projet>
      */
-    public function getProjet(): Collection
+    public function getProjets(): Collection
     {
-        return $this->projet;
+        return $this->projets;
     }
 
     public function addProjet(Projet $projet): static
     {
-        if (!$this->projet->contains($projet)) {
-            $this->projet->add($projet);
+        if (!$this->projets->contains($projet)) {
+            $this->projets->add($projet);
             $projet->setUtilisateur($this);
         }
 
@@ -252,7 +252,7 @@ class Utilisateur
 
     public function removeProjet(Projet $projet): static
     {
-        if ($this->projet->removeElement($projet)) {
+        if ($this->projets->removeElement($projet)) {
             // set the owning side to null (unless already changed)
             if ($projet->getUtilisateur() === $this) {
                 $projet->setUtilisateur(null);

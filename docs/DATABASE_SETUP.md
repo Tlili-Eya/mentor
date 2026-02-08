@@ -7,6 +7,7 @@ Ce document décrit la procédure pour créer et configurer la base de données 
 - MySQL 8.0 ou supérieur
 - PHP 8.1 ou supérieur
 - Composer
+- Symfony CLI (optionnel, pour lancer le serveur de développement)
 
 ## Configuration
 

@@ -1,0 +1,239 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Modifier le Traitement{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ path('back_contact') }}">
+                    <i class="bi bi-arrow-left me-1"></i>Retour aux feedbacks
+                </a>
+            </li>
+            <li class="breadcrumb-item active">Modifier Traitement</li>
+        </ol>
+    </nav>
+
+    <!-- En-tête -->
+    <div class="mb-4">
+        <h1 class="h3 mb-1">
+            <i class="bi bi-pencil-square me-2"></i>Modifier le Traitement
+        </h1>
+        <p class="text-muted mb-0">Feedback #{{ feedback.id }}</p>
+    </div>
+
+    <!-- Messages flash -->
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <div class="row">
+        <!-- PARTIE GAUCHE : Infos du Feedback -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary bg-opacity-10 border-primary">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Détails du Feedback
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong><i class="bi bi-person me-2"></i>Utilisateur :</strong>
+                        <br>
+                        {{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}
+                        <br>
+                        <small class="text-muted">
+                            <i class="bi bi-envelope me-1"></i>{{ feedback.utilisateur.email }}
+                        </small>
+                        <br>
+                        <span class="badge bg-secondary mt-1">ID: {{ feedback.utilisateur.id }}</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <strong><i class="bi bi-tag me-2"></i>Type :</strong>
+                        <br>
+                        {% if feedback.typefeedback == 'suggestion' %}
+                            <span class="badge bg-info">
+                                <i class="bi bi-lightbulb me-1"></i>Suggestion
+                            </span>
+                        {% elseif feedback.typefeedback == 'probleme' %}
+                            <span class="badge bg-danger">
+                                <i class="bi bi-exclamation-triangle me-1"></i>Problème
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-emoji-smile me-1"></i>Satisfaction
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong><i class="bi bi-calendar3 me-2"></i>Date :</strong>
+                        <br>
+                        {{ feedback.datefeedback|date('d/m/Y à H:i') }}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong><i class="bi bi-star me-2"></i>Note :</strong>
+                        <br>
+                        {% for i in 1..5 %}
+                            {% if i <= feedback.note %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                        ({{ feedback.note }}/5)
+                    </div>
+
+                    <hr>
+
+                    <div>
+                        <strong><i class="bi bi-chat-text me-2"></i>Message de l'utilisateur :</strong>
+                        <div class="mt-2 p-3 bg-light rounded">
+                            <p class="mb-0">{{ feedback.contenu }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PARTIE DROITE : Formulaire de Traitement -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning bg-opacity-10 border-warning">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>Modifier le traitement
+                    </h5>
+                </div>
+                <div class="card-body">
+
+                    <form method="post">
+                        
+                        <!-- Type de traitement -->
+                        <div class="mb-4">
+                            <label for="type_traitement" class="form-label">
+                                <i class="bi bi-gear me-1"></i>
+                                <strong>Type de traitement</strong>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select 
+                                class="form-select" 
+                                id="type_traitement" 
+                                name="type_traitement" 
+                                required>
+                                <option value="">-- Choisissez un type --</option>
+                                
+                                <option value="remboursement" 
+                                    {% if traitement and traitement.typetraitement == 'remboursement' %}selected{% endif %}>
+                                    💰 Remboursement
+                                </option>
+                                
+                                <option value="prolongation_abonnement" 
+                                    {% if traitement and traitement.typetraitement == 'prolongation_abonnement' %}selected{% endif %}>
+                                    📅 Prolongation d'abonnement
+                                </option>
+                                
+                                <option value="geste_commercial" 
+                                    {% if traitement and traitement.typetraitement == 'geste_commercial' %}selected{% endif %}>
+                                    🎁 Geste commercial
+                                </option>
+                                
+                                {# ✨ NOUVEAU TYPE #}
+                                <option value="aucun_traitement" 
+                                    {% if traitement and traitement.typetraitement == 'aucun_traitement' %}selected{% endif %}>
+                                    ❌ Aucun traitement (simple réponse)
+                                </option>
+                            </select>
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Sélectionnez "Aucun traitement" si vous voulez juste répondre sans action particulière
+                            </small>
+                        </div>
+
+                        <!-- Décision / Réponse -->
+                        <div class="mb-4">
+                            <label for="decision" class="form-label">
+                                <i class="bi bi-chat-quote me-1"></i>
+                                <strong>Décision / Réponse à l'utilisateur</strong>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="decision" 
+                                name="decision" 
+                                rows="6" 
+                                required
+                                minlength="10"
+                                maxlength="1000"
+                                placeholder="Expliquez votre décision ou répondez à l'utilisateur...">{% if traitement %}{{ traitement.description }}{% endif %}</textarea>
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Minimum 10 caractères, maximum 1000 caractères
+                            </small>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{{ path('back_contact') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-1"></i>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-check-circle me-1"></i>Mettre à jour le traitement
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+            {# Aide contextuelle #}
+            <div class="card shadow-sm mt-4 border-info">
+                <div class="card-header bg-info bg-opacity-10 border-info">
+                    <h6 class="mb-0">
+                        <i class="bi bi-question-circle me-2"></i>Guide des types de traitement
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li class="mb-2">
+                            <strong>💰 Remboursement :</strong> 
+                            <small>Utilisez si l'utilisateur a subi un préjudice financier</small>
+                        </li>
+                        <li class="mb-2">
+                            <strong>📅 Prolongation d'abonnement :</strong> 
+                            <small>Pour compenser une interruption de service</small>
+                        </li>
+                        <li class="mb-2">
+                            <strong>🎁 Geste commercial :</strong> 
+                            <small>Offrez une réduction, un bonus, etc.</small>
+                        </li>
+                        <li>
+                            <strong>❌ Aucun traitement :</strong> 
+                            <small>Utilisez pour simplement répondre sans action compensatoire (ex: feedback positif, question répondue)</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

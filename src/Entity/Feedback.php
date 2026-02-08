@@ -6,6 +6,7 @@ use App\Repository\FeedbackRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+
 #[ORM\Entity(repositoryClass: FeedbackRepository::class)]
 class Feedback
 {
@@ -40,14 +41,14 @@ class Feedback
         return $this->id;
     }
 
-    public function getContenue(): ?string
+    public function getContenu(): ?string
     {
-        return $this->contenue;
+        return $this->contenu;
     }
 
-    public function setContenue(string $contenue): static
+    public function setContenu(string $contenu): static
     {
-        $this->contenue = $contenue;
+        $this->contenu = $contenu;
 
         return $this;
     }

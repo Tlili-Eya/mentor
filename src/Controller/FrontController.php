@@ -2,9 +2,16 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Enum\Statutobj;
+use App\Entity\Objectif;
+use App\Entity\Programme;
+use App\Form\ObjectifType;
+use App\Repository\ObjectifRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/', name: 'front_')]
 final class FrontController extends AbstractController
@@ -45,11 +52,90 @@ final class FrontController extends AbstractController
         return $this->render('front/instructor-profile.html.twig');
     }
 
-    #[Route('events', name: 'events')]
-    public function events(): Response
-    {
-        return $this->render('front/events.html.twig');
+  #[Route('/events', name: 'events')]
+public function events(
+    ObjectifRepository $objectifRepository,
+    Request $request,
+    EntityManagerInterface $entityManager
+): Response
+{
+    // ===== TRI PHP =====
+    $sort = $request->query->get('sort', 'datedebut'); // tri par défaut
+
+    $orderBy = match ($sort) {
+        'datefin'  => ['datefin' => 'ASC'],
+        'statut'   => ['statut' => 'ASC'],
+        'titre'    => ['titre' => 'ASC'],
+        default    => ['datedebut' => 'ASC'],
+    };
+
+    $objectifs = $objectifRepository->findBy([], $orderBy);
+
+    // ===== FORMULAIRE MODAL =====
+    $objectif = new Objectif();
+    $form = $this->createForm(ObjectifType::class, $objectif);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+
+        // Création du programme associé
+        $programme = new Programme();
+        $programme->setTitre($objectif->getTitre());
+        $programme->setDategeneration(new \DateTime());
+
+        $entityManager->persist($programme);
+
+        $objectif->setProgramme($programme);
+
+        // Statut par défaut
+        if (!$objectif->getStatut()) {
+            $objectif->setStatut(Statutobj::EnCours);
+        }
+
+        $entityManager->persist($objectif);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Objectif créé avec succès !');
+
+        return $this->redirectToRoute('front_events');
     }
+
+    return $this->render('front/events.html.twig', [
+        'objectifs' => $objectifs,
+        'form' => $form->createView(),
+        'showModal' => $form->isSubmitted() && !$form->isValid(),
+    ]);
+}
+
+
+#[Route('/events/{id}', name: 'objectif_show', methods: ['GET'])]
+public function show(Objectif $objectif): Response
+{
+    return $this->render('front/objectif_show.html.twig', [
+        'objectif' => $objectif,
+    ]);
+}
+
+#[Route('/events/{id}', name: 'objectif_delete', methods: ['POST'])]
+public function delete(Request $request, Objectif $objectif, EntityManagerInterface $entityManager): Response
+{
+    if ($this->isCsrfTokenValid('delete' . $objectif->getId(), $request->request->get('_token'))) {
+        // Supprime aussi le programme associé si tu veux (orphanRemoval le fait déjà)
+        $entityManager->remove($objectif);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Objectif supprimé avec succès !');
+    }
+
+    return $this->redirectToRoute('front_events');
+}
+    #[Route('/programme/{id}', name: 'programme_show', methods: ['GET'])]
+public function programmeShow(Programme $programme): Response
+{
+    return $this->render('front/programme_show.html.twig', [
+        'programme' => $programme,
+    ]);
+}
 
     #[Route('pricing', name: 'pricing')]
     public function pricing(): Response

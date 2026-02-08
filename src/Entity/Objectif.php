@@ -6,6 +6,8 @@ use App\Repository\ObjectifRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\Statutobj;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 #[ORM\Entity(repositoryClass: ObjectifRepository::class)]
 class Objectif
@@ -14,18 +16,25 @@ class Objectif
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+    
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le titre est obligatoire.")]
+    private ?string $titre = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 500, nullable: false)]
+    #[Assert\NotBlank(message: "La description est obligatoire.")]
     private ?string $description = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: false)]
+     #[Assert\NotNull(message: "La date de début est obligatoire.")]
     private ?\DateTime $datedebut = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: false)]
+    #[Assert\NotNull(message: "La date de fin est obligatoire.")]
     private ?\DateTime $datefin = null;
 
     #[ORM\Column(enumType: Statutobj::class)]
-    private ?Statutobj $statut;
+    private ?Statutobj $statut = Statutobj::Abandonner;
 
     #[ORM\OneToOne(inversedBy: 'objectif', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
@@ -37,6 +46,17 @@ class Objectif
     public function getId(): ?int
     {
         return $this->id;
+    }
+    
+    public function getTitre(): ?string
+    {
+    return $this->titre;
+    }
+
+    public function setTitre(string $titre): static
+    {
+    $this->titre = $titre;
+    return $this;
     }
 
     public function getDescription(): ?string
@@ -56,7 +76,7 @@ class Objectif
         return $this->datedebut;
     }
 
-    public function setDatedebut(\DateTime $datedebut): static
+    public function setDatedebut(?\DateTime $datedebut): static
     {
         $this->datedebut = $datedebut;
 
@@ -68,7 +88,7 @@ class Objectif
         return $this->datefin;
     }
 
-    public function setDatefin(\DateTime $datefin): static
+    public function setDatefin(?\DateTime $datefin): static
     {
         $this->datefin = $datefin;
 

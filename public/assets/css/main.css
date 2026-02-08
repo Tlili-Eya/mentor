@@ -140,6 +140,7 @@ h6 {
   animation: php-email-form-loading 1s linear infinite;
 }
 
+
 @keyframes php-email-form-loading {
   0% {
     transform: rotate(0deg);
@@ -7952,6 +7953,9 @@ section,
     height: 300px;
     margin-bottom: 2rem;
   }
+}
+input:invalid, textarea:invalid {
+  border-color: #dc3545;
 }
 
 @media (max-width: 768px) {

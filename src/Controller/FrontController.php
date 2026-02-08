@@ -5,11 +5,24 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
 
 #[Route('/', name: 'front_')]
 final class FrontController extends AbstractController
 {
+
+    #[Route('affiche', name: 'affiche')]
+    
+    public function affiche(): Response
+    {
+        return $this->render('front/affiche.html.twig');
+    }
+
+    
+    
+
+
     #[Route('home', name: 'home')]
     public function home(): Response
     {
@@ -106,37 +119,8 @@ final class FrontController extends AbstractController
         return $this->render('front/404.html.twig');
     }
 
-    #[Route('authentifier', name: 'authentifier')]
-    public function authentifier(): Response
-    {
-        return $this->render('front/authentifier.html.twig');
-    }
-     #[Route('base', name: 'base')]
-    public function base(): Response
-    {
-        return $this->render('front/base.html.twig');
-    }
+  
 
-
-
-/*
-    ////////////////////users//////////////////////////
-    #[Route('/authentifier', name: 'authentifier')]
-    public function authentifier(AuthenticationUtils $authenticationUtils): Response
-    {
-        // Récupère l'erreur d'authentification si la connexion a échoué
-        $error = $authenticationUtils->getLastAuthenticationError();
-
-        // Dernier nom d'utilisateur saisi (pour pré-remplir le champ email)
-        $lastUsername = $authenticationUtils->getLastUsername();
-
-        return $this->render('front/authentifier.html.twig', [          // ← change en 'front/authentifier.html.twig' si besoin
-            'last_username' => $lastUsername,
-            'error'         => $error,
-        ]);
-    }
-*/
 
 
 }
-

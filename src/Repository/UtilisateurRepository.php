@@ -15,6 +15,44 @@ class UtilisateurRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Utilisateur::class);
     }
+    /**
+     * Recherche et tri des utilisateurs
+     */
+    public function searchAndSort(?string $search = null, ?string $sort = null): array
+    {
+        $qb = $this->createQueryBuilder('u');
+
+        // Recherche
+        if ($search) {
+            $qb->where('u.nom LIKE :search')
+               ->orWhere('u.prenom LIKE :search')
+               ->orWhere('u.email LIKE :search')
+               ->orWhere('u.role LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
+        }
+
+        // Tri
+        switch ($sort) {
+            case 'name':
+                $qb->orderBy('u.nom', 'ASC')
+                   ->addOrderBy('u.prenom', 'ASC');
+                break;
+            case 'email':
+                $qb->orderBy('u.email', 'ASC');
+                break;
+            case 'role':
+                $qb->orderBy('u.role', 'ASC');
+                break;
+            case 'date':
+                $qb->orderBy('u.date_inscription', 'DESC');
+                break;
+            default:
+                $qb->orderBy('u.id', 'DESC');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
 
     //    /**
     //     * @return Utilisateur[] Returns an array of Utilisateur objects

@@ -28,7 +28,7 @@
             </h2>
             <p class="text-muted mt-2 mb-0">Mettez à jour les informations de {{ utilisateur.prenom }} {{ utilisateur.nom }}</p>
         </div>
-        <a href="{{ path('app_utilisateur_index') }}" class="btn btn-outline-secondary btn-modern-outline px-4 py-2">
+        <a href="{{ path('back_administrateur') }}" class="btn btn-outline-secondary btn-modern-outline px-4 py-2">
             <i class="fas fa-arrow-left me-2"></i> Retour à la liste
         </a>
     </div>
@@ -70,13 +70,7 @@
             <!-- Danger Zone -->
             <div class="card border-0 shadow-modern rounded-4 overflow-hidden mt-4">
                 
-                <div class="card-body p-4">
-                    <p class="text-muted small mb-3">La suppression de cet utilisateur est irréversible. Toutes les données associées seront perdues.</p>
-                    <button type="button" class="btn-danger-action" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                        <i class="fas fa-trash-alt"></i>
-                        <span>Supprimer cet utilisateur</span>
-                    </button>
-                </div>
+                
             </div>
         </div>
 
@@ -246,17 +240,7 @@
 
             <!-- Tips Card -->
             <div class="card border-0 shadow-modern rounded-4 overflow-hidden mt-4">
-                <div class="card-body p-4">
-                    <h6 class="fw-semibold mb-3">
-                        <i class="fas fa-lightbulb text-warning me-2"></i>
-                        Conseils
-                    </h6>
-                    <ul class="tips-list">
-                        <li><i class="fas fa-check-circle text-success me-2"></i> Utilisez un email valide pour les notifications</li>
-                        <li><i class="fas fa-check-circle text-success me-2"></i> Choisissez un mot de passe fort (min. 8 caractères)</li>
-                        <li><i class="fas fa-check-circle text-success me-2"></i> Le rôle détermine les permissions de l'utilisateur</li>
-                    </ul>
-                </div>
+                
             </div>
         </div>
     </div>
@@ -292,13 +276,13 @@
 
 <style>
     :root {
-        --primary-color: #6366f1;
+        --primary-color: #7A9AAD;
         --primary-light: #818cf8;
-        --primary-dark: #4f46e5;
-        --success-color: #10b981;
+        --primary-dark: #7A9AAD;
+        --success-color: #7A9AAD;
         --warning-color: #f59e0b;
         --danger-color: #ef4444;
-        --info-color: #3b82f6;
+        --info-color: #7A9AAD;
         --dark-color: #1f2937;
         --light-color: #f9fafb;
         --border-color: #e5e7eb;

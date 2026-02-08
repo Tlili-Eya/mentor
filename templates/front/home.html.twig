@@ -1,6 +1,6 @@
 {% extends 'front/base.html.twig' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Home - MentorAI{% endblock %}
 
 {% block body %}
 
@@ -13,20 +13,56 @@
         <div class="row align-items-center">
 
           <div class="col-lg-6">
-            <h1>Welcome 😄 </h1>
-            <p>
-              Découvrez des milliers de cours de haute qualité conçus par des professionnels du secteur.
-               Apprenez à votre rythme, acquérez des compétences recherchées et faites progresser votre carrière.
-            </p>
+            {# Message personnalisé selon si connecté ou non #}
+            {% if app.user %}
+              <h1 data-aos="fade-up" data-aos-delay="100">
+                Bienvenue {{ app.user.prenom|default(app.user.nom|default('Utilisateur')) }} ! 👋
+              </h1>
+              <p data-aos="fade-up" data-aos-delay="200">
+                Vous êtes connecté en tant que <strong>{{ app.user.email }}</strong>. 
+                Explorez des milliers de cours de qualité conçus par des professionnels.
+                Continuez à apprendre et développez vos compétences à votre rythme.
+              </p>
+            {% else %}
+              <h1 data-aos="fade-up" data-aos-delay="100">
+                Bienvenue sur MentorAI 🚀
+              </h1>
+              <p data-aos="fade-up" data-aos-delay="200">
+                Découvrez des milliers de cours de haute qualité conçus par des professionnels.
+                Apprenez à votre rythme, acquérez des compétences recherchées et boostez votre carrière.
+              </p>
+            {% endif %}
 
-            <div class="hero-buttons">
-              <a href="{{ path('front_courses') }}" class="btn btn-primary">Browse Courses</a>
-              <a href="{{ path('front_about') }}" class="btn btn-outline">Learn More</a>
+            <div class="hero-buttons" data-aos="fade-up" data-aos-delay="300">
+              <a href="{{ path('front_courses') }}" class="btn btn-primary">
+                <i class="bi bi-book me-1"></i> Parcourir les cours
+              </a>
+
+              {# Bouton différent selon l'état de connexion #}
+              {% if app.user %}
+                <a href="{{ path('app_utilisateur_show', {'id': app.user.id}) }}" class="btn btn-outline">
+                  <i class="bi bi-person-circle me-1"></i> Mon profil
+                </a>
+              {% else %}
+                <a href="{{ path('app_login') }}" class="btn btn-outline">
+                  <i class="bi bi-box-arrow-in-right me-1"></i> Se connecter
+                </a>
+              {% endif %}
             </div>
+
+            {# Badge de statut pour utilisateur connecté #}
+            {% if app.user %}
+              <div class="user-info-badge mt-4" data-aos="fade-up" data-aos-delay="400">
+                <div class="badge-content">
+                  <i class="bi bi-shield-check text-success me-2"></i>
+                  <span>Connecté en tant que <strong>{{ app.user.role|capitalize }}</strong></span>
+                </div>
+              </div>
+            {% endif %}
           </div>
 
-          <div class="col-lg-6">
-            <img src="{{ asset('assets/img/education/courses-13.webp') }}" class="img-fluid" alt="">
+          <div class="col-lg-6" data-aos="fade-left" data-aos-delay="200">
+            <img src="{{ asset('assets/img/education/courses-13.webp') }}" class="img-fluid" alt="Étudiants apprenant en ligne">
           </div>
 
         </div>
@@ -34,8 +70,314 @@
     </div>
   </section>
 
-  {# All other sections stay exactly as they were, WITHOUT header/footer #}
+  <!-- SECTION DES STATISTIQUES (optionnel) -->
+  {% if app.user %}
+  <section id="stats" class="stats section">
+    <div class="container">
+      <div class="row gy-4">
+        
+        <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+          <div class="stats-item text-center">
+            <i class="bi bi-person-circle"></i>
+            <div>
+              <span class="purecounter">{{ app.user.prenom }} {{ app.user.nom }}</span>
+              <p>Votre nom</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
+          <div class="stats-item text-center">
+            <i class="bi bi-envelope-fill"></i>
+            <div>
+              <span style="font-size: 0.9rem;">{{ app.user.email }}</span>
+              <p>Votre email</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
+          <div class="stats-item text-center">
+            <i class="bi bi-calendar-check"></i>
+            <div>
+              <span>{{ app.user.dateInscription ? app.user.dateInscription|date('d/m/Y') : 'N/A' }}</span>
+              <p>Membre depuis</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="400">
+          <div class="stats-item text-center">
+            <i class="bi bi-shield-fill-check"></i>
+            <div>
+              <span>{{ app.user.role|capitalize }}</span>
+              <p>Votre rôle</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- SECTION DES ACTIONS RAPIDES -->
+  <section id="quick-actions" class="quick-actions section light-background">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>Actions rapides</h2>
+        <p>Que souhaitez-vous faire aujourd'hui ?</p>
+      </div>
+
+      <div class="row gy-4">
+        
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+          <div class="action-card">
+            <div class="icon">
+              <i class="bi bi-book"></i>
+            </div>
+            <h3>Parcourir les cours</h3>
+            <p>Explorez notre catalogue de cours et trouvez celui qui vous correspond.</p>
+            <a href="{{ path('front_courses') }}" class="btn-action">
+              Explorer <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+          <div class="action-card">
+            <div class="icon">
+              <i class="bi bi-journal-text"></i>
+            </div>
+            <h3>Vos notes</h3>
+            <p>Consultez et gérez vos notes de cours et vos annotations.</p>
+            <a href="{{ path('front_blog') }}" class="btn-action">
+              Voir les notes <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+          <div class="action-card">
+            <div class="icon">
+              <i class="bi bi-folder"></i>
+            </div>
+            <h3>Vos projets</h3>
+            <p>Accédez à vos projets en cours et suivez votre progression.</p>
+            <a href="{{ path('front_instructors') }}" class="btn-action">
+              Mes projets <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
 
 </main>
 
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+  /* Styles pour le hero */
+  .hero-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+  }
+
+  .hero-buttons .btn {
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  .hero-buttons .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+  }
+
+  .hero-buttons .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .hero-buttons .btn-outline {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+  }
+
+  .hero-buttons .btn-outline:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  }
+
+  /* Badge utilisateur connecté */
+  .user-info-badge {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+    border: 2px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    display: inline-block;
+  }
+
+  .badge-content {
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+  }
+
+  /* Section des statistiques */
+  .stats-item {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .stats-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .stats-item i {
+    font-size: 3rem;
+    color: #667eea;
+    margin-bottom: 1rem;
+  }
+
+  .stats-item span {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .stats-item p {
+    color: #6c757d;
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  /* Section actions rapides */
+  .action-card {
+    background: white;
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .action-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  .action-card .icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .action-card .icon i {
+    font-size: 2rem;
+    color: white;
+  }
+
+  .action-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+
+  .action-card p {
+    color: #6c757d;
+    flex-grow: 1;
+    margin-bottom: 1.5rem;
+  }
+
+  .action-card .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #667eea;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .action-card .btn-action:hover {
+    gap: 1rem;
+    color: #764ba2;
+  }
+
+  .section-title {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .section-title h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-title p {
+    color: #6c757d;
+    font-size: 1.1rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero-buttons {
+      flex-direction: column;
+    }
+
+    .hero-buttons .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .stats-item span {
+      font-size: 1.2rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+  // Animation AOS
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof AOS !== 'undefined') {
+      AOS.init({
+        duration: 800,
+        once: true,
+        offset: 100
+      });
+    }
+  });
+</script>
 {% endblock %}

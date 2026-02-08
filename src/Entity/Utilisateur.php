@@ -7,9 +7,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
-class Utilisateur
+class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -22,7 +24,7 @@ class Utilisateur
     #[ORM\Column(length: 255)]
     private ?string $prenom = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
@@ -33,6 +35,19 @@ class Utilisateur
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTime $date_inscription = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $role = null;
+
+    // ==================== NOUVEAUX CHAMPS POUR RESET PASSWORD ====================
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $resetToken = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $resetTokenExpiresAt = null;
+
+    // =============================================================================
 
     /**
      * @var Collection<int, CategorieArticle>
@@ -45,9 +60,6 @@ class Utilisateur
      */
     #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'auteur')]
     private Collection $referenceArticles;
-
-    #[ORM\Column(length: 255)]
-    private ?string $role = null;
 
     /**
      * @var Collection<int, Projet>
@@ -64,13 +76,13 @@ class Utilisateur
     /**
      * @var Collection<int, Feedback>
      */
-    #[ORM\OneToMany(targetEntity: Feedback::class, mappedBy: 'utilisateur', orphanRemoval:true)]
+    #[ORM\OneToMany(targetEntity: Feedback::class, mappedBy: 'utilisateur', orphanRemoval: true)]
     private Collection $feedback;
 
     /**
      * @var Collection<int, Objectif>
      */
-    #[ORM\OneToMany(targetEntity: Objectif::class, mappedBy: 'utilisateur', orphanRemoval:true)]
+    #[ORM\OneToMany(targetEntity: Objectif::class, mappedBy: 'utilisateur', orphanRemoval: true)]
     private Collection $objectifs;
 
     public function __construct()
@@ -83,6 +95,65 @@ class Utilisateur
         $this->objectifs = new ArrayCollection();
     }
 
+    // Méthodes pour UserInterface
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    public function getRoles(): array
+    {
+        return ['ROLE_' . strtoupper($this->role ?? 'USER')];
+    }
+
+    public function eraseCredentials(): void
+    {
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->mdp;
+    }
+
+    // ==================== GETTERS/SETTERS POUR RESET PASSWORD ====================
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function setResetToken(?string $resetToken): static
+    {
+        $this->resetToken = $resetToken;
+        return $this;
+    }
+
+    public function getResetTokenExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->resetTokenExpiresAt;
+    }
+
+    public function setResetTokenExpiresAt(?\DateTimeInterface $resetTokenExpiresAt): static
+    {
+        $this->resetTokenExpiresAt = $resetTokenExpiresAt;
+        return $this;
+    }
+
+    /**
+     * Vérifie si le token de réinitialisation est encore valide
+     */
+    public function isResetTokenValid(): bool
+    {
+        if (!$this->resetToken || !$this->resetTokenExpiresAt) {
+            return false;
+        }
+
+        return new \DateTime() < $this->resetTokenExpiresAt;
+    }
+
+    // =============================================================================
+
+    // Getters et Setters existants
     public function getId(): ?int
     {
         return $this->id;
@@ -96,7 +167,6 @@ class Utilisateur
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
-
         return $this;
     }
 
@@ -108,7 +178,6 @@ class Utilisateur
     public function setPrenom(string $prenom): static
     {
         $this->prenom = $prenom;
-
         return $this;
     }
 
@@ -120,7 +189,6 @@ class Utilisateur
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
         return $this;
     }
 
@@ -132,7 +200,6 @@ class Utilisateur
     public function setMdp(string $mdp): static
     {
         $this->mdp = $mdp;
-
         return $this;
     }
 
@@ -144,7 +211,6 @@ class Utilisateur
     public function setPdpUrl(?string $pdp_url): static
     {
         $this->pdp_url = $pdp_url;
-
         return $this;
     }
 
@@ -156,7 +222,17 @@ class Utilisateur
     public function setDateInscription(?\DateTime $date_inscription): static
     {
         $this->date_inscription = $date_inscription;
+        return $this;
+    }
 
+    public function getRole(): ?string
+    {
+        return $this->role;
+    }
+
+    public function setRole(string $role): static
+    {
+        $this->role = $role;
         return $this;
     }
 
@@ -174,19 +250,16 @@ class Utilisateur
             $this->categorieArticles->add($categorieArticle);
             $categorieArticle->setAuteur($this);
         }
-
         return $this;
     }
 
     public function removeCategorieArticle(CategorieArticle $categorieArticle): static
     {
         if ($this->categorieArticles->removeElement($categorieArticle)) {
-            // set the owning side to null (unless already changed)
             if ($categorieArticle->getAuteur() === $this) {
                 $categorieArticle->setAuteur(null);
             }
         }
-
         return $this;
     }
 
@@ -204,31 +277,16 @@ class Utilisateur
             $this->referenceArticles->add($referenceArticle);
             $referenceArticle->setAuteur($this);
         }
-
         return $this;
     }
 
     public function removeReferenceArticle(ReferenceArticle $referenceArticle): static
     {
         if ($this->referenceArticles->removeElement($referenceArticle)) {
-            // set the owning side to null (unless already changed)
             if ($referenceArticle->getAuteur() === $this) {
                 $referenceArticle->setAuteur(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getRole(): ?string
-    {
-        return $this->role;
-    }
-
-    public function setRole(string $role): static
-    {
-        $this->role = $role;
-
         return $this;
     }
 
@@ -246,38 +304,16 @@ class Utilisateur
             $this->projet->add($projet);
             $projet->setUtilisateur($this);
         }
-
         return $this;
-    }
-    public function getPassword(): ?string
-    {
-        return $this->mdp;
-    }
-
-    public function getRoles(): array
-    {
-        // Convert your 'role' string to Symfony ROLE_ format
-        $role = $this->role ? 'ROLE_' . strtoupper($this->role) : 'ROLE_USER';
-        return [$role];
-    }
-
-    /**
-     * Required by UserInterface – usually empty unless you have temporary credentials
-     */
-    public function eraseCredentials(): void
-    {
-        // Nothing to do here for now
     }
 
     public function removeProjet(Projet $projet): static
     {
         if ($this->projet->removeElement($projet)) {
-            // set the owning side to null (unless already changed)
             if ($projet->getUtilisateur() === $this) {
                 $projet->setUtilisateur(null);
             }
         }
-
         return $this;
     }
 
@@ -295,19 +331,16 @@ class Utilisateur
             $this->feedback->add($feedback);
             $feedback->setUtilisateur($this);
         }
-
         return $this;
     }
 
     public function removeFeedback(Feedback $feedback): static
     {
         if ($this->feedback->removeElement($feedback)) {
-            // set the owning side to null (unless already changed)
             if ($feedback->getUtilisateur() === $this) {
                 $feedback->setUtilisateur(null);
             }
         }
-
         return $this;
     }
 
@@ -325,21 +358,16 @@ class Utilisateur
             $this->objectifs->add($objectif);
             $objectif->setUtilisateur($this);
         }
-
         return $this;
     }
 
     public function removeObjectif(Objectif $objectif): static
     {
         if ($this->objectifs->removeElement($objectif)) {
-            // set the owning side to null (unless already changed)
             if ($objectif->getUtilisateur() === $this) {
                 $objectif->setUtilisateur(null);
             }
         }
-
         return $this;
     }
-
-
 }

@@ -19,6 +19,12 @@ class Objectif
     
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "Le titre est obligatoire.")]
+    #[Assert\Length(
+    min: 3,
+    max: 150,
+    minMessage: "Le titre doit contenir au moins 3 caractères.",
+    maxMessage: "Le titre ne peut pas dépasser 150 caractères."
+)]
     private ?string $titre = null;
 
     #[ORM\Column(length: 500, nullable: false)]
@@ -26,11 +32,17 @@ class Objectif
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: false)]
-     #[Assert\NotNull(message: "La date de début est obligatoire.")]
+    #[Assert\NotNull(message: "La date de début est obligatoire.")]
+    #[Assert\GreaterThanOrEqual(
+        value: "today",
+        message: "La date de début ne peut pas être dans le passé. Elle doit être aujourd'hui ou plus tard.")]
     private ?\DateTime $datedebut = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: false)]
     #[Assert\NotNull(message: "La date de fin est obligatoire.")]
+    #[Assert\GreaterThan(
+    propertyPath: "datedebut",
+    message: "La date de fin doit être strictement postérieure à la date de début.")]
     private ?\DateTime $datefin = null;
 
     #[ORM\Column(enumType: Statutobj::class)]

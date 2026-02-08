@@ -29,12 +29,14 @@ class ObjectifType extends AbstractType
             ])
             ->add('datedebut', DateType::class, [
                 'widget' => 'single_text',
+                'input' => 'datetime',
                 'required' => true,
                 
             
             ])
             ->add('datefin', DateType::class, [
-                'widget' => 'single_text',
+                'widget' => 'single_text', 
+                'input' => 'datetime',
                 'required' => true,
                
                

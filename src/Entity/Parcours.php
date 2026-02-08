@@ -61,9 +61,6 @@ class Parcours
     #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: 'parcours' , orphanRemoval:true)]
     private Collection $projets;
 
-    #[ORM\ManyToOne(inversedBy: 'parcours')]
-    private ?Utilisateur $utilisateur = null;
-
     public function __construct()
     {
         $this->projets = new ArrayCollection();
@@ -256,18 +253,6 @@ class Parcours
                 $projet->setParcours(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getUtilisateur(): ?Utilisateur
-    {
-        return $this->utilisateur;
-    }
-
-    public function setUtilisateur(?Utilisateur $utilisateur): static
-    {
-        $this->utilisateur = $utilisateur;
 
         return $this;
     }

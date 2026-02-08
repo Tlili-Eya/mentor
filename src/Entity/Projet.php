@@ -49,7 +49,7 @@ class Projet
     #[ORM\OneToMany(targetEntity: Ressource::class, mappedBy: 'projet' , orphanRemoval:true)]
     private Collection $ressources;
 
-    #[ORM\ManyToOne(inversedBy: 'projets')]
+    #[ORM\ManyToOne(inversedBy: 'projet')]
     private ?Utilisateur $utilisateur = null;
 
     public function __construct()

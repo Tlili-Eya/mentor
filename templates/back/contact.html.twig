@@ -8,17 +8,17 @@
     <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-1">
+            <h1 class="h3 mb-1" style="color: #102c59;">
                 <i class="bi bi-chat-dots me-2"></i>Gestion des Feedbacks
             </h1>
             <p class="text-muted mb-0">Gérez les retours des utilisateurs</p>
         </div>
         <div>
-            <span class="badge bg-warning text-dark fs-6 me-2">
+            <span class="badge fs-6 me-2" style="background-color: #9dbbce; color: #102c59;">
                 <i class="bi bi-clock me-1"></i>
                 {{ feedbacksEnAttente|length }} en attente
             </span>
-            <span class="badge bg-success fs-6">
+            <span class="badge fs-6" style="background-color: #d52e28; color: white;">
                 <i class="bi bi-check-circle me-1"></i>
                 {{ feedbacksTraites|length }} traités
             </span>
@@ -28,7 +28,8 @@
     {# ✨ NOUVEAU : BOUTON EXPORT PDF GLOBAL #}
     <div class="mb-4">
         <a href="{{ path('back_feedbacks_export_all_pdf') }}" 
-           class="btn btn-danger" 
+           class="btn" 
+           style="background-color: #d52e28; color: white; border-color: #d52e28;"
            target="_blank"
            title="Exporter tous les feedbacks traités en PDF">
             <i class="bi bi-file-earmark-pdf me-2"></i>📄 Exporter tous les feedbacks traités en PDF
@@ -40,8 +41,8 @@
     </div>
 
     {# ✨ BARRE DE RECHERCHE UTILISATEUR #}
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary bg-opacity-10 border-primary">
+    <div class="card shadow-sm mb-4" style="border-color: #9dbbce;">
+        <div class="card-header" style="background-color: rgba(157, 187, 206, 0.1); border-color: #9dbbce; color: #102c59;">
             <h5 class="mb-0">
                 <i class="bi bi-funnel me-2"></i>Recherche et Filtres
             </h5>
@@ -49,7 +50,7 @@
         <div class="card-body">
             <form method="get" action="{{ path('back_contact') }}" class="row g-3">
                 <div class="col-md-6">
-                    <label for="search_user" class="form-label">
+                    <label for="search_user" class="form-label" style="color: #102c59;">
                         <i class="bi bi-person-search me-1"></i>Rechercher un utilisateur
                     </label>
                     <input 
@@ -58,7 +59,8 @@
                         id="search_user" 
                         name="search_user" 
                         value="{{ searchUser }}"
-                        placeholder="Nom, prénom ou email de l'utilisateur...">
+                        placeholder="Nom, prénom ou email de l'utilisateur..."
+                        style="border-color: #9dbbce;">
                     <small class="text-muted">Laissez vide pour voir tous les feedbacks</small>
                 </div>
                 <div class="col-md-4">
@@ -70,14 +72,15 @@
                             id="only_untreated" 
                             name="only_untreated" 
                             value="1"
-                            {% if showOnlyUntreated %}checked{% endif %}>
-                        <label class="form-check-label" for="only_untreated">
+                            {% if showOnlyUntreated %}checked{% endif %}
+                            style="border-color: #102c59;">
+                        <label class="form-check-label" for="only_untreated" style="color: #102c59;">
                             <i class="bi bi-filter me-1"></i>Uniquement les feedbacks non traités de cet utilisateur
                         </label>
                     </div>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
+                    <button type="submit" class="btn w-100" style="background-color: #102c59; color: white; border-color: #102c59;">
                         <i class="bi bi-search me-1"></i>Rechercher
                     </button>
                 </div>
@@ -87,10 +90,10 @@
 
     {# ✨ ANALYSE DES MESSAGES RÉPÉTITIFS (ALERTE) #}
     {% if motsCles is not empty %}
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-danger bg-opacity-10 border-danger">
+    <div class="card shadow-sm mb-4" style="border-color: #d52e28;">
+        <div class="card-header" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #102c59;">
             <h5 class="mb-0">
-                <i class="bi bi-exclamation-triangle me-2 text-danger"></i>
+                <i class="bi bi-exclamation-triangle me-2" style="color: #d52e28;"></i>
                 Mots-clés les plus fréquents (analyse des retours)
             </h5>
         </div>
@@ -102,8 +105,8 @@
             <div class="row g-2">
                 {% for mot, count in motsCles %}
                     <div class="col-auto">
-                        <span class="badge bg-danger fs-6">
-                            {{ mot }} <span class="badge bg-dark ms-1">{{ count }}x</span>
+                        <span class="badge fs-6" style="background-color: #d52e28; color: white;">
+                            {{ mot }} <span class="badge ms-1" style="background-color: #102c59;">{{ count }}x</span>
                         </span>
                     </div>
                 {% endfor %}
@@ -118,34 +121,34 @@
 
     <!-- Messages flash -->
     {% for message in app.flashes('success') %}
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>{{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="background-color: rgba(157, 187, 206, 0.1); border-color: #9dbbce; color: #102c59;">
+            <i class="bi bi-check-circle me-2" style="color: #102c59;"></i>{{ message }}
+            <button type="button" class="btn-close"></button>
         </div>
     {% endfor %}
 
     {% for message in app.flashes('error') %}
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>{{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #102c59;">
+            <i class="bi bi-exclamation-triangle me-2" style="color: #d52e28;"></i>{{ message }}
+            <button type="button" class="btn-close"></button>
         </div>
     {% endfor %}
 
     {% for message in app.flashes('warning') %}
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-circle me-2"></i>{{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert" style="background-color: rgba(255, 193, 7, 0.1); border-color: #ffc107; color: #102c59;">
+            <i class="bi bi-exclamation-circle me-2" style="color: #ffc107;"></i>{{ message }}
+            <button type="button" class="btn-close"></button>
         </div>
     {% endfor %}
 
     <!-- TABLEAU 1 : Feedbacks en attente -->
-    <div class="card shadow-sm mb-5">
-        <div class="card-header bg-warning bg-opacity-10 border-warning">
+    <div class="card shadow-sm mb-5" style="border-color: #9dbbce;">
+        <div class="card-header" style="background-color: rgba(157, 187, 206, 0.1); border-color: #9dbbce; color: #102c59;">
             <h5 class="mb-0">
-                <i class="bi bi-hourglass-split me-2 text-warning"></i>
+                <i class="bi bi-hourglass-split me-2" style="color: #102c59;"></i>
                 Feedbacks en attente de traitement
                 {% if searchUser %}
-                    <span class="badge bg-info ms-2">
+                    <span class="badge ms-2" style="background-color: #9dbbce; color: #102c59;">
                         Filtre actif : {{ searchUser }}
                     </span>
                 {% endif %}
@@ -154,7 +157,7 @@
         <div class="card-body p-0">
             {% if feedbacksEnAttente is empty %}
                 <div class="text-center py-5 text-muted">
-                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                    <i class="bi bi-inbox fs-1 d-block mb-3" style="color: #9dbbce;"></i>
                     <p class="mb-0">
                         {% if searchUser %}
                             Aucun feedback en attente pour cet utilisateur
@@ -166,7 +169,7 @@
             {% else %}
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                        <thead class="table-light" style="background-color: rgba(157, 187, 206, 0.2); color: #102c59;">
                             <tr>
                                 <th width="50">#ID</th>
                                 <th>Utilisateur</th>
@@ -180,38 +183,38 @@
                         <tbody>
                             {% for feedback in feedbacksEnAttente %}
                                 <tr>
-                                    <td class="fw-bold text-primary">#{{ feedback.id }}</td>
+                                    <td class="fw-bold" style="color: #102c59;">#{{ feedback.id }}</td>
                                     
                                     <td>
                                         <div>
-                                            <strong>{{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}</strong>
+                                            <strong style="color: #102c59;">{{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}</strong>
                                             <br>
                                             <small class="text-muted">
                                                 <i class="bi bi-envelope me-1"></i>{{ feedback.utilisateur.email }}
                                             </small>
                                             <br>
-                                            <span class="badge bg-secondary">ID: {{ feedback.utilisateur.id }}</span>
+                                            <span class="badge" style="background-color: #9dbbce; color: #102c59;">ID: {{ feedback.utilisateur.id }}</span>
                                         </div>
                                     </td>
                                     
                                     <td>
                                         {% if feedback.typefeedback == 'suggestion' %}
-                                            <span class="badge bg-info">
+                                            <span class="badge" style="background-color: #9dbbce; color: #102c59;">
                                                 <i class="bi bi-lightbulb me-1"></i>Suggestion
                                             </span>
                                         {% elseif feedback.typefeedback == 'probleme' %}
-                                            <span class="badge bg-danger">
+                                            <span class="badge" style="background-color: #d52e28; color: white;">
                                                 <i class="bi bi-exclamation-triangle me-1"></i>Problème
                                             </span>
                                         {% else %}
-                                            <span class="badge bg-success">
+                                            <span class="badge" style="background-color: #28a745; color: white;">
                                                 <i class="bi bi-emoji-smile me-1"></i>Satisfaction
                                             </span>
                                         {% endif %}
                                     </td>
                                     
                                     <td>
-                                        <small>
+                                        <small style="color: #102c59;">
                                             <i class="bi bi-calendar3 me-1"></i>
                                             {{ feedback.datefeedback|date('d/m/Y') }}
                                             <br>
@@ -224,7 +227,7 @@
                                         <div class="stars-display">
                                             {% for i in 1..5 %}
                                                 {% if i <= feedback.note %}
-                                                    <i class="bi bi-star-fill text-warning"></i>
+                                                    <i class="bi bi-star-fill" style="color: #ffc107;"></i>
                                                 {% else %}
                                                     <i class="bi bi-star text-muted"></i>
                                                 {% endif %}
@@ -235,13 +238,14 @@
                                     </td>
                                     
                                     <td>
-                                        <div style="max-width: 300px;">
+                                        <div style="max-width: 300px; color: #102c59;">
                                             {% if feedback.contenu|length > 100 %}
                                                 {{ feedback.contenu|slice(0, 100) }}...
                                                 <button 
                                                     class="btn btn-sm btn-link p-0" 
                                                     data-bs-toggle="modal" 
-                                                    data-bs-target="#modalFeedback{{ feedback.id }}">
+                                                    data-bs-target="#modalFeedback{{ feedback.id }}"
+                                                    style="color: #d52e28;">
                                                     <i class="bi bi-eye"></i>
                                                 </button>
                                             {% else %}
@@ -252,7 +256,8 @@
                                     
                                     <td class="text-center">
                                         <a href="{{ path('back_traitement', {id: feedback.id}) }}" 
-                                           class="btn btn-primary btn-sm">
+                                           class="btn btn-sm" 
+                                           style="background-color: #102c59; color: white; border-color: #102c59;">
                                             <i class="bi bi-gear me-1"></i>Traiter
                                         </a>
                                     </td>
@@ -262,16 +267,16 @@
                                 <div class="modal fade" id="modalFeedback{{ feedback.id }}" tabindex="-1">
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content">
-                                            <div class="modal-header bg-primary text-white">
+                                            <div class="modal-header" style="background-color: #102c59; color: white;">
                                                 <h5 class="modal-title">Feedback #{{ feedback.id }}</h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <p><strong>Utilisateur :</strong> {{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}</p>
-                                                <p><strong>Email :</strong> {{ feedback.utilisateur.email }}</p>
-                                                <p><strong>Type :</strong> {{ feedback.typefeedback|capitalize }}</p>
-                                                <p><strong>Date :</strong> {{ feedback.datefeedback|date('d/m/Y H:i') }}</p>
-                                                <p><strong>Message :</strong></p>
+                                                <p><strong style="color: #102c59;">Utilisateur :</strong> {{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}</p>
+                                                <p><strong style="color: #102c59;">Email :</strong> {{ feedback.utilisateur.email }}</p>
+                                                <p><strong style="color: #102c59;">Type :</strong> {{ feedback.typefeedback|capitalize }}</p>
+                                                <p><strong style="color: #102c59;">Date :</strong> {{ feedback.datefeedback|date('d/m/Y H:i') }}</p>
+                                                <p><strong style="color: #102c59;">Message :</strong></p>
                                                 <p class="text-muted">{{ feedback.contenu }}</p>
                                             </div>
                                         </div>
@@ -286,13 +291,13 @@
     </div>
 
     <!-- TABLEAU 2 : Historique des feedbacks traités -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-success bg-opacity-10 border-success">
+    <div class="card shadow-sm" style="border-color: #d52e28;">
+        <div class="card-header" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #102c59;">
             <h5 class="mb-0">
-                <i class="bi bi-check-circle me-2 text-success"></i>
+                <i class="bi bi-check-circle me-2" style="color: #d52e28;"></i>
                 Historique des feedbacks traités
                 {% if searchUser %}
-                    <span class="badge bg-info ms-2">
+                    <span class="badge ms-2" style="background-color: #9dbbce; color: #102c59;">
                         Filtre actif : {{ searchUser }}
                     </span>
                 {% endif %}
@@ -301,7 +306,7 @@
         <div class="card-body p-0">
             {% if feedbacksTraites is empty %}
                 <div class="text-center py-5 text-muted">
-                    <i class="bi bi-archive fs-1 d-block mb-3"></i>
+                    <i class="bi bi-archive fs-1 d-block mb-3" style="color: #d52e28;"></i>
                     <p class="mb-0">
                         {% if searchUser %}
                             Aucun feedback traité pour cet utilisateur
@@ -313,7 +318,7 @@
             {% else %}
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                        <thead class="table-light" style="background-color: rgba(213, 46, 40, 0.1); color: #102c59;">
                             <tr>
                                 <th width="50">#ID</th>
                                 <th>Utilisateur</th>
@@ -328,32 +333,32 @@
                         <tbody>
                             {% for feedback in feedbacksTraites %}
                                 <tr>
-                                    <td class="fw-bold text-success">#{{ feedback.id }}</td>
+                                    <td class="fw-bold" style="color: #d52e28;">#{{ feedback.id }}</td>
                                     
                                     <td>
                                         <div>
-                                            <strong>{{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}</strong>
+                                            <strong style="color: #102c59;">{{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}</strong>
                                             <br>
                                             <small class="text-muted">
                                                 <i class="bi bi-envelope me-1"></i>{{ feedback.utilisateur.email }}
                                             </small>
                                             <br>
-                                            <span class="badge bg-secondary">ID: {{ feedback.utilisateur.id }}</span>
+                                            <span class="badge" style="background-color: #9dbbce; color: #102c59;">ID: {{ feedback.utilisateur.id }}</span>
                                         </div>
                                     </td>
                                     
                                     <td>
                                         {% if feedback.typefeedback == 'suggestion' %}
-                                            <span class="badge bg-info">Suggestion</span>
+                                            <span class="badge" style="background-color: #9dbbce; color: #102c59;">Suggestion</span>
                                         {% elseif feedback.typefeedback == 'probleme' %}
-                                            <span class="badge bg-danger">Problème</span>
+                                            <span class="badge" style="background-color: #d52e28; color: white;">Problème</span>
                                         {% else %}
-                                            <span class="badge bg-success">Satisfaction</span>
+                                            <span class="badge" style="background-color: #28a745; color: white;">Satisfaction</span>
                                         {% endif %}
                                     </td>
                                     
                                     <td>
-                                        <small>
+                                        <small style="color: #102c59;">
                                             {{ feedback.datefeedback|date('d/m/Y') }}
                                             <br>
                                             {{ feedback.datefeedback|date('H:i') }}
@@ -361,18 +366,18 @@
                                     </td>
                                     
                                     <td>
-                                        <small>{{ feedback.note }}/5</small>
+                                        <small style="color: #102c59;">{{ feedback.note }}/5</small>
                                     </td>
                                     
                                     <td>
-                                        <div style="max-width: 200px;">
+                                        <div style="max-width: 200px; color: #102c59;">
                                             {{ feedback.contenu|slice(0, 50) }}...
                                         </div>
                                     </td>
                                     
                                     <td>
                                         {% if feedback.traitement %}
-                                            <span class="badge bg-primary">
+                                            <span class="badge" style="background-color: #102c59; color: white;">
                                                 {{ feedback.traitement.typetraitement|replace({'_': ' '})|capitalize }}
                                             </span>
                                             <br>
@@ -387,7 +392,8 @@
                                     <td class="text-center">
                                         {# ✨ NOUVEAU : BOUTON EXPORT PDF INDIVIDUEL #}
                                         <a href="{{ path('back_feedback_export_pdf', {id: feedback.id}) }}" 
-                                           class="btn btn-danger btn-sm me-1" 
+                                           class="btn btn-sm me-1" 
+                                           style="background-color: #d52e28; color: white; border-color: #d52e28;"
                                            title="Exporter en PDF"
                                            target="_blank">
                                             <i class="bi bi-file-earmark-pdf"></i> PDF
@@ -395,7 +401,8 @@
                                         
                                         {% if feedback.traitement %}
                                             <a href="{{ path('back_traitement_edit', {id: feedback.traitement.id}) }}" 
-                                               class="btn btn-warning btn-sm me-1" 
+                                               class="btn btn-sm me-1" 
+                                               style="background-color: #9dbbce; color: #102c59; border-color: #9dbbce;"
                                                title="Modifier">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
@@ -405,7 +412,9 @@
                                                   class="d-inline"
                                                   onsubmit="return confirm('Supprimer ce traitement ?');">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ feedback.traitement.id) }}">
-                                                <button type="submit" class="btn btn-danger btn-sm" title="Supprimer">
+                                                <button type="submit" class="btn btn-sm" 
+                                                        style="background-color: #102c59; color: white; border-color: #102c59;"
+                                                        title="Supprimer">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
@@ -430,16 +439,29 @@
     font-weight: 600;
     font-size: 0.85rem;
     text-transform: uppercase;
-    color: #495057;
+    color: #102c59 !important;
 }
 .table td {
     font-size: 0.9rem;
 }
 .card {
     border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 .card-header {
     border-bottom: 2px solid;
+    font-weight: 600;
+}
+.btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+.badge {
+    font-weight: 500;
+}
+.modal-content {
+    border: 2px solid #102c59;
 }
 </style>
 {% endblock %}

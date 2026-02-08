@@ -5,13 +5,13 @@
 <main class="main">
 
   <!-- Page Title -->
-  <div class="page-title light-background">
-    <div class="container d-lg-flex justify-content-between align-items-center">
-      <h1 class="mb-2 mb-lg-0">Feedback sur le système</h1>
+  <div class="page-title" style="background-color: #9dbbce; color: #102c59;">
+    <div class="container d-lg-flex justify-content-between align-items-center py-4">
+      <h1 class="mb-2 mb-lg-0 fw-bold">Feedback sur le système</h1>
       <nav class="breadcrumbs">
-        <ol>
-          <li><a href="/">Home</a></li>
-          <li class="current">Feedback</li>
+        <ol class="mb-0">
+          <li><a href="/" style="color: #102c59;">Home</a></li>
+          <li class="current" style="color: #102c59; opacity: 0.8;">Feedback</li>
         </ol>
       </nav>
     </div>
@@ -20,7 +20,7 @@
 
   <!-- Hero image -->
   <div class="container" data-aos="fade-up" data-aos-delay="100">
-    <div class="hero-feedback mb-4 text-center">
+    <div class="hero-feedback mb-4 text-center position-relative">
       <img
         src="{{ asset('assets/img/feedback.jpg') }}"
         alt="Illustration feedback - Votre avis nous aide à améliorer la plateforme"
@@ -28,36 +28,44 @@
         style="max-height: 280px; object-fit: cover; width: 100%; max-width: 900px;"
         loading="lazy"
       >
-      <div class="hero-overlay d-flex align-items-center justify-content-center text-white text-center">
-        <div>
-          <h2 class="h3 fw-bold mb-2">Votre avis compte vraiment !</h2>
-          <p class="lead fs-5">Aidez-nous à rendre l'assistance plus intelligente</p>
+      <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+        <div style="background-color: rgba(16, 44, 89, 0.85); padding: 2rem; border-radius: 1rem;">
+          <h2 class="h3 fw-bold mb-2 text-white">Votre avis compte vraiment !</h2>
+          <p class="lead fs-5 mb-0" style="color: #9dbbce;">Aidez-nous à rendre l'assistance plus intelligente</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Feedback Section -->
-  <section id="feedback" class="contact section pt-2">
+  <section id="feedback" class="contact section pt-2 pb-5" style="background-color: #f8f9fa;">
     <div class="container" data-aos="fade-up" data-aos-delay="150">
 
       <!-- Les deux cards juste en dessous de l'image -->
       <div class="row justify-content-center mb-5" data-aos="fade-up" data-aos-delay="200">
         <div class="col-lg-5 col-md-6 mb-4">
-          <div class="contact-card h-100">
-            <div class="icon-box"><i class="bi bi-chat-dots"></i></div>
-            <div class="contact-text">
-              <h4>Votre avis compte</h4>
-              <p>Exprimez votre expérience afin d'améliorer les services proposés aux utilisateurs.</p>
+          <div class="card h-100 border-0 shadow-sm" style="border-top: 4px solid #102c59 !important;">
+            <div class="card-body p-4">
+              <div class="icon-box mb-3" style="color: #102c59; background-color: rgba(157, 187, 206, 0.2); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-chat-dots fs-3"></i>
+              </div>
+              <div class="contact-text">
+                <h4 style="color: #102c59;">Votre avis compte</h4>
+                <p class="text-muted">Exprimez votre expérience afin d'améliorer les services proposés aux utilisateurs.</p>
+              </div>
             </div>
           </div>
         </div>
         <div class="col-lg-5 col-md-6 mb-4">
-          <div class="contact-card h-100">
-            <div class="icon-box"><i class="bi bi-shield-lock"></i></div>
-            <div class="contact-text">
-              <h4>Confidentialité</h4>
-              <p>Les feedbacks sont traités de manière confidentielle par l'administration.</p>
+          <div class="card h-100 border-0 shadow-sm" style="border-top: 4px solid #d52e28 !important;">
+            <div class="card-body p-4">
+              <div class="icon-box mb-3" style="color: #d52e28; background-color: rgba(213, 46, 40, 0.1); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-shield-lock fs-3"></i>
+              </div>
+              <div class="contact-text">
+                <h4 style="color: #102c59;">Confidentialité</h4>
+                <p class="text-muted">Les feedbacks sont traités de manière confidentielle par l'administration.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -66,21 +74,23 @@
       <!-- Formulaire bien large et centré -->
       <div class="row justify-content-center">
         <div class="col-lg-10 col-xl-8">
-          <div class="contact-form-container bg-white p-5 rounded-4 shadow-lg" data-aos="fade-up" data-aos-delay="300">
+          <div class="contact-form-container p-5 rounded-4 shadow-lg" style="background-color: white; border-top: 5px solid #9dbbce;" data-aos="fade-up" data-aos-delay="300">
             
-            <h3 class="mb-3 text-primary">Donner un feedback</h3>
-            <p class="text-muted mb-5">Aidez-nous à mieux comprendre vos besoins et vos difficultés.</p>
+            <h3 class="mb-3" style="color: #102c59;">Donner un feedback</h3>
+            <p class="mb-5" style="color: #666;">Aidez-nous à mieux comprendre vos besoins et vos difficultés.</p>
             
             {# Affichage des messages flash #}
             {% for message in app.flashes('success') %}
-              <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <div class="alert alert-success alert-dismissible fade show" role="alert" style="background-color: rgba(157, 187, 206, 0.2); border-color: #9dbbce; color: #102c59;">
+                <i class="bi bi-check-circle-fill me-2"></i>
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>
             {% endfor %}
             
             {% for message in app.flashes('error') %}
-              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #102c59;">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>
@@ -90,8 +100,8 @@
 
               <!-- Type de feedback -->
               <div class="mb-4">
-                <label for="type_feedback" class="form-label fw-semibold">Type de feedback <span class="text-danger">*</span></label>
-                <select id="type_feedback" class="form-select form-control-lg" name="type_feedback" required>
+                <label for="type_feedback" class="form-label fw-semibold" style="color: #102c59;">Type de feedback <span class="text-danger">*</span></label>
+                <select id="type_feedback" class="form-select form-control-lg" name="type_feedback" required style="border-color: #9dbbce;">
                   <option value="" disabled selected>-- Choisir type de feedback --</option>
                   <option value="suggestion">Suggestion</option>
                   <option value="probleme">Problème</option>
@@ -102,7 +112,7 @@
 
               <!-- Note par étoiles -->
               <div class="mb-4">
-                <label class="form-label fw-semibold">Votre note <span class="text-danger">*</span></label>
+                <label class="form-label fw-semibold" style="color: #102c59;">Votre note <span class="text-danger">*</span></label>
                 <div class="star-rating fs-1" id="starRating">
                   <span class="star" data-value="1">★</span>
                   <span class="star" data-value="2">★</span>
@@ -111,14 +121,14 @@
                   <span class="star" data-value="5">★</span>
                 </div>
                 <input type="hidden" name="rating" id="rating" required>
-                <div class="invalid-feedback d-block" id="ratingError" style="display: none !important;">
+                <div class="invalid-feedback d-block" id="ratingError" style="display: none !important; color: #d52e28;">
                   Veuillez sélectionner une note.
                 </div>
               </div>
 
               <!-- Message -->
               <div class="mb-4">
-                <label for="contenu" class="form-label fw-semibold">Votre message <span class="text-danger">*</span></label>
+                <label for="contenu" class="form-label fw-semibold" style="color: #102c59;">Votre message <span class="text-danger">*</span></label>
                 <textarea
                   class="form-control form-control-lg"
                   id="contenu"
@@ -127,16 +137,17 @@
                   placeholder="Décrivez votre expérience, problème ou suggestion..."
                   required
                   minlength="10"
+                  style="border-color: #9dbbce;"
                 ></textarea>
                 <div class="invalid-feedback">Veuillez saisir un message (minimum 10 caractères).</div>
               </div>
 
               <!-- Bouton -->
               <div class="mt-5">
-                <button type="submit" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow">
+                <button type="submit" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow" style="background-color: #102c59; border-color: #102c59;">
                   <i class="bi bi-send me-2"></i>Envoyer le feedback
                 </button>
-                <a href="{{ path('front_feedback_list') }}" class="btn btn-outline-secondary btn-lg px-5 py-3 rounded-pill ms-3">
+                <a href="{{ path('front_feedback_list') }}" class="btn btn-outline-secondary btn-lg px-5 py-3 rounded-pill ms-3" style="color: #102c59; border-color: #9dbbce;">
                   <i class="bi bi-list-ul me-2"></i>Voir mes feedbacks
                 </a>
               </div>
@@ -151,18 +162,61 @@
 </main>
 
 <style>
+  /* Style personnalisé pour les étoiles */
   .star-rating {
     cursor: pointer;
     user-select: none;
   }
   .star {
     color: #ddd;
-    transition: color 0.2s;
+    transition: all 0.2s;
+    padding: 0 2px;
   }
   .star.active,
   .star:hover,
   .star:hover ~ .star {
-    color: #ffc107;
+    color: #d52e28;
+    transform: scale(1.2);
+  }
+  
+  /* Style pour le formulaire */
+  .form-control:focus, .form-select:focus {
+    border-color: #9dbbce;
+    box-shadow: 0 0 0 0.25rem rgba(157, 187, 206, 0.25);
+  }
+  
+  /* Style pour la page title */
+  .breadcrumbs ol {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .breadcrumbs li:not(:last-child)::after {
+    content: "/";
+    margin: 0 10px;
+    color: #102c59;
+    opacity: 0.6;
+  }
+  
+  .breadcrumbs a {
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  
+  .breadcrumbs a:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+  
+  /* Style pour les cards */
+  .card {
+    transition: transform 0.3s;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
   }
 </style>
 
@@ -220,6 +274,36 @@ document.addEventListener('DOMContentLoaded', function() {
     
     return isValid;
   });
+  
+  // Effet hover sur les boutons
+  const submitBtn = document.querySelector('button[type="submit"]');
+  const secondaryBtn = document.querySelector('a.btn-outline-secondary');
+  
+  if (submitBtn) {
+    submitBtn.addEventListener('mouseenter', function() {
+      this.style.backgroundColor = '#0a1f3a';
+      this.style.transform = 'translateY(-2px)';
+    });
+    
+    submitBtn.addEventListener('mouseleave', function() {
+      this.style.backgroundColor = '#102c59';
+      this.style.transform = 'translateY(0)';
+    });
+  }
+  
+  if (secondaryBtn) {
+    secondaryBtn.addEventListener('mouseenter', function() {
+      this.style.backgroundColor = '#9dbbce';
+      this.style.color = '#102c59';
+      this.style.transform = 'translateY(-2px)';
+    });
+    
+    secondaryBtn.addEventListener('mouseleave', function() {
+      this.style.backgroundColor = 'transparent';
+      this.style.color = '#102c59';
+      this.style.transform = 'translateY(0)';
+    });
+  }
 });
 </script>
 

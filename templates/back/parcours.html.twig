@@ -1,0 +1,564 @@
+{% extends 'back/base.html.twig' %}
+{% block title %}Parcours - MentorAI{% endblock %}
+
+{% block body %}
+<section id="parcours-management" class="enroll section">
+   <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <div class="section-title text-center mb-5">
+        <h2 style="color: #102c59;">Tous les Parcours</h2>
+        <p style="color: #555;">Tableau complet de tous les parcours enregistrés</p>
+      </div>
+
+<!-- Barre de filtrage et recherche -->
+<div class="card mb-4" style="border: 1px solid #9dbbce;">
+    <div class="card-body">
+        <form id="filterForm" method="get" action="{{ path('back_parcours') }}">
+            <div class="row g-3">
+                <!-- Champ de recherche -->
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text" style="background-color: #9dbbce; color: #102c59; border-color: #8aa9c0;">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            name="search" 
+                            placeholder="Rechercher par titre, type ou diplôme..." 
+                            value="{{ app.request.get('search') }}"
+                            onkeyup="this.form.submit()"
+                            style="border-color: #9dbbce;"
+                        >
+                    </div>
+                </div>
+                
+                <!-- Sélecteur de tri -->
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text" style="background-color: #9dbbce; color: #102c59; border-color: #8aa9c0;">
+                            <i class="fas fa-sort"></i>
+                        </span>
+                        <select 
+                            class="form-select" 
+                            name="sort" 
+                            onchange="this.form.submit()"
+                            style="border-color: #9dbbce;"
+                        >
+                            <option value="">Trier par...</option>
+                            <option value="titre_asc" {{ app.request.get('sort') == 'titre_asc' ? 'selected' : '' }}>Titre (A-Z)</option>
+                            <option value="titre_desc" {{ app.request.get('sort') == 'titre_desc' ? 'selected' : '' }}>Titre (Z-A)</option>
+                            <option value="type_asc" {{ app.request.get('sort') == 'type_asc' ? 'selected' : '' }}>Type (A-Z)</option>
+                            <option value="type_desc" {{ app.request.get('sort') == 'type_desc' ? 'selected' : '' }}>Type (Z-A)</option>
+                            <option value="date_debut_asc" {{ app.request.get('sort') == 'date_debut_asc' ? 'selected' : '' }}>Date début (ancien)</option>
+                            <option value="date_debut_desc" {{ app.request.get('sort') == 'date_debut_desc' ? 'selected' : '' }}>Date début (récent)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Bouton export PDF (au centre) -->
+                <div class="col-md-2">
+                    <a href="{{ path('back_parcours_export_pdf') }}?search={{ app.request.get('search')|url_encode }}&sort={{ app.request.get('sort')|url_encode }}" 
+                       class="btn w-100 d-flex align-items-center justify-content-center gap-2"
+                       style="background-color: #d52e28; color: white; border-color: #b32420; height: 38px;"
+                       target="_blank">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>PDF</span>
+                    </a>
+                </div>
+                
+                <!-- Bouton réinitialiser -->
+                <div class="col-md-2">
+                    <a href="{{ path('back_parcours') }}" 
+                       class="btn w-100 d-flex align-items-center justify-content-center gap-2"
+                       style="background-color: #102c59; color: white; border-color: #0d2347; height: 38px;">
+                        <i class="fas fa-redo"></i>
+                        <span>Réinit</span>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+    {% if parcours|length > 0 %}
+        <div class="table-responsive">
+            <table class="table table-hover" style="border: 1px solid #dee2e6;">
+                <thead class="sticky-top" style="background-color: #102c59; color: white;">
+                    <tr>
+                        <th style="width: 5%; border-color: #0d2347;">ID</th>
+                        <th style="width: 10%; border-color: #0d2347;">Type</th>
+                        <th style="width: 15%; border-color: #0d2347;">Titre</th>
+                        <th style="width: 20%; border-color: #0d2347;">Description</th>
+                        <th style="width: 10%; border-color: #0d2347;">Dates</th>
+                        <th style="width: 30%; border-color: #0d2347;">Détails spécifiques</th>
+                        <th style="width: 10%; border-color: #0d2347;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for parcours_item in parcours %}
+                        <tr style="background-color: white;">
+                            <td>
+                                <span class="badge" style="background-color: #9dbbce; color: #102c59;">{{ parcours_item.id }}</span>
+                            </td>
+                            <td>
+                                <select class="form-select form-select-sm" onchange="updateParcours({{ parcours_item.id }}, 'type_parcours', this.value)"
+                                        style="border-color: #9dbbce; background-color: #f0f4f8; color: #102c59;">
+                                    <option value="scolaire" {% if parcours_item.typeParcours == 'scolaire' %}selected{% endif %}>Scolaire</option>
+                                    <option value="professionnel" {% if parcours_item.typeParcours == 'professionnel' %}selected{% endif %}>Professionnel</option>
+                                    <option value="formation" {% if parcours_item.typeParcours == 'formation' %}selected{% endif %}>Formation</option>
+                                </select>
+                            </td>
+                            <td contenteditable="true" onblur="updateParcours({{ parcours_item.id }}, 'titre', this.innerText)"
+                                style="color: #102c59; font-weight: 500;">
+                                {{ parcours_item.titre }}
+                            </td>
+                            <td contenteditable="true" onblur="updateParcours({{ parcours_item.id }}, 'description', this.innerText)"
+                                style="color: #555;">
+                                {{ parcours_item.description|slice(0, 100) }}{% if parcours_item.description|length > 100 %}...{% endif %}
+                            </td>
+                            <td>
+                                <div class="timeline-dates">
+                                    <div class="date-item mb-1">
+                                        <i class="fas fa-play-circle me-1" style="color: #9dbbce; font-size: 0.9em;"></i>
+                                        <input type="date" class="form-control form-control-sm" 
+                                               value="{{ parcours_item.dateDebut ? parcours_item.dateDebut|date('Y-m-d') : '' }}"
+                                               onchange="updateParcours({{ parcours_item.id }}, 'date_debut', this.value)"
+                                               style="border-color: #9dbbce; width: 120px; display: inline-block;">
+                                    </div>
+                                    <div class="date-item">
+                                        <i class="fas fa-flag-checkered me-1" style="color: #9dbbce; font-size: 0.9em;"></i>
+                                        <input type="date" class="form-control form-control-sm" 
+                                               value="{{ parcours_item.dateFin ? parcours_item.dateFin|date('Y-m-d') : '' }}"
+                                               onchange="updateParcours({{ parcours_item.id }}, 'date_fin', this.value)"
+                                               style="border-color: #9dbbce; width: 120px; display: inline-block;">
+                                    </div>
+                                    {% if parcours_item.dateDebut and parcours_item.dateFin %}
+                                        <div class="timeline-bar mt-2" style="height: 3px; background-color: #9dbbce; border-radius: 2px;"></div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <!-- Champs selon le type -->
+                                {% if parcours_item.typeParcours == 'scolaire' %}
+                                    <div class="parcours-details-card p-2" style="background-color: #f0f4f8; border-radius: 6px; border-left: 3px solid #d52e28;">
+                                        <div class="mb-2">
+                                            <div class="small" style="color: #9dbbce; font-weight: 500;">Établissement:</div>
+                                            <input type="text" class="form-control form-control-sm mt-1" 
+                                                   value="{{ parcours_item.etablissement ?? '' }}"
+                                                   onchange="updateParcours({{ parcours_item.id }}, 'etablissement', this.value)"
+                                                   style="border-color: #9dbbce;">
+                                        </div>
+                                        <div class="mb-2">
+                                            <div class="small" style="color: #9dbbce; font-weight: 500;">Diplôme:</div>
+                                            <input type="text" class="form-control form-control-sm mt-1" 
+                                                   value="{{ parcours_item.diplome ?? '' }}"
+                                                   onchange="updateParcours({{ parcours_item.id }}, 'diplome', this.value)"
+                                                   style="border-color: #9dbbce;">
+                                        </div>
+                                        {% if parcours_item.specialite %}
+                                            <div>
+                                                <div class="small" style="color: #9dbbce; font-weight: 500;">Spécialité:</div>
+                                                <input type="text" class="form-control form-control-sm mt-1" 
+                                                       value="{{ parcours_item.specialite }}"
+                                                       onchange="updateParcours({{ parcours_item.id }}, 'specialite', this.value)"
+                                                       style="border-color: #9dbbce;">
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% elseif parcours_item.typeParcours == 'professionnel' %}
+                                    <div class="parcours-details-card p-2" style="background-color: #f0f4f8; border-radius: 6px; border-left: 3px solid #102c59;">
+                                        <div class="mb-2">
+                                            <div class="small" style="color: #102c59; font-weight: 500;">Entreprise:</div>
+                                            <input type="text" class="form-control form-control-sm mt-1" 
+                                                   value="{{ parcours_item.entreprise ?? '' }}"
+                                                   onchange="updateParcours({{ parcours_item.id }}, 'entreprise', this.value)"
+                                                   style="border-color: #9dbbce;">
+                                        </div>
+                                        <div class="mb-2">
+                                            <div class="small" style="color: #102c59; font-weight: 500;">Poste:</div>
+                                            <input type="text" class="form-control form-control-sm mt-1" 
+                                                   value="{{ parcours_item.poste ?? '' }}"
+                                                   onchange="updateParcours({{ parcours_item.id }}, 'poste', this.value)"
+                                                   style="border-color: #9dbbce;">
+                                        </div>
+                                        {% if parcours_item.typeContrat %}
+                                            <div>
+                                                <div class="small" style="color: #102c59; font-weight: 500;">Contrat:</div>
+                                                <select class="form-select form-select-sm mt-1" onchange="updateParcours({{ parcours_item.id }}, 'type_contrat', this.value)"
+                                                        style="border-color: #9dbbce; background-color: white;">
+                                                    <option value="">-- Type --</option>
+                                                    <option value="CDI" {% if parcours_item.typeContrat == 'CDI' %}selected{% endif %}>CDI</option>
+                                                    <option value="CDD" {% if parcours_item.typeContrat == 'CDD' %}selected{% endif %}>CDD</option>
+                                                    <option value="Stage" {% if parcours_item.typeContrat == 'Stage' %}selected{% endif %}>Stage</option>
+                                                    <option value="Alternance" {% if parcours_item.typeContrat == 'Alternance' %}selected{% endif %}>Alternance</option>
+                                                    <option value="Freelance" {% if parcours_item.typeContrat == 'Freelance' %}selected{% endif %}>Freelance</option>
+                                                </select>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% elseif parcours_item.typeParcours == 'formation' %}
+                                    <div class="parcours-details-card p-2" style="background-color: #f0f4f8; border-radius: 6px; border-left: 3px solid #9dbbce;">
+                                        <div class="mb-2">
+                                            <div class="small" style="color: #9dbbce; font-weight: 500;">Organisme:</div>
+                                            <input type="text" class="form-control form-control-sm mt-1" 
+                                                   value="{{ parcours_item.etablissement ?? '' }}"
+                                                   onchange="updateParcours({{ parcours_item.id }}, 'etablissement', this.value)"
+                                                   style="border-color: #9dbbce;">
+                                        </div>
+                                        <div class="mb-2">
+                                            <div class="small" style="color: #9dbbce; font-weight: 500;">Certification:</div>
+                                            <input type="text" class="form-control form-control-sm mt-1" 
+                                                   value="{{ parcours_item.diplome ?? '' }}"
+                                                   onchange="updateParcours({{ parcours_item.id }}, 'diplome', this.value)"
+                                                   style="border-color: #9dbbce;">
+                                        </div>
+                                        {% if parcours_item.specialite %}
+                                            <div>
+                                                <div class="small" style="color: #9dbbce; font-weight: 500;">Domaine:</div>
+                                                <input type="text" class="form-control form-control-sm mt-1" 
+                                                       value="{{ parcours_item.specialite }}"
+                                                       onchange="updateParcours({{ parcours_item.id }}, 'specialite', this.value)"
+                                                       style="border-color: #9dbbce;">
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm" onclick="deleteParcours({{ parcours_item.id }})"
+                                        style="background-color: #d52e28; color: white; border-color: #b32420;">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert" style="background-color: #9dbbce; border: 1px solid #8aa9c0; color: #102c59;">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-3" style="font-size: 1.5em;"></i>
+                <div>
+                    <h4 class="alert-heading mb-1" style="color: #102c59;">
+                        {% if app.request.get('search') %}
+                            Aucun parcours trouvé
+                        {% else %}
+                            Aucun parcours enregistré
+                        {% endif %}
+                    </h4>
+                    <p class="mb-0">
+                        {% if app.request.get('search') %}
+                            Aucun parcours ne correspond à votre recherche.
+                        {% else %}
+                            Aucun parcours n'est enregistré dans la base de données.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// Fonction pour afficher les messages
+function showMessage(message) {
+    const messageBox = document.createElement('div');
+    messageBox.innerText = message;
+    messageBox.style.position = 'fixed';
+    messageBox.style.top = '50%';
+    messageBox.style.left = '50%';
+    messageBox.style.transform = 'translate(-50%, -50%)';
+    messageBox.style.backgroundColor = '#102c59';
+    messageBox.style.color = '#fff';
+    messageBox.style.padding = '1rem 2rem';
+    messageBox.style.borderRadius = '5px';
+    messageBox.style.boxShadow = '0 4px 12px rgba(16, 44, 89, 0.2)';
+    messageBox.style.zIndex = '1050';
+    messageBox.style.fontWeight = '500';
+    document.body.appendChild(messageBox);
+
+    setTimeout(() => {
+        document.body.removeChild(messageBox);
+    }, 2000);
+}
+
+// Fonction de confirmation
+function confirmDeletion(message, callback) {
+    const confirmBox = document.createElement('div');
+    confirmBox.style.position = 'fixed';
+    confirmBox.style.top = '50%';
+    confirmBox.style.left = '50%';
+    confirmBox.style.transform = 'translate(-50%, -50%)';
+    confirmBox.style.backgroundColor = '#fff';
+    confirmBox.style.color = '#102c59';
+    confirmBox.style.padding = '1.5rem';
+    confirmBox.style.borderRadius = '8px';
+    confirmBox.style.boxShadow = '0 4px 12px rgba(16, 44, 89, 0.2)';
+    confirmBox.style.zIndex = '1050';
+    confirmBox.style.textAlign = 'center';
+    confirmBox.style.border = '2px solid #9dbbce';
+
+    const messageText = document.createElement('p');
+    messageText.innerText = message;
+    messageText.style.marginBottom = '1rem';
+    messageText.style.fontWeight = '500';
+    confirmBox.appendChild(messageText);
+
+    const buttonContainer = document.createElement('div');
+
+    const confirmButton = document.createElement('button');
+    confirmButton.innerText = 'Confirmer';
+    confirmButton.style.marginRight = '1rem';
+    confirmButton.style.padding = '0.5rem 1.5rem';
+    confirmButton.style.backgroundColor = '#d52e28';
+    confirmButton.style.color = '#fff';
+    confirmButton.style.border = 'none';
+    confirmButton.style.borderRadius = '4px';
+    confirmButton.style.cursor = 'pointer';
+    confirmButton.style.fontWeight = '500';
+    confirmButton.onclick = () => {
+        document.body.removeChild(confirmBox);
+        callback();
+    };
+
+    const cancelButton = document.createElement('button');
+    cancelButton.innerText = 'Annuler';
+    cancelButton.style.padding = '0.5rem 1.5rem';
+    cancelButton.style.backgroundColor = '#9dbbce';
+    cancelButton.style.color = '#102c59';
+    cancelButton.style.border = 'none';
+    cancelButton.style.borderRadius = '4px';
+    cancelButton.style.cursor = 'pointer';
+    cancelButton.style.fontWeight = '500';
+    cancelButton.onclick = () => {
+        document.body.removeChild(confirmBox);
+    };
+
+    buttonContainer.appendChild(confirmButton);
+    buttonContainer.appendChild(cancelButton);
+    confirmBox.appendChild(buttonContainer);
+
+    document.body.appendChild(confirmBox);
+}
+
+// Mettre à jour un parcours
+function updateParcours(id, field, value) {
+    fetch(`/admin/update-parcours/${id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [field]: value }),
+    }).then(response => response.json()).then(data => {
+        showMessage(data.status);
+    });
+}
+
+// Supprimer un parcours
+function deleteParcours(id) {
+    confirmDeletion('Êtes-vous sûr de vouloir supprimer ce parcours ?', () => {
+        fetch(`/admin/delete-parcours/${id}`, {
+            method: 'DELETE',
+        }).then(response => response.json()).then(data => {
+            showMessage(data.status);
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        });
+    });
+}
+
+// Fonction pour soumettre automatiquement la recherche après un délai
+let searchTimeout;
+function debounceSearch(input) {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        input.form.submit();
+    }, 500);
+}
+
+// Animation pour les champs éditables
+document.addEventListener('DOMContentLoaded', function() {
+    // Style pour les champs éditables au focus
+    const editableFields = document.querySelectorAll('[contenteditable="true"]');
+    editableFields.forEach(field => {
+        field.addEventListener('focus', function() {
+            this.style.outline = '2px solid #9dbbce';
+            this.style.borderRadius = '4px';
+            this.style.padding = '2px 4px';
+            this.style.backgroundColor = '#f0f4f8';
+        });
+        
+        field.addEventListener('blur', function() {
+            this.style.outline = 'none';
+            this.style.backgroundColor = 'transparent';
+        });
+    });
+    
+    // Animation pour les lignes du tableau
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.boxShadow = '0 4px 8px rgba(16, 44, 89, 0.1)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.boxShadow = 'none';
+        });
+    });
+    
+    // Style pour les inputs au focus
+    const inputs = document.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.style.borderColor = '#102c59';
+            this.style.boxShadow = '0 0 0 0.25rem rgba(157, 187, 206, 0.25)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.style.borderColor = '#9dbbce';
+            this.style.boxShadow = 'none';
+        });
+    });
+});
+</script>
+
+<style>
+    /* Variables pour la charte graphique */
+    :root {
+        --color-light-blue: #9dbbce;
+        --color-dark-blue: #102c59;
+        --color-red: #d52e28;
+        --color-light-bg: #f8f9fa;
+        --color-hover-bg: #f0f4f8;
+    }
+    
+    .sticky-top {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: var(--color-hover-bg) !important;
+        transition: background-color 0.3s ease;
+    }
+    
+    .text-truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .form-control-sm, .form-select-sm {
+        font-size: 0.875rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .small {
+        font-size: 0.875rem;
+    }
+    
+    /* Styles pour les boutons */
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+    
+    /* Style pour le bouton PDF au survol */
+    .btn[style*="background-color: #d52e28"]:hover {
+        background-color: #b32420 !important;
+        border-color: #9a1a1a !important;
+    }
+    
+    /* Style pour le bouton réinitialiser au survol */
+    .btn[style*="background-color: #102c59"]:hover {
+        background-color: #0d2347 !important;
+        border-color: #0a1b35 !important;
+    }
+    
+    /* Style pour les badges */
+    .badge {
+        padding: 0.4em 0.8em;
+        font-weight: 500;
+        border-radius: 4px;
+    }
+    
+    /* Style pour les timeline */
+    .timeline-dates {
+        position: relative;
+    }
+    
+    .date-item {
+        display: flex;
+        align-items: center;
+    }
+    
+    .timeline-bar {
+        position: relative;
+    }
+    
+    .timeline-bar::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: -2px;
+        width: 8px;
+        height: 8px;
+        background-color: var(--color-red);
+        border-radius: 50%;
+    }
+    
+    .timeline-bar::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: -2px;
+        width: 8px;
+        height: 8px;
+        background-color: var(--color-dark-blue);
+        border-radius: 50%;
+    }
+    
+    /* Style pour les cartes de détails */
+    .parcours-details-card {
+        transition: all 0.3s ease;
+    }
+    
+    .parcours-details-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 8px rgba(16, 44, 89, 0.1);
+    }
+    
+    /* Style pour les champs éditables */
+    [contenteditable="true"]:focus {
+        outline: 2px solid var(--color-light-blue);
+        border-radius: 4px;
+        padding: 2px 4px;
+        background-color: var(--color-hover-bg);
+    }
+    
+    /* Style pour les groupes d'input */
+    .input-group-text {
+        transition: all 0.3s ease;
+    }
+    
+    .input-group:hover .input-group-text {
+        background-color: #8aa9c0;
+    }
+    
+    /* Style pour les inputs et selects */
+    .form-control:focus, .form-select:focus {
+        border-color: var(--color-dark-blue);
+        box-shadow: 0 0 0 0.25rem rgba(157, 187, 206, 0.25);
+    }
+    
+    /* Style pour l'alerte */
+    .alert {
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+</style>
+{% endblock %}

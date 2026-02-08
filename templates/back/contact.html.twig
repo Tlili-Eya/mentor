@@ -1,108 +1,467 @@
 {% extends 'back/base.html.twig' %}
 
+{% block title %}Gestion des Feedbacks{% endblock %}
+
 {% block body %}
-<body class="contact-page">
-
-<main class="main">
-
-  <!-- Page Title -->
-  <div class="page-title light-background">
-    <div class="container d-lg-flex justify-content-between align-items-center">
-      <h1 class="mb-2 mb-lg-0">Contact</h1>
-      <nav class="breadcrumbs">
-        <ol>
-          <li><a href="/">Home</a></li>
-          <li class="current">Contact</li>
-        </ol>
-      </nav>
-    </div>
-  </div><!-- End Page Title -->
-
-  <!-- Contact Section -->
-  <section id="contact" class="contact section">
-
-    <div class="container" data-aos="fade-up" data-aos-delay="100">
-      <div class="contact-main-wrapper">
-
-        <div class="map-wrapper">
-          <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d48389.78314118045!2d-74.006138!3d40.710059!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a22a3bda30d%3A0xb89d1fe6bc499443!2sDowntown%20Conference%20Center!5e0!3m2!1sen!2sus!4v1676961268712!5m2!1sen!2sus"
-            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"></iframe>
+<div class="container-fluid py-4">
+    
+    <!-- En-tête -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1" style="color: #102c59;">
+                <i class="bi bi-chat-dots me-2"></i>Gestion des Feedbacks
+            </h1>
+            <p class="text-muted mb-0">Gérez les retours des utilisateurs</p>
         </div>
+        <div>
+            <span class="badge fs-6 me-2" style="background-color: #9dbbce; color: #102c59;">
+                <i class="bi bi-clock me-1"></i>
+                {{ feedbacksEnAttente|length }} en attente
+            </span>
+            <span class="badge fs-6" style="background-color: #d52e28; color: white;">
+                <i class="bi bi-check-circle me-1"></i>
+                {{ feedbacksTraites|length }} traités
+            </span>
+        </div>
+    </div>
 
-        <div class="contact-content">
+    {# ✨ NOUVEAU : BOUTON EXPORT PDF GLOBAL #}
+    <div class="mb-4">
+        <a href="{{ path('back_feedbacks_export_all_pdf') }}" 
+           class="btn" 
+           style="background-color: #d52e28; color: white; border-color: #d52e28;"
+           target="_blank"
+           title="Exporter tous les feedbacks traités en PDF">
+            <i class="bi bi-file-earmark-pdf me-2"></i>📄 Exporter tous les feedbacks traités en PDF
+        </a>
+        <small class="text-muted d-block mt-2">
+            <i class="bi bi-info-circle me-1"></i>
+            Génère un rapport PDF professionnel avec tous les feedbacks traités
+        </small>
+    </div>
 
-          <div class="contact-cards-container" data-aos="fade-up" data-aos-delay="300">
-
-            <div class="contact-card">
-              <div class="icon-box"><i class="bi bi-geo-alt"></i></div>
-              <div class="contact-text">
-                <h4>Location</h4>
-                <p>8721 Broadway Avenue, New York, NY 10023</p>
-              </div>
-            </div>
-
-            <div class="contact-card">
-              <div class="icon-box"><i class="bi bi-envelope"></i></div>
-              <div class="contact-text">
-                <h4>Email</h4>
-                <p>info@examplecompany.com</p>
-              </div>
-            </div>
-
-            <div class="contact-card">
-              <div class="icon-box"><i class="bi bi-telephone"></i></div>
-              <div class="contact-text">
-                <h4>Call</h4>
-                <p>+1 (212) 555-7890</p>
-              </div>
-            </div>
-
-            <div class="contact-card">
-              <div class="icon-box"><i class="bi bi-clock"></i></div>
-              <div class="contact-text">
-                <h4>Open Hours</h4>
-                <p>Monday–Friday: 9AM - 6PM</p>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="contact-form-container" data-aos="fade-up" data-aos-delay="400">
-            <h3>Get in Touch</h3>
-            <p>Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.</p>
-
-            <form method="post">
-              <div class="row">
-                <div class="col-md-6 form-group">
-                  <input type="text" class="form-control" placeholder="Your Name">
+    {# ✨ BARRE DE RECHERCHE UTILISATEUR #}
+    <div class="card shadow-sm mb-4" style="border-color: #9dbbce;">
+        <div class="card-header" style="background-color: rgba(157, 187, 206, 0.1); border-color: #9dbbce; color: #102c59;">
+            <h5 class="mb-0">
+                <i class="bi bi-funnel me-2"></i>Recherche et Filtres
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{{ path('back_contact') }}" class="row g-3">
+                <div class="col-md-6">
+                    <label for="search_user" class="form-label" style="color: #102c59;">
+                        <i class="bi bi-person-search me-1"></i>Rechercher un utilisateur
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="search_user" 
+                        name="search_user" 
+                        value="{{ searchUser }}"
+                        placeholder="Nom, prénom ou email de l'utilisateur..."
+                        style="border-color: #9dbbce;">
+                    <small class="text-muted">Laissez vide pour voir tous les feedbacks</small>
                 </div>
-                <div class="col-md-6 form-group mt-3 mt-md-0">
-                  <input type="email" class="form-control" placeholder="Your Email">
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="form-check">
+                        <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="only_untreated" 
+                            name="only_untreated" 
+                            value="1"
+                            {% if showOnlyUntreated %}checked{% endif %}
+                            style="border-color: #102c59;">
+                        <label class="form-check-label" for="only_untreated" style="color: #102c59;">
+                            <i class="bi bi-filter me-1"></i>Uniquement les feedbacks non traités de cet utilisateur
+                        </label>
+                    </div>
                 </div>
-              </div>
-
-              <div class="form-group mt-3">
-                <input type="text" class="form-control" placeholder="Subject">
-              </div>
-
-              <div class="form-group mt-3">
-                <textarea class="form-control" rows="5" placeholder="Message"></textarea>
-              </div>
-
-              <div class="form-submit mt-4">
-                <button type="submit">Send Message</button>
-              </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn w-100" style="background-color: #102c59; color: white; border-color: #102c59;">
+                        <i class="bi bi-search me-1"></i>Rechercher
+                    </button>
+                </div>
             </form>
-          </div>
-
         </div>
-      </div>
     </div>
 
-  </section><!-- /Contact Section -->
+    {# ✨ ANALYSE DES MESSAGES RÉPÉTITIFS (ALERTE) #}
+    {% if motsCles is not empty %}
+    <div class="card shadow-sm mb-4" style="border-color: #d52e28;">
+        <div class="card-header" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #102c59;">
+            <h5 class="mb-0">
+                <i class="bi bi-exclamation-triangle me-2" style="color: #d52e28;"></i>
+                Mots-clés les plus fréquents (analyse des retours)
+            </h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">
+                <i class="bi bi-info-circle me-1"></i>
+                Ces mots reviennent souvent dans les feedbacks. Ils peuvent indiquer des problèmes récurrents.
+            </p>
+            <div class="row g-2">
+                {% for mot, count in motsCles %}
+                    <div class="col-auto">
+                        <span class="badge fs-6" style="background-color: #d52e28; color: white;">
+                            {{ mot }} <span class="badge ms-1" style="background-color: #102c59;">{{ count }}x</span>
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+            <small class="text-muted d-block mt-3">
+                💡 <strong>Astuce :</strong> Si un mot comme "lent", "bug", "erreur" apparaît souvent, 
+                c'est peut-être un problème à traiter en priorité !
+            </small>
+        </div>
+    </div>
+    {% endif %}
 
-</main>
+    <!-- Messages flash -->
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="background-color: rgba(157, 187, 206, 0.1); border-color: #9dbbce; color: #102c59;">
+            <i class="bi bi-check-circle me-2" style="color: #102c59;"></i>{{ message }}
+            <button type="button" class="btn-close"></button>
+        </div>
+    {% endfor %}
 
-</body>
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #102c59;">
+            <i class="bi bi-exclamation-triangle me-2" style="color: #d52e28;"></i>{{ message }}
+            <button type="button" class="btn-close"></button>
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('warning') %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert" style="background-color: rgba(255, 193, 7, 0.1); border-color: #ffc107; color: #102c59;">
+            <i class="bi bi-exclamation-circle me-2" style="color: #ffc107;"></i>{{ message }}
+            <button type="button" class="btn-close"></button>
+        </div>
+    {% endfor %}
+
+    <!-- TABLEAU 1 : Feedbacks en attente -->
+    <div class="card shadow-sm mb-5" style="border-color: #9dbbce;">
+        <div class="card-header" style="background-color: rgba(157, 187, 206, 0.1); border-color: #9dbbce; color: #102c59;">
+            <h5 class="mb-0">
+                <i class="bi bi-hourglass-split me-2" style="color: #102c59;"></i>
+                Feedbacks en attente de traitement
+                {% if searchUser %}
+                    <span class="badge ms-2" style="background-color: #9dbbce; color: #102c59;">
+                        Filtre actif : {{ searchUser }}
+                    </span>
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if feedbacksEnAttente is empty %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-1 d-block mb-3" style="color: #9dbbce;"></i>
+                    <p class="mb-0">
+                        {% if searchUser %}
+                            Aucun feedback en attente pour cet utilisateur
+                        {% else %}
+                            Aucun feedback en attente
+                        {% endif %}
+                    </p>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light" style="background-color: rgba(157, 187, 206, 0.2); color: #102c59;">
+                            <tr>
+                                <th width="50">#ID</th>
+                                <th>Utilisateur</th>
+                                <th>Type</th>
+                                <th width="120">Date</th>
+                                <th width="80">Note</th>
+                                <th>Message</th>
+                                <th width="150" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for feedback in feedbacksEnAttente %}
+                                <tr>
+                                    <td class="fw-bold" style="color: #102c59;">#{{ feedback.id }}</td>
+                                    
+                                    <td>
+                                        <div>
+                                            <strong style="color: #102c59;">{{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="bi bi-envelope me-1"></i>{{ feedback.utilisateur.email }}
+                                            </small>
+                                            <br>
+                                            <span class="badge" style="background-color: #9dbbce; color: #102c59;">ID: {{ feedback.utilisateur.id }}</span>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        {% if feedback.typefeedback == 'suggestion' %}
+                                            <span class="badge" style="background-color: #9dbbce; color: #102c59;">
+                                                <i class="bi bi-lightbulb me-1"></i>Suggestion
+                                            </span>
+                                        {% elseif feedback.typefeedback == 'probleme' %}
+                                            <span class="badge" style="background-color: #d52e28; color: white;">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>Problème
+                                            </span>
+                                        {% else %}
+                                            <span class="badge" style="background-color: #28a745; color: white;">
+                                                <i class="bi bi-emoji-smile me-1"></i>Satisfaction
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        <small style="color: #102c59;">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            {{ feedback.datefeedback|date('d/m/Y') }}
+                                            <br>
+                                            <i class="bi bi-clock me-1"></i>
+                                            {{ feedback.datefeedback|date('H:i') }}
+                                        </small>
+                                    </td>
+                                    
+                                    <td>
+                                        <div class="stars-display">
+                                            {% for i in 1..5 %}
+                                                {% if i <= feedback.note %}
+                                                    <i class="bi bi-star-fill" style="color: #ffc107;"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <br>
+                                            <small class="text-muted">({{ feedback.note }}/5)</small>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        <div style="max-width: 300px; color: #102c59;">
+                                            {% if feedback.contenu|length > 100 %}
+                                                {{ feedback.contenu|slice(0, 100) }}...
+                                                <button 
+                                                    class="btn btn-sm btn-link p-0" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#modalFeedback{{ feedback.id }}"
+                                                    style="color: #d52e28;">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            {% else %}
+                                                {{ feedback.contenu }}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <a href="{{ path('back_traitement', {id: feedback.id}) }}" 
+                                           class="btn btn-sm" 
+                                           style="background-color: #102c59; color: white; border-color: #102c59;">
+                                            <i class="bi bi-gear me-1"></i>Traiter
+                                        </a>
+                                    </td>
+                                </tr>
+
+                                <!-- Modal pour voir le message complet -->
+                                <div class="modal fade" id="modalFeedback{{ feedback.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header" style="background-color: #102c59; color: white;">
+                                                <h5 class="modal-title">Feedback #{{ feedback.id }}</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p><strong style="color: #102c59;">Utilisateur :</strong> {{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}</p>
+                                                <p><strong style="color: #102c59;">Email :</strong> {{ feedback.utilisateur.email }}</p>
+                                                <p><strong style="color: #102c59;">Type :</strong> {{ feedback.typefeedback|capitalize }}</p>
+                                                <p><strong style="color: #102c59;">Date :</strong> {{ feedback.datefeedback|date('d/m/Y H:i') }}</p>
+                                                <p><strong style="color: #102c59;">Message :</strong></p>
+                                                <p class="text-muted">{{ feedback.contenu }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- TABLEAU 2 : Historique des feedbacks traités -->
+    <div class="card shadow-sm" style="border-color: #d52e28;">
+        <div class="card-header" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #102c59;">
+            <h5 class="mb-0">
+                <i class="bi bi-check-circle me-2" style="color: #d52e28;"></i>
+                Historique des feedbacks traités
+                {% if searchUser %}
+                    <span class="badge ms-2" style="background-color: #9dbbce; color: #102c59;">
+                        Filtre actif : {{ searchUser }}
+                    </span>
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if feedbacksTraites is empty %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-archive fs-1 d-block mb-3" style="color: #d52e28;"></i>
+                    <p class="mb-0">
+                        {% if searchUser %}
+                            Aucun feedback traité pour cet utilisateur
+                        {% else %}
+                            Aucun feedback traité pour le moment
+                        {% endif %}
+                    </p>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light" style="background-color: rgba(213, 46, 40, 0.1); color: #102c59;">
+                            <tr>
+                                <th width="50">#ID</th>
+                                <th>Utilisateur</th>
+                                <th>Type</th>
+                                <th width="120">Date</th>
+                                <th width="80">Note</th>
+                                <th>Message</th>
+                                <th>Traitement</th>
+                                <th width="220" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for feedback in feedbacksTraites %}
+                                <tr>
+                                    <td class="fw-bold" style="color: #d52e28;">#{{ feedback.id }}</td>
+                                    
+                                    <td>
+                                        <div>
+                                            <strong style="color: #102c59;">{{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="bi bi-envelope me-1"></i>{{ feedback.utilisateur.email }}
+                                            </small>
+                                            <br>
+                                            <span class="badge" style="background-color: #9dbbce; color: #102c59;">ID: {{ feedback.utilisateur.id }}</span>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        {% if feedback.typefeedback == 'suggestion' %}
+                                            <span class="badge" style="background-color: #9dbbce; color: #102c59;">Suggestion</span>
+                                        {% elseif feedback.typefeedback == 'probleme' %}
+                                            <span class="badge" style="background-color: #d52e28; color: white;">Problème</span>
+                                        {% else %}
+                                            <span class="badge" style="background-color: #28a745; color: white;">Satisfaction</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        <small style="color: #102c59;">
+                                            {{ feedback.datefeedback|date('d/m/Y') }}
+                                            <br>
+                                            {{ feedback.datefeedback|date('H:i') }}
+                                        </small>
+                                    </td>
+                                    
+                                    <td>
+                                        <small style="color: #102c59;">{{ feedback.note }}/5</small>
+                                    </td>
+                                    
+                                    <td>
+                                        <div style="max-width: 200px; color: #102c59;">
+                                            {{ feedback.contenu|slice(0, 50) }}...
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        {% if feedback.traitement %}
+                                            <span class="badge" style="background-color: #102c59; color: white;">
+                                                {{ feedback.traitement.typetraitement|replace({'_': ' '})|capitalize }}
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">
+                                                {{ feedback.traitement.datetraitement|date('d/m/Y') }}
+                                            </small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        {# ✨ NOUVEAU : BOUTON EXPORT PDF INDIVIDUEL #}
+                                        <a href="{{ path('back_feedback_export_pdf', {id: feedback.id}) }}" 
+                                           class="btn btn-sm me-1" 
+                                           style="background-color: #d52e28; color: white; border-color: #d52e28;"
+                                           title="Exporter en PDF"
+                                           target="_blank">
+                                            <i class="bi bi-file-earmark-pdf"></i> PDF
+                                        </a>
+                                        
+                                        {% if feedback.traitement %}
+                                            <a href="{{ path('back_traitement_edit', {id: feedback.traitement.id}) }}" 
+                                               class="btn btn-sm me-1" 
+                                               style="background-color: #9dbbce; color: #102c59; border-color: #9dbbce;"
+                                               title="Modifier">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            
+                                            <form method="post" 
+                                                  action="{{ path('back_traitement_delete', {id: feedback.traitement.id}) }}" 
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Supprimer ce traitement ?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ feedback.traitement.id) }}">
+                                                <button type="submit" class="btn btn-sm" 
+                                                        style="background-color: #102c59; color: white; border-color: #102c59;"
+                                                        title="Supprimer">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<style>
+.stars-display i {
+    font-size: 0.85rem;
+}
+.table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #102c59 !important;
+}
+.table td {
+    font-size: 0.9rem;
+}
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.card-header {
+    border-bottom: 2px solid;
+    font-weight: 600;
+}
+.btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+.badge {
+    font-weight: 500;
+}
+.modal-content {
+    border: 2px solid #102c59;
+}
+</style>
 {% endblock %}

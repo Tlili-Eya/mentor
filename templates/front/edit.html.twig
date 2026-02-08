@@ -1,0 +1,386 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Modifier Feedback #{{ feedback.id }}{% endblock %}
+
+{% block body %}
+<body class="contact-page">
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title" style="background-color: rgba(157, 187, 206, 0.1);">
+    <div class="container d-lg-flex justify-content-between align-items-center">
+      <h1 class="mb-2 mb-lg-0" style="color: #102c59;">Modifier le feedback #{{ feedback.id }}</h1>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{{ path('front_home') }}" style="color: #102c59;">Home</a></li>
+          <li><a href="{{ path('front_feedback_list') }}" style="color: #102c59;">Mes feedbacks</a></li>
+          <li class="current" style="color: #d52e28;">Modifier</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+  <!-- End Page Title -->
+
+  <!-- Edit Feedback Section -->
+  <section id="edit-feedback" class="section pt-4">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+          <div class="bg-white p-5 rounded-4 shadow-lg" style="border: 2px solid #9dbbce;">
+            
+            <div class="mb-4">
+              <h3 style="color: #102c59;">
+                <i class="bi bi-pencil-square me-2"></i>Modifier votre feedback
+              </h3>
+              <p class="text-muted">
+                Vous pouvez modifier ce feedback car il a été traité par l'administration.
+              </p>
+            </div>
+
+            {# Affichage des messages flash #}
+            {% for message in app.flashes('success') %}
+              <div class="alert alert-success alert-dismissible fade show" role="alert" 
+                   style="background-color: rgba(157, 187, 206, 0.1); border-color: #9dbbce; color: #102c59;">
+                <i class="bi bi-check-circle me-2" style="color: #102c59;"></i>{{ message }}
+                <button type="button" class="btn-close"></button>
+              </div>
+            {% endfor %}
+
+            {% for message in app.flashes('error') %}
+              <div class="alert alert-danger alert-dismissible fade show" role="alert" 
+                   style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #102c59;">
+                <i class="bi bi-exclamation-triangle me-2" style="color: #d52e28;"></i>{{ message }}
+                <button type="button" class="btn-close"></button>
+              </div>
+            {% endfor %}
+
+            {# Formulaire de modification #}
+            <form method="post" action="{{ path('front_feedback_edit', {id: feedback.id}) }}" 
+                  class="needs-validation" id="editFeedbackForm" novalidate>
+
+              <!-- Type de feedback -->
+              <div class="mb-4">
+                <label for="type_feedback" class="form-label fw-semibold" style="color: #102c59;">
+                  <i class="bi bi-tag me-2"></i>Type de feedback <span class="text-danger">*</span>
+                </label>
+                <select id="type_feedback" class="form-select form-control-lg" name="type_feedback" 
+                        style="border-color: #9dbbce;" required>
+                  <option value="">-- Choisir type de feedback --</option>
+                  <option value="suggestion" {% if feedback.typefeedback == 'suggestion' %}selected{% endif %} 
+                          style="color: #102c59;">
+                    💡 Suggestion
+                  </option>
+                  <option value="probleme" {% if feedback.typefeedback == 'probleme' %}selected{% endif %} 
+                          style="color: #d52e28;">
+                    ⚠️ Problème
+                  </option>
+                  <option value="satisfaction" {% if feedback.typefeedback == 'satisfaction' %}selected{% endif %} 
+                          style="color: #28a745;">
+                    😊 Satisfaction
+                  </option>
+                </select>
+                <div class="invalid-feedback" style="color: #d52e28;">
+                  Veuillez sélectionner un type de feedback.
+                </div>
+              </div>
+
+              <!-- Note par étoiles -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold" style="color: #102c59;">
+                  <i class="bi bi-star me-2"></i>Votre note <span class="text-danger">*</span>
+                </label>
+                <div class="star-rating fs-1" id="starRating">
+                  <span class="star" data-value="1">★</span>
+                  <span class="star" data-value="2">★</span>
+                  <span class="star" data-value="3">★</span>
+                  <span class="star" data-value="4">★</span>
+                  <span class="star" data-value="5">★</span>
+                </div>
+                <input type="hidden" name="rating" id="rating" value="{{ feedback.note }}" required>
+                <div class="invalid-feedback d-block" id="ratingError" style="display: none !important; color: #d52e28;">
+                  Veuillez sélectionner une note.
+                </div>
+              </div>
+
+              <!-- Message -->
+              <div class="mb-4">
+                <label for="contenu" class="form-label fw-semibold" style="color: #102c59;">
+                  <i class="bi bi-chat-text me-2"></i>Votre message <span class="text-danger">*</span>
+                </label>
+                <textarea
+                  class="form-control form-control-lg"
+                  id="contenu"
+                  name="contenu"
+                  rows="6"
+                  placeholder="Décrivez votre expérience, problème ou suggestion..."
+                  style="border-color: #9dbbce;"
+                  required
+                  minlength="10"
+                >{{ feedback.contenu }}</textarea>
+                <div class="invalid-feedback" style="color: #d52e28;">
+                  Veuillez saisir un message (minimum 10 caractères).
+                </div>
+                <div class="form-text">
+                  <small class="text-muted">
+                    <span id="charCount">{{ feedback.contenu|length }}</span> / 1000 caractères
+                  </small>
+                </div>
+              </div>
+
+              <!-- Informations sur le feedback -->
+              <div class="alert mb-4" 
+                   style="background-color: rgba(157, 187, 206, 0.1); border-color: #9dbbce; color: #102c59;">
+                <h6 class="alert-heading" style="color: #102c59;">
+                  <i class="bi bi-info-circle me-2" style="color: #102c59;"></i>Informations
+                </h6>
+                <p class="mb-1"><strong>Date de création :</strong> {{ feedback.datefeedback|date('d/m/Y à H:i') }}</p>
+                <p class="mb-1"><strong>État actuel :</strong> 
+                  <span class="badge" style="background-color: #d52e28; color: white;">
+                    {{ feedback.etatfeedback|capitalize }}
+                  </span>
+                </p>
+                <p class="mb-0"><small class="text-muted">Seuls les feedbacks traités peuvent être modifiés.</small></p>
+              </div>
+
+              <!-- Boutons -->
+              <div class="mt-4 d-flex gap-3 flex-wrap">
+                <button type="submit" class="btn btn-lg px-5 py-3 rounded-pill shadow" 
+                        style="background-color: #102c59; color: white; border-color: #102c59;">
+                  <i class="bi bi-check-circle me-2"></i>Enregistrer les modifications
+                </button>
+                <a href="{{ path('front_feedback_list') }}" 
+                   class="btn btn-outline-secondary btn-lg px-5 py-3 rounded-pill"
+                   style="border-color: #9dbbce; color: #102c59;">
+                  <i class="bi bi-x-circle me-2"></i>Annuler
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<style>
+  .star-rating {
+    cursor: pointer;
+    user-select: none;
+  }
+  .star {
+    color: #ddd;
+    transition: all 0.2s;
+    font-size: 2.5rem;
+    margin: 0 2px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .star.active {
+    color: #ffc107;
+    transform: scale(1.1);
+  }
+  .star:hover {
+    color: #ffc107;
+    transform: scale(1.15);
+  }
+  
+  /* Styles pour la validation */
+  .was-validated .form-control:valid {
+    border-color: #9dbbce;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23102c59' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+  }
+  
+  .was-validated .form-control:invalid {
+    border-color: #d52e28;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23d52e28'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23d52e28' stroke='none'/%3e%3c/svg%3e");
+  }
+  
+  .was-validated .form-select:valid {
+    border-color: #9dbbce;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23102c59' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  }
+  
+  .was-validated .form-select:invalid {
+    border-color: #d52e28;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23d52e28' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  }
+  
+  .btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+  
+  .rounded-4 {
+    border-radius: 1rem !important;
+  }
+  
+  .breadcrumbs ol {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .breadcrumbs li.current {
+    color: #d52e28;
+    font-weight: 600;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // ========================================
+  // GESTION DES ÉTOILES
+  // ========================================
+  const stars = document.querySelectorAll('.star');
+  const ratingInput = document.getElementById('rating');
+  const ratingError = document.getElementById('ratingError');
+  
+  // Initialiser les étoiles avec la note existante
+  const currentRating = parseInt(ratingInput.value);
+  for (let i = 0; i < currentRating; i++) {
+    stars[i].classList.add('active');
+  }
+  
+  stars.forEach(star => {
+    star.addEventListener('click', function() {
+      const value = this.getAttribute('data-value');
+      ratingInput.value = value;
+      
+      // Retirer la classe active de toutes les étoiles
+      stars.forEach(s => s.classList.remove('active'));
+      
+      // Ajouter la classe active aux étoiles sélectionnées
+      for (let i = 0; i < value; i++) {
+        stars[i].classList.add('active');
+      }
+      
+      // Cacher l'erreur
+      if (ratingError) {
+        ratingError.style.display = 'none';
+      }
+    });
+    
+    // Effet hover
+    star.addEventListener('mouseenter', function() {
+      const value = this.getAttribute('data-value');
+      for (let i = 0; i < value; i++) {
+        stars[i].style.color = '#ffc107';
+        stars[i].style.transform = 'scale(1.15)';
+      }
+    });
+  });
+  
+  // Reset hover effect
+  document.getElementById('starRating').addEventListener('mouseleave', function() {
+    const currentValue = parseInt(ratingInput.value);
+    stars.forEach((star, index) => {
+      if (index < currentValue) {
+        star.style.color = '#ffc107';
+        star.style.transform = 'scale(1.1)';
+      } else {
+        star.style.color = '#ddd';
+        star.style.transform = 'scale(1)';
+      }
+    });
+  });
+  
+  // ========================================
+  // COMPTEUR DE CARACTÈRES
+  // ========================================
+  const contenuTextarea = document.getElementById('contenu');
+  const charCount = document.getElementById('charCount');
+  
+  if (contenuTextarea && charCount) {
+    contenuTextarea.addEventListener('input', function() {
+      const length = this.value.length;
+      charCount.textContent = length;
+      
+      if (length > 1000) {
+        charCount.parentElement.classList.add('text-danger');
+        charCount.style.color = '#d52e28';
+        this.value = this.value.substring(0, 1000);
+      } else if (length > 900) {
+        charCount.style.color = '#ffc107';
+      } else {
+        charCount.parentElement.classList.remove('text-danger');
+        charCount.style.color = '#102c59';
+      }
+    });
+  }
+  
+  // ========================================
+  // VALIDATION DU FORMULAIRE
+  // ========================================
+  const form = document.getElementById('editFeedbackForm');
+  
+  form.addEventListener('submit', function(event) {
+    let isValid = true;
+    
+    // Vérifier si une note a été sélectionnée
+    if (!ratingInput.value) {
+      event.preventDefault();
+      event.stopPropagation();
+      isValid = false;
+      if (ratingError) {
+        ratingError.style.display = 'block';
+      }
+    }
+    
+    // Validation HTML5
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+      isValid = false;
+    }
+    
+    form.classList.add('was-validated');
+    
+    // Si tout est valide, afficher un message de chargement
+    if (isValid) {
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enregistrement...';
+      submitBtn.disabled = true;
+      
+      // Animation de succès
+      const stars = document.querySelectorAll('.star.active');
+      stars.forEach((star, index) => {
+        setTimeout(() => {
+          star.style.transform = 'scale(1.3)';
+          setTimeout(() => {
+            star.style.transform = 'scale(1.1)';
+          }, 200);
+        }, index * 100);
+      });
+    }
+    
+    return isValid;
+  });
+  
+  // ========================================
+  // AMÉLIORATION UX : FEEDBACK VISUEL
+  // ========================================
+  
+  // Animation sur le focus des champs
+  const formControls = document.querySelectorAll('.form-control, .form-select');
+  formControls.forEach(control => {
+    control.addEventListener('focus', function() {
+      this.style.borderColor = '#102c59';
+      this.style.boxShadow = '0 0 0 0.25rem rgba(16, 44, 89, 0.25)';
+    });
+    
+    control.addEventListener('blur', function() {
+      this.style.boxShadow = 'none';
+      if (this.classList.contains('is-valid')) {
+        this.style.borderColor = '#9dbbce';
+      } else if (this.classList.contains('is-invalid')) {
+        this.style.borderColor = '#d52e28';
+      } else {
+        this.style.borderColor = '#9dbbce';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+{% endblock %}

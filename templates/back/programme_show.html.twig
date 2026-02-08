@@ -1,0 +1,146 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Programme : {{ programme.titre }}{% endblock %}
+
+{% block body %}
+<main class="container my-5 position-relative">
+
+  <!-- Bouton retour en haut à droite -->
+ <div class="position-absolute top-0 start-0 mt-4 ms-4">
+  <a href="{{ path('back_events') }}"
+     class="btn btn-outline-primary btn-sm rounded-circle d-flex align-items-center justify-content-center"
+     style="width: 38px; height: 38px;"
+     title="Retour">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+</div>
+
+
+
+  <!-- Titre + date + message motivant -->
+  <div class="text-center mb-5 pt-5">
+    <h1 class="display-4 fw-bold" style="color: var(--heading-color);">
+      {{ programme.titre }}
+    </h1>
+    <p class="lead" style="color: var(--default-color);">
+      Généré le {{ programme.dategeneration|date('d/m/Y') }}
+    </p>
+
+    {% if programme.motivation|length > 0 %}
+      {% set dernier = programme.motivation|sort((a,b) => b.dategeneratiomm <=> a.dategeneratiomm)|first %}
+      <div class="motivation-box mt-4 p-4 rounded shadow-sm" style="background-color: var(--surface-color); border: 1px solid var(--default-color);">
+        <h5 class="mb-3" style="color: var(--accent-color);">
+          <i class="bi bi-chat-heart-fill me-2"></i>Message motivant
+        </h5>
+        <p class="fs-5 mb-2" style="color: var(--default-color); white-space: pre-line;">
+          {{ dernier.messagemotivant|default('En cours de génération...') }}
+        </p>
+        <small style="color: var(--default-color); opacity: 0.7;">
+          {{ dernier.dategeneratiomm|date('d/m/Y H:i') }}
+        </small>
+      </div>
+    {% else %}
+      <div class="alert alert-light mt-4 text-center py-4" style="background-color: var(--surface-color); color: var(--default-color);">
+        Aucun message motivant pour le moment
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Score + Médaille – même taille -->
+  <div class="row g-4 mb-5 justify-content-center">
+    {% set totalScore = programme.tache|reduce((carry, tache) => carry + (tache.score|default(0)), 0) %}
+
+    {% set medailleMax = null %}
+    {% for t in programme.tache %}
+      {% if t.medaille and (medailleMax is null or t.medaille.value > medailleMax.value) %}
+        {% set medailleMax = t.medaille %}
+      {% endif %}
+    {% endfor %}
+
+    <div class="col-md-5 col-lg-4">
+      <div class="card h-100 shadow-sm text-center" style="background-color: var(--surface-color); border-color: var(--default-color);">
+        <div class="card-body d-flex flex-column justify-content-center py-5">
+          <h5 class="card-title mb-3" style="color: var(--heading-color);">
+            Score total
+          </h5>
+          <div class="display-4 fw-bold" style="color: var(--accent-color);">
+            {{ totalScore }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-5 col-lg-4">
+      <div class="card h-100 shadow-sm text-center" style="background-color: var(--surface-color); border-color: var(--default-color);">
+        <div class="card-body d-flex flex-column justify-content-center py-5">
+          <h5 class="card-title mb-3" style="color: var(--heading-color);">
+            Médaille obtenue
+          </h5>
+          {% if medailleMax %}
+            <div class="fs-1 fw-bold" style="color: var(--accent-color);">
+              {% if medailleMax.value == 'Or' %}🥇{% elseif medailleMax.value == 'Argent' %}🥈{% else %}🥉{% endif %}
+              {{ medailleMax.value }}
+            </div>
+          {% else %}
+            <p class="fs-5 mt-2" style="color: var(--default-color); opacity: 0.8;">
+              Aucune médaille pour l’instant
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau des tâches -->
+  <div class="card shadow-sm mb-5" style="background-color: var(--surface-color); border-color: var(--default-color);">
+    <div class="card-header" style="background-color: var(--default-color); color: var(--contrast-color);">
+      <h5 class="mb-0">
+        <i class="bi bi-list-check me-2"></i>Tâches
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 text-center">
+          <thead style="background-color: rgba(102, 146, 188, 0.1);">
+            <tr>
+              <th style="color: var(--heading-color);">Ordre</th>
+              <th style="color: var(--heading-color);">Description</th>
+              <th style="color: var(--heading-color);">État</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if programme.tache|length > 0 %}
+              {% for tache in programme.tache %}
+                <tr>
+                  <td class="fw-bold" style="color: var(--default-color);">{{ tache.ordre }}</td>
+                  <td class="text-start" style="color: var(--default-color);">
+                    {{ tache.description|default('—') }}
+                  </td>
+                  <td>
+                    {% set classes = {
+                      'realisee': 'bg-success text-white',
+                      'encours': 'bg-info text-white',
+                      'Abandonner': 'bg-danger text-white'
+                    } %}
+                    <span class="badge rounded-pill px-4 py-2 fs-6 {{ classes[tache.etat.value|default('')] ?? 'bg-secondary text-white' }}">
+                      {{ tache.etat ? tache.etat.value|capitalize : '—' }}
+                    </span>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="3" class="py-5 text-center" style="color: var(--default-color);">
+                  <i class="bi bi-journal-x fs-3 d-block mb-3"></i>
+                  Aucune tâche pour le moment
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+{% endblock %}

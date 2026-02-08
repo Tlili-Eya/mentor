@@ -1,0 +1,458 @@
+{% extends 'front/base.html.twig' %}
+
+{% block body %}
+<body class="contact-page">
+<main class="main">
+
+  <!-- Page Title -->
+  <div class="page-title light-background">
+    <div class="container d-lg-flex justify-content-between align-items-center">
+      <h1 class="mb-2 mb-lg-0">Mes feedbacks</h1>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="{{ path('front_home') }}">Home</a></li>
+          <li class="current">Mes feedbacks</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+  <!-- End Page Title -->
+
+  <!-- Hero image -->
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="hero-feedback mb-4 text-center">
+      <img
+        src="{{ asset('assets/img/feedback.jpg') }}"
+        alt="Liste feedback"
+        class="img-fluid rounded-3 shadow-lg mx-auto d-block"
+        style="max-height: 260px; object-fit: cover; width: 100%; max-width: 900px;"
+      >
+    </div>
+  </div>
+
+  <!-- Feedback List Section -->
+  <section class="section pt-2">
+    <div class="container" data-aos="fade-up" data-aos-delay="200">
+      <div class="row justify-content-center">
+        <div class="col-lg-12 col-xl-11">
+          <div class="bg-white p-5 rounded-4 shadow-lg">
+
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+              <div>
+                <h3 class="mb-2 text-primary">Historique de vos feedbacks</h3>
+                <p class="text-muted mb-0">
+                  Retrouvez ici tous les feedbacks que vous avez envoyés ainsi que leur statut.
+                </p>
+              </div>
+              <a href="{{ path('front_contact') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Nouveau feedback
+              </a>
+            </div>
+
+            {# ✨ BARRE DE RECHERCHE ET TRI #}
+            <div class="card bg-light mb-4">
+              <div class="card-body">
+                <form method="get" action="{{ path('front_feedback_list') }}" class="row g-3">
+                  <div class="col-md-6">
+                    <label for="search" class="form-label">
+                      <i class="bi bi-search me-1"></i>Rechercher dans vos feedbacks
+                    </label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      id="search" 
+                      name="search" 
+                      value="{{ currentSearch }}"
+                      placeholder="Mot-clé dans le message ou type...">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="sort" class="form-label">
+                      <i class="bi bi-sort-down me-1"></i>Trier par
+                    </label>
+                    <select class="form-select" id="sort" name="sort">
+                      <option value="date_desc" {% if currentSort == 'date_desc' %}selected{% endif %}>
+                        Date (plus récent)
+                      </option>
+                      <option value="date_asc" {% if currentSort == 'date_asc' %}selected{% endif %}>
+                        Date (plus ancien)
+                      </option>
+                      <option value="note_desc" {% if currentSort == 'note_desc' %}selected{% endif %}>
+                        Note (meilleure)
+                      </option>
+                      <option value="note_asc" {% if currentSort == 'note_asc' %}selected{% endif %}>
+                        Note (moins bonne)
+                      </option>
+                    </select>
+                  </div>
+                  <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                      <i class="bi bi-funnel me-1"></i>Filtrer
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            {# Affichage des messages flash #}
+            {% for message in app.flashes('success') %}
+              <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+
+            {% for message in app.flashes('error') %}
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+
+            {% if feedbacks is empty %}
+              <div class="alert alert-info text-center py-5">
+                <i class="bi bi-info-circle fs-1 d-block mb-3"></i>
+                <h5>Aucun feedback pour le moment</h5>
+                <p class="mb-3">Vous n'avez encore envoyé aucun feedback.</p>
+                <a href="{{ path('front_contact') }}" class="btn btn-primary">
+                  <i class="bi bi-plus-circle me-2"></i>Envoyer mon premier feedback
+                </a>
+              </div>
+            {% else %}
+              <div class="table-responsive">
+                <table class="table table-hover align-middle feedback-table">
+                  <thead class="table-light">
+                    <tr>
+                      {# ✨ CHANGÉ : Nom Utilisateur au lieu de # #}
+                      <th>Utilisateur</th>
+                      <th>Type</th>
+                      <th>Date</th>
+                      <th>Note</th>
+                      <th>Message</th>
+                      <th>État</th>
+                      {# ✨ NOUVEAU : Réponse Admin #}
+                      <th>Réponse Admin</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for feedback in feedbacks %}
+                      <tr>
+                        {# ✨ COLONNE NOM UTILISATEUR #}
+                        <td>
+                          {% if feedback.utilisateur %}
+                            <strong>{{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}</strong>
+                            <br>
+                            <small class="text-muted">{{ feedback.utilisateur.email }}</small>
+                          {% else %}
+                            <span class="text-muted">Utilisateur inconnu</span>
+                          {% endif %}
+                        </td>
+
+                        {# COLONNE TYPE #}
+                        <td>
+                          {% if feedback.typefeedback == 'suggestion' %}
+                            <span class="badge bg-info">
+                              <i class="bi bi-lightbulb me-1"></i>Suggestion
+                            </span>
+                          {% elseif feedback.typefeedback == 'probleme' %}
+                            <span class="badge bg-danger">
+                              <i class="bi bi-exclamation-triangle me-1"></i>Problème
+                            </span>
+                          {% elseif feedback.typefeedback == 'satisfaction' %}
+                            <span class="badge bg-success">
+                              <i class="bi bi-emoji-smile me-1"></i>Satisfaction
+                            </span>
+                          {% else %}
+                            <span class="badge bg-secondary">{{ feedback.typefeedback|capitalize }}</span>
+                          {% endif %}
+                        </td>
+
+                        {# COLONNE DATE #}
+                        <td>
+                          <small class="text-muted">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            {{ feedback.datefeedback|date('d/m/Y') }}
+                            <br>
+                            <i class="bi bi-clock me-1"></i>
+                            <span style="font-size: 0.85em;">
+                              {{ feedback.datefeedback|date('H:i') }}
+                            </span>
+                          </small>
+                        </td>
+
+                        {# COLONNE NOTE #}
+                        <td>
+                          <div class="stars-display">
+                            {% for i in 1..5 %}
+                              {% if i <= feedback.note %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                              {% else %}
+                                <i class="bi bi-star text-muted"></i>
+                              {% endif %}
+                            {% endfor %}
+                            <br>
+                            <small class="text-muted">({{ feedback.note }}/5)</small>
+                          </div>
+                        </td>
+
+                        {# COLONNE MESSAGE #}
+                        <td style="max-width: 300px;">
+                          <div class="feedback-content">
+                            {% if feedback.contenu|length > 80 %}
+                              <span class="text-muted">
+                                {{ feedback.contenu|slice(0, 80) }}...
+                              </span>
+                              <button
+                                class="btn btn-sm btn-link p-0 ms-1"
+                                type="button"
+                                data-bs-toggle="modal"
+                                data-bs-target="#feedbackModal{{ feedback.id }}">
+                                <i class="bi bi-eye"></i>
+                              </button>
+                            {% else %}
+                              <span class="text-muted">{{ feedback.contenu }}</span>
+                            {% endif %}
+                          </div>
+                        </td>
+
+                        {# COLONNE ÉTAT #}
+                        <td>
+                          {% set etat = feedback.etatfeedback|lower %}
+                          {% if etat == 'en_attente' %}
+                            <span class="badge bg-warning text-dark">
+                              <i class="bi bi-clock me-1"></i>En attente
+                            </span>
+                          {% elseif etat == 'traite' or etat == 'traité' %}
+                            <span class="badge bg-success">
+                              <i class="bi bi-check-circle me-1"></i>Traité
+                            </span>
+                          {% elseif etat == 'rejete' or etat == 'rejeté' %}
+                            <span class="badge bg-danger">
+                              <i class="bi bi-x-circle me-1"></i>Rejeté
+                            </span>
+                          {% else %}
+                            <span class="badge bg-secondary">{{ feedback.etatfeedback }}</span>
+                          {% endif %}
+                        </td>
+
+                        {# ✨ NOUVELLE COLONNE : RÉPONSE ADMIN #}
+                        <td style="max-width: 250px;">
+                          {% set etat = feedback.etatfeedback|lower %}
+                          {% if etat == 'en_attente' %}
+                            <small class="text-muted fst-italic">
+                              <i class="bi bi-hourglass-split me-1"></i>Pas de réponse encore
+                            </small>
+                          {% elseif feedback.traitement %}
+                            <div class="alert alert-info py-2 px-3 mb-0">
+                              <strong>Type :</strong> 
+                              <span class="badge bg-primary">
+                                {{ feedback.traitement.typetraitement|replace({'_': ' '})|capitalize }}
+                              </span>
+                              <br>
+                              <strong>Réponse :</strong>
+                              <small>
+                                {% if feedback.traitement.description|length > 60 %}
+                                  {{ feedback.traitement.description|slice(0, 60) }}...
+                                  <button
+                                    class="btn btn-sm btn-link p-0"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#reponseModal{{ feedback.id }}">
+                                    Voir plus
+                                  </button>
+                                {% else %}
+                                  {{ feedback.traitement.description }}
+                                {% endif %}
+                              </small>
+                            </div>
+                          {% else %}
+                            <small class="text-muted fst-italic">Aucune réponse</small>
+                          {% endif %}
+                        </td>
+
+                        {# COLONNE ACTIONS #}
+                        <td>
+                          {% set etat = feedback.etatfeedback|lower %}
+                          
+                          {# SI TRAITÉ : Peut modifier et supprimer #}
+                          {% if etat == 'traite' or etat == 'traité' %}
+                            <div class="d-flex gap-2">
+                              <a href="{{ path('front_feedback_edit', {id: feedback.id}) }}"
+                                 class="btn btn-sm btn-warning"
+                                 title="Modifier">
+                                <i class="bi bi-pencil-square"></i> Modifier
+                              </a>
+
+                              <form method="post" 
+                                    action="{{ path('front_feedback_delete', {id: feedback.id}) }}"
+                                    class="d-inline"
+                                    onsubmit="return confirm('Voulez-vous vraiment supprimer ce feedback ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ feedback.id) }}">
+                                <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                  <i class="bi bi-trash"></i> Supprimer
+                                </button>
+                              </form>
+                            </div>
+
+                          {# SINON : Non modifiable #}
+                          {% else %}
+                            <span class="badge bg-secondary">
+                              <i class="bi bi-lock me-1"></i>Non modifiable
+                            </span>
+                          {% endif %}
+                        </td>
+
+                      </tr>
+
+                      {# Modal pour afficher le contenu complet du FEEDBACK #}
+                      <div class="modal fade" id="feedbackModal{{ feedback.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                          <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                              <h5 class="modal-title">
+                                <i class="bi bi-chat-dots me-2"></i>Feedback #{{ feedback.id }}
+                              </h5>
+                              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                              <div class="mb-3">
+                                <strong><i class="bi bi-person me-2"></i>Utilisateur :</strong>
+                                {{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}
+                              </div>
+                              <div class="mb-3">
+                                <strong><i class="bi bi-tag me-2"></i>Type :</strong>
+                                {{ feedback.typefeedback|capitalize }}
+                              </div>
+                              <div class="mb-3">
+                                <strong><i class="bi bi-calendar3 me-2"></i>Date :</strong>
+                                {{ feedback.datefeedback|date('d/m/Y à H:i') }}
+                              </div>
+                              <div class="mb-3">
+                                <strong><i class="bi bi-star me-2"></i>Note :</strong>
+                                {% for i in 1..5 %}
+                                  {% if i <= feedback.note %}
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                  {% else %}
+                                    <i class="bi bi-star text-muted"></i>
+                                  {% endif %}
+                                {% endfor %}
+                                ({{ feedback.note }}/5)
+                              </div>
+                              <hr>
+                              <div class="mb-3">
+                                <strong><i class="bi bi-chat-text me-2"></i>Message :</strong>
+                                <div class="mt-2 p-3 bg-light rounded">
+                                  <p class="mb-0">{{ feedback.contenu }}</p>
+                                </div>
+                              </div>
+                              <div>
+                                <strong><i class="bi bi-info-circle me-2"></i>État :</strong>
+                                {% set etat = feedback.etatfeedback|lower %}
+                                {% if etat == 'en_attente' %}
+                                  <span class="badge bg-warning text-dark">En attente</span>
+                                {% elseif etat == 'traite' or etat == 'traité' %}
+                                  <span class="badge bg-success">Traité</span>
+                                {% elseif etat == 'rejete' or etat == 'rejeté' %}
+                                  <span class="badge bg-danger">Rejeté</span>
+                                {% else %}
+                                  <span class="badge bg-secondary">{{ feedback.etatfeedback }}</span>
+                                {% endif %}
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-2"></i>Fermer
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {# ✨ Modal pour afficher la RÉPONSE ADMIN complète #}
+                      {% if feedback.traitement %}
+                      <div class="modal fade" id="reponseModal{{ feedback.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                          <div class="modal-content">
+                            <div class="modal-header bg-success text-white">
+                              <h5 class="modal-title">
+                                <i class="bi bi-reply me-2"></i>Réponse de l'administrateur
+                              </h5>
+                              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                              <div class="mb-3">
+                                <strong><i class="bi bi-gear me-2"></i>Type de traitement :</strong>
+                                <span class="badge bg-primary">
+                                  {{ feedback.traitement.typetraitement|replace({'_': ' '})|capitalize }}
+                                </span>
+                              </div>
+                              <div class="mb-3">
+                                <strong><i class="bi bi-calendar3 me-2"></i>Date :</strong>
+                                {{ feedback.traitement.datetraitement|date('d/m/Y à H:i') }}
+                              </div>
+                              <hr>
+                              <div>
+                                <strong><i class="bi bi-chat-quote me-2"></i>Décision / Réponse :</strong>
+                                <div class="mt-2 p-3 bg-light rounded">
+                                  <p class="mb-0">{{ feedback.traitement.description }}</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-2"></i>Fermer
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {% endif %}
+
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="mt-4 text-muted">
+                <small><i class="bi bi-info-circle me-1"></i>Total : <strong>{{ feedbacks|length }}</strong> feedback(s)</small>
+              </div>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<style>
+  .feedback-table th {
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  .feedback-table tbody tr {
+    transition: background-color 0.2s;
+  }
+
+  .feedback-table tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+
+  .stars-display i {
+    font-size: 0.9rem;
+  }
+
+  .feedback-content {
+    line-height: 1.5;
+  }
+
+  .badge {
+    font-size: 0.85rem;
+    padding: 0.4em 0.8em;
+  }
+</style>
+
+</body>
+{% endblock %}

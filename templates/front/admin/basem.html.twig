@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>{% block title %}MentorAI | Admin{% endblock %}</title>
+  <title>{% block title %}MentorAI{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}{% endblock %}">
 
   <!-- Favicons -->
@@ -30,43 +30,40 @@
 
 <body>
 
-<!-- ======= SAME HEADER STRUCTURE – BACK ROUTES ONLY ======= -->
+<!-- ======= HEADER ======= -->
 <header id="header" class="header d-flex align-items-center sticky-top">
   <div class="container-fluid container-xl position-relative d-flex align-items-center">
 
-    <a href="{{ path('back_home') }}" class="logo d-flex align-items-center me-auto">
-      <img src="{{ asset('assets/img/123.png') }}" alt="MentorAI Admin Logo">
+    <a href="{{ path('app_home') }}" class="logo d-flex align-items-center me-auto">
+      <img src="{{ asset('assets/img/123.png') }}" alt="MentorAI Logo">
     </a>
 
     <nav id="navmenu" class="navmenu">
       <ul>
-        <li><a href="{{ path('back_home') }}">Home</a></li>
-        <li><a href="{{ path('back_course_details') }}">Etude</a></li>
-        <li><a href="{{ path('back_blog') }}">Note</a></li>
-        <li><a href="{{ path('back_projets') }}">Projets</a></li>
-        <li><a href="{{ path('back_parcours') }}">Parcours</a></li>
+        {# Dashboard enseignant #}
+        <li><a href="{{ path('app_admin_dashboard') }}">Dashboard</a></li>
+        
+        {# Articles pédagogiques #}
+        <li><a href="{{ path('app_admin_articles') }}">Articles</a></li>
+        
+        {# Plans #}
+        <li><a href="{{ path('app_admin_plans') }}">Plans</a></li>
+        
+        {# Chat IA #}
+        <li><a href="{{ path('app_admin_chat_ia') }}">Chat IA</a></li>
+  
+    <a class="btn-getstarted" href="{{ path('app_plan_actions_index') }}"> Back Office</a>
 
-        <li class="dropdown">
-          <a href="#">
-            <span>Productivity</span>
-            <i class="bi bi-chevron-down toggle-dropdown"></i>
-          </a>
-          <ul>
-            <li><a href="{{ path('back_blog_details') }}">Emplois</a></li>
-            <li><a href="{{ path('back_events') }}">Objectifs</a></li>
-            <li><a href="{{ path('back_instructor_profile') }}">Instructor Profile</a></li>
-          </ul>
-        </li>
-
-        <li><a href="{{ path('back_contact') }}">Contact</a></li>
-        <li><a href="{{ path('back_pricing') }}">Pricing</a></li>
-        <li><a href="{{ path('back_about') }}">About</a></li>
-      </ul>
-
-      <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-    </nav>
-
-    <a class="btn-getstarted" href="#">Admin</a>
+    {# Boutons de connexion/déconnexion #}
+    <div class="d-flex align-items-center">
+      {% if app.user %}
+        <span class="me-3 text-white">Bonjour, {{ app.user.nom ?? app.user.email }}</span>
+        <a class="btn-getstarted" href="{{ path('app_logout') }}">Déconnexion</a>
+        
+      {% else %}
+        {# <a class="btn-getstarted" href="{{ path('app_login') }}">Connexion</a> #}
+      {% endif %}
+    </div>
 
   </div>
 </header>
@@ -76,7 +73,7 @@
   {% block body %}{% endblock %}
 </main>
 
-<!-- ======= SAME FOOTER ======= -->
+<!-- ======= FOOTER ======= -->
 <footer id="footer" class="footer accent-background">
   <div class="container text-center">
     <p>© {{ "now"|date("Y") }} MentorAI. All Rights Reserved.</p>

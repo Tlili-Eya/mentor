@@ -40,13 +40,60 @@
 
     <nav id="navmenu" class="navmenu">
       <ul>
-        <li><a href="{{ path('app_plan_actions_index') }}">Plan d'actions</a></li>
-        <li><a href="{{ path('app_reference_article_index') }}">Articles</a></li>
-        <li><a href="{{ path('app_categorie_article_index') }}">Catégorie</a></li>
+        <li><a href="{{ path('front_home') }}">Home</a></li>
+        <li><a href="{{ path('front_course_details') }}">Etude</a></li>
+        <li><a href="{{ path('front_blog') }}">Note</a></li>
+        
+        <li class="dropdown">
+          <a href="#">
+            <span>Projets</span>
+            <i class="bi bi-chevron-down toggle-dropdown"></i>
+          </a>
+          <ul>
+            <li><a href="{{ path('front_projets') }}">Ajout Projet</a></li>
+            <li><a href="{{ path('front_mesprojets') }}">Mes Projets</a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#">
+            <span>Parcour</span>
+            <i class="bi bi-chevron-down toggle-dropdown"></i>
+          </a>
+          <ul>
+            <li><a href="{{ path('front_parcours') }}">Ajout Parcour</a></li>
+            <li><a href="{{ path('front_mesparcours') }}">Mes Parcours</a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#">
+            <span>Productivity</span>
+            <i class="bi bi-chevron-down toggle-dropdown"></i>
+          </a>
+          <ul>
+            <li><a href="{{ path('front_blog_details') }}">Emplois</a></li>
+            <li><a href="{{ path('front_events') }}">Objectif</a></li>
+            <li><a href="{{ path('front_instructor_profile') }}">Instructor Profile</a></li>
+          </ul>
+        </li>
 
-    <a class="btn-getstarted" href="{{ path('app_admin_dashboard') }}"> Front Office</a>
-    <!-- <a class="btn-getstarted" href="{{ path('front_enroll') }}"> Profile </a> -->
+<li class="dropdown">
+          <a href="#">
+            <span>contact</span>
+            <i class="bi bi-chevron-down toggle-dropdown"></i>
+          </a>
+          <ul>
+            <li><a href="{{ path('front_contact') }}">form feedback</a></li>
+            <li><a href="{{ path('front_feedback_list') }}">Liste des feedbacks</a></li>
+          </ul>
+        </li>
+        <li><a href="{{ path('front_pricing') }}">Pricing</a></li>
+        <li><a href="{{ path('front_about') }}">About</a></li>
+      </ul>
 
+      <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+    </nav>
+
+    <a class="btn-getstarted" href="{{ path('front_enroll') }}">Enroll Now</a>
 
   </div>
 </header>

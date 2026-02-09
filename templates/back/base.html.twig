@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>{% block title %}MentorAI{% endblock %}</title>
+  <title>{% block title %}MentorAI | Admin{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}{% endblock %}">
 
   <!-- Favicons -->
@@ -30,70 +30,43 @@
 
 <body>
 
-<!-- ======= YOUR ORIGINAL HEADER (UNCHANGED DESIGN) ======= -->
+<!-- ======= SAME HEADER STRUCTURE – BACK ROUTES ONLY ======= -->
 <header id="header" class="header d-flex align-items-center sticky-top">
   <div class="container-fluid container-xl position-relative d-flex align-items-center">
 
-    <a href="{{ path('front_home') }}" class="logo d-flex align-items-center me-auto">
-      <img src="{{ asset('assets/img/123.png') }}" alt="MentorAI Logo">
+    <a href="{{ path('back_home') }}" class="logo d-flex align-items-center me-auto">
+      <img src="{{ asset('assets/img/123.png') }}" alt="MentorAI Admin Logo">
     </a>
 
     <nav id="navmenu" class="navmenu">
       <ul>
-        <li><a href="{{ path('front_home') }}">Home</a></li>
-        <li><a href="{{ path('front_course_details') }}">Etude</a></li>
-        <li><a href="{{ path('front_blog') }}">Note</a></li>
-        
-        <li class="dropdown">
-          <a href="#">
-            <span>Projets</span>
-            <i class="bi bi-chevron-down toggle-dropdown"></i>
-          </a>
-          <ul>
-            <li><a href="{{ path('front_projets') }}">Ajout Projet</a></li>
-            <li><a href="{{ path('front_mesprojets') }}">Mes Projets</a></li>
-          </ul>
-        </li>
-        <li class="dropdown">
-          <a href="#">
-            <span>Parcour</span>
-            <i class="bi bi-chevron-down toggle-dropdown"></i>
-          </a>
-          <ul>
-            <li><a href="{{ path('front_parcours') }}">Ajout Parcour</a></li>
-            <li><a href="{{ path('front_mesparcours') }}">Mes Parcours</a></li>
-          </ul>
-        </li>
+        <li><a href="{{ path('back_home') }}">Home</a></li>
+        <li><a href="{{ path('back_course_details') }}">Etude</a></li>
+        <li><a href="{{ path('back_blog') }}">Note</a></li>
+        <li><a href="{{ path('back_projets') }}">Projets</a></li>
+        <li><a href="{{ path('back_parcours') }}">Parcours</a></li>
+
         <li class="dropdown">
           <a href="#">
             <span>Productivity</span>
             <i class="bi bi-chevron-down toggle-dropdown"></i>
           </a>
           <ul>
-            <li><a href="{{ path('front_blog_details') }}">Emplois</a></li>
-            <li><a href="{{ path('front_events') }}">Objectif</a></li>
-            <li><a href="{{ path('front_instructor_profile') }}">Instructor Profile</a></li>
+            <li><a href="{{ path('back_blog_details') }}">Emplois</a></li>
+            <li><a href="{{ path('back_events') }}">Objectifs</a></li>
+            <li><a href="{{ path('back_instructor_profile') }}">Instructor Profile</a></li>
           </ul>
         </li>
 
-<li class="dropdown">
-          <a href="#">
-            <span>contact</span>
-            <i class="bi bi-chevron-down toggle-dropdown"></i>
-          </a>
-          <ul>
-            <li><a href="{{ path('front_contact') }}">form feedback</a></li>
-            <li><a href="{{ path('front_feedback_list') }}">Liste des feedbacks</a></li>
-          </ul>
-        </li>
-        <li><a href="{{ path('front_pricing') }}">Pricing</a></li>
-        <li><a href="{{ path('front_about') }}">About</a></li>
+        <li><a href="{{ path('back_contact') }}">Contact</a></li>
+        <li><a href="{{ path('back_pricing') }}">Pricing</a></li>
+        <li><a href="{{ path('back_about') }}">About</a></li>
       </ul>
 
       <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
     </nav>
 
-    <a class="btn-getstarted" href="{{ path('front_enroll') }}">Enroll Now</a>
+    <a class="btn-getstarted" href="#">Admin</a>
 
   </div>
 </header>
@@ -103,7 +76,7 @@
   {% block body %}{% endblock %}
 </main>
 
-<!-- ======= FOOTER (kept global) ======= -->
+<!-- ======= SAME FOOTER ======= -->
 <footer id="footer" class="footer accent-background">
   <div class="container text-center">
     <p>© {{ "now"|date("Y") }} MentorAI. All Rights Reserved.</p>

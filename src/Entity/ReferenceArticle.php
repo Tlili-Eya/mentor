@@ -35,7 +35,7 @@ class ReferenceArticle
     private ?\DateTime $updatedAt = null;
 
     #[ORM\Column]
-    private ?bool $published = null;
+    private bool $published = false;
 
     /**
      * @var Collection<int, SortieAI>
@@ -124,18 +124,16 @@ private Collection $sortiesAI;
 
         return $this;
     }
+public function isPublished(): bool  // <-- Retourne bool, pas ?bool
+{
+    return $this->published;
+}
 
-    public function isPublished(): ?bool
-    {
-        return $this->published;
-    }
-
-    public function setPublished(bool $published): static
-    {
-        $this->published = $published;
-
-        return $this;
-    }
+public function setPublished(bool $published): static
+{
+    $this->published = $published;
+    return $this;
+}
 
     /**
      * @return Collection<int, SortieAI>

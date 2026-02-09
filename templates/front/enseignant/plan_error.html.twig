@@ -1,0 +1,53 @@
+{% extends 'front/enseignant/basem.html.twig' %}
+
+{% block title %}Plan non trouvé{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Plan non trouvé</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-exclamation-triangle display-1 text-danger"></i>
+                    </div>
+                    
+                    <p class="lead text-center">
+                        Le plan #{{ id }} n'a pas été trouvé.
+                    </p>
+                    
+                    <p class="text-muted text-center">
+                        Vérifiez que l'ID est correct ou que vous avez les permissions nécessaires.
+                    </p>
+                    
+                    {% if suggestions is defined and suggestions|length > 0 %}
+                        <div class="mt-4">
+                            <h5>Plans disponibles récemment :</h5>
+                            <div class="list-group">
+                                {% for suggestion in suggestions %}
+                                    <a href="{{ path('app_enseignant_plan_detail', {'id': suggestion.id}) }}" 
+                                       class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ suggestion.decision|slice(0, 50) }}...</h6>
+                                            <small>ID: {{ suggestion.id }}</small>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="text-center mt-4">
+                        <a href="{{ path('app_enseignant_plans') }}" class="btn btn-primary">
+                            <i class="bi bi-arrow-left me-1"></i> Retour à la liste des plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

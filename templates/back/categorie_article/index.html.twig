@@ -1,0 +1,226 @@
+{% extends 'back/basem.html.twig' %}
+
+{% block title %}Catégories d'Articles{% endblock %}
+
+{% block body %}
+
+<div class="page-title" style="background-color: #9dbbce; padding: 20px 0;">
+  <div class="container d-lg-flex justify-content-between align-items-center">
+    <h1 class="mb-2 mb-lg-0" style="color: #102c59; font-weight: 700;">Catégories d'Articles</h1>
+    <nav class="breadcrumbs">
+      <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 10px;">
+        <li><a href="{{ path('back_home') }}" style="color: #102c59; text-decoration: none;">Accueil</a></li>
+        <li style="color: #d52e28;">Catégories</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<section class="section" style="padding: 40px 0;">
+  <div class="container">
+
+    {% for message in app.flashes('success') %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert" style="background-color: rgba(40, 167, 69, 0.1); border-color: #28a745; color: #28a745; border-left: 4px solid #28a745;">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #d52e28; border-left: 4px solid #d52e28;">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="mb-0" style="color: #102c59;">Gestion des Catégories ({{ total }})</h2>
+      <a href="{{ path('app_categorie_article_new') }}" class="btn" style="background-color: #102c59; color: white; border: none; border-radius: 6px; padding: 10px 25px; font-weight: 600;">
+        <i class="bi bi-plus-circle me-1"></i> Nouvelle Catégorie
+      </a>
+    </div>
+
+    {# FILTRES SIMPLES POUR CATEGORIES #}
+    <form method="get" class="row mb-4 g-3">
+      <div class="col-md-9">
+        <input type="text" name="search" class="form-control" placeholder="Rechercher..." value="{{ search }}" style="border-color: #9dbbce; border-radius: 6px;">
+      </div>
+      <div class="col-md-2">
+        <select name="sort" class="form-select" style="border-color: #9dbbce; border-radius: 6px;">
+          <option value="nomCategorie" {% if sortBy == 'nomCategorie' %}selected{% endif %}>Nom</option>
+          <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Date</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn w-100" style="background-color: #9dbbce; color: #102c59; border: 1px solid #9dbbce; border-radius: 6px;">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </form>
+
+    <div class="card" style="border: 1px solid #9dbbce; border-radius: 8px; box-shadow: 0 4px 12px rgba(16, 44, 89, 0.1);">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead style="background-color: #9dbbce;">
+              <tr>
+                <th style="color: #102c59; border-bottom: none;">#</th>
+                <th style="color: #102c59; border-bottom: none;">Nom</th>
+                <th style="color: #102c59; border-bottom: none;">Description</th>
+                <th style="color: #102c59; border-bottom: none;">Nb Articles</th>
+                <th style="color: #102c59; border-bottom: none;">Date création</th>
+                <th class="text-end" style="color: #102c59; border-bottom: none;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for categorie in categories %}
+                <tr style="border-color: #e9ecef;">
+                  <td>{{ categorie.id }}</td>
+                  <td><strong style="color: #102c59;">{{ categorie.nomCategorie }}</strong></td>
+                  <td style="color: #102c59;">{{ categorie.description ? (categorie.description|length > 50 ? categorie.description|slice(0, 50) ~ '...' : categorie.description) : '-' }}</td>
+                  <td>
+                    <span class="badge" style="background-color: #9dbbce; color: #102c59; font-weight: 500;">
+                      {{ categorie.referenceArticles|length }}
+                    </span>
+                  </td>
+                  <td style="color: #102c59;">{{ categorie.createdAt|date('d/m/Y') }}</td>
+                  <td class="text-end">
+                    <a href="{{ path('app_categorie_article_show', {id: categorie.id}) }}" class="btn btn-sm me-1" style="border: 1px solid #9dbbce; color: #102c59;">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ path('app_categorie_article_edit', {id: categorie.id}) }}" class="btn btn-sm me-1" style="border: 1px solid #102c59; color: #102c59;">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="post" action="{{ path('app_categorie_article_delete', {id: categorie.id}) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">
+                      <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ categorie.id) }}">
+                      <button type="submit" class="btn btn-sm" style="border: 1px solid #d52e28; color: #d52e28;">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="6" class="text-center py-4" style="color: #102c59; opacity: 0.7;">Aucune catégorie trouvée</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    {% if totalPages > 1 %}
+      <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+          {% for i in 1..totalPages %}
+            <li class="page-item {% if i == currentPage %}active{% endif %}">
+              <a class="page-link" 
+                 href="{{ path('app_categorie_article_index', {page: i, search: search, sort: sortBy}) }}"
+                 style="{% if i == currentPage %}background-color: #102c59; color: white; border-color: #102c59;{% else %}color: #102c59; border-color: #9dbbce;{% endif %}">
+                {{ i }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+    {% endif %}
+
+  </div>
+</section>
+
+<style>
+.card {
+  border-radius: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 44, 89, 0.15);
+}
+
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+  font-size: 0.85em;
+  border-radius: 4px;
+}
+
+.btn {
+  padding: 0.5rem 0.75rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn[style*="background-color: #102c59"]:hover {
+  background-color: #0a1f3f !important;
+}
+
+.btn[style*="border: 1px solid #9dbbce"]:hover {
+  background-color: rgba(157, 187, 206, 0.1);
+  color: #102c59;
+}
+
+.btn[style*="border: 1px solid #102c59"]:hover {
+  background-color: rgba(16, 44, 89, 0.1);
+  color: #102c59;
+}
+
+.btn[style*="border: 1px solid #d52e28"]:hover {
+  background-color: rgba(213, 46, 40, 0.1);
+  color: #d52e28;
+}
+
+.page-item.active .page-link {
+  background-color: #102c59;
+  border-color: #102c59;
+}
+
+.page-link {
+  color: #102c59;
+}
+
+.page-link:hover {
+  color: #d52e28;
+  background-color: rgba(157, 187, 206, 0.1);
+  border-color: #9dbbce;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(157, 187, 206, 0.05);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #9dbbce;
+  box-shadow: 0 0 0 0.2rem rgba(157, 187, 206, 0.25);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Animation pour les lignes du tableau
+  const tableRows = document.querySelectorAll('tbody tr');
+  tableRows.forEach(row => {
+    row.style.transition = 'all 0.3s ease';
+    
+    row.addEventListener('mouseenter', function() {
+      this.style.backgroundColor = 'rgba(157, 187, 206, 0.1)';
+      this.style.transform = 'translateX(5px)';
+    });
+    
+    row.addEventListener('mouseleave', function() {
+      this.style.backgroundColor = '';
+      this.style.transform = 'translateX(0)';
+    });
+  });
+});
+</script>
+{% endblock %}

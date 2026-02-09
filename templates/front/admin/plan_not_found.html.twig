@@ -1,0 +1,81 @@
+{# templates/front/admin/plan_not_found.html.twig #}
+
+{% extends 'front/admin/base.html.twig' %}
+
+{% block title %}Plan non trouvé - Admin{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Plan non trouvé
+                    </h4>
+                </div>
+                
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-search" style="font-size: 4rem; color: #dc3545;"></i>
+                    </div>
+                    
+                    <h2 class="text-center text-danger mb-4">Plan #{{ id }} introuvable</h2>
+                    
+                    <div class="alert alert-warning">
+                        <h5><i class="bi bi-info-circle"></i> Informations</h5>
+                        <p class="mb-2">
+                            Le plan que vous essayez de consulter n'existe pas dans la base de données.
+                        </p>
+                        <ul class="mb-0">
+                            <li>ID recherché : <strong>#{{ id }}</strong></li>
+                            <li>Date : {{ "now"|date("d/m/Y H:i") }}</li>
+                            <li>Utilisateur : {{ app.user.email ?? 'Non connecté' }}</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Plans disponibles -->
+                    {% if availableIds is defined and availableIds|length > 0 %}
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-list-ul"></i> Plans disponibles ({{ availableIds|length }})
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for availableId in availableIds %}
+                                        <div class="col-md-3 col-sm-4 col-6 mb-2">
+                                            <a href="{{ path('app_admin_plan_detail', {'id': availableId}) }}" 
+                                               class="btn btn-outline-primary w-100">
+                                                Plan #{{ availableId }}
+                                            </a>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mt-4">
+                            <i class="bi bi-exclamation-circle"></i>
+                            Aucun plan trouvé dans la base de données.
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-center mt-4">
+                        <a href="{{ path('app_admin_plans') }}" class="btn btn-primary me-2">
+                            <i class="bi bi-arrow-left"></i> Retour à la liste
+                        </a>
+                        
+                        <a href="{{ path('app_admin_dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-speedometer2"></i> Tableau de bord
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

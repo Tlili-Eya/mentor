@@ -1,0 +1,44 @@
+{# templates/back/sortie_ai/new.html.twig #}
+{% extends 'back/basem.html.twig' %}
+
+{% block title %}{{ sortie_ai.id ? 'Modifier' : 'Nouvelle' }} Sortie IA{% endblock %}
+
+{% block body %}
+<div class="page-title light-background">
+  <div class="container">
+    <h1 class="text-primary">{{ sortie_ai.id ? 'Modifier' : 'Nouvelle' }} Sortie IA</h1>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow-sm">
+          <div class="card-header" style="background-color: #102c59; color: white;">
+            <h4 class="mb-0">Formulaire</h4>
+          </div>
+          <div class="card-body p-4">
+            {{ form_start(form) }}
+              <div class="row">
+                <div class="col-md-6 mb-3">{{ form_row(form.cible) }}</div>
+                <div class="col-md-6 mb-3">{{ form_row(form.typeSortie) }}</div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">{{ form_row(form.criticite) }}</div>
+                <div class="col-md-6 mb-3">{{ form_row(form.categorieSortie) }}</div>
+              </div>
+              <div class="mb-3">{{ form_row(form.contenu) }}</div>
+              <div class="mb-3">{{ form_row(form.article) }}</div>
+              <div class="d-flex justify-content-between">
+                <a href="{{ path('app_sortie_ai_index') }}" class="btn btn-secondary">Retour</a>
+                <button type="submit" class="btn btn-danger">{{ sortie_ai.id ? 'Mettre à jour' : 'Créer' }}</button>
+              </div>
+            {{ form_end(form) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

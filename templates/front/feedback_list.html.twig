@@ -49,50 +49,6 @@
               </a>
             </div>
 
-            {# ✨ BARRE DE RECHERCHE ET TRI #}
-            <div class="card bg-light mb-4">
-              <div class="card-body">
-                <form method="get" action="{{ path('front_feedback_list') }}" class="row g-3">
-                  <div class="col-md-6">
-                    <label for="search" class="form-label">
-                      <i class="bi bi-search me-1"></i>Rechercher dans vos feedbacks
-                    </label>
-                    <input 
-                      type="text" 
-                      class="form-control" 
-                      id="search" 
-                      name="search" 
-                      value="{{ currentSearch }}"
-                      placeholder="Mot-clé dans le message ou type...">
-                  </div>
-                  <div class="col-md-4">
-                    <label for="sort" class="form-label">
-                      <i class="bi bi-sort-down me-1"></i>Trier par
-                    </label>
-                    <select class="form-select" id="sort" name="sort">
-                      <option value="date_desc" {% if currentSort == 'date_desc' %}selected{% endif %}>
-                        Date (plus récent)
-                      </option>
-                      <option value="date_asc" {% if currentSort == 'date_asc' %}selected{% endif %}>
-                        Date (plus ancien)
-                      </option>
-                      <option value="note_desc" {% if currentSort == 'note_desc' %}selected{% endif %}>
-                        Note (meilleure)
-                      </option>
-                      <option value="note_asc" {% if currentSort == 'note_asc' %}selected{% endif %}>
-                        Note (moins bonne)
-                      </option>
-                    </select>
-                  </div>
-                  <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                      <i class="bi bi-funnel me-1"></i>Filtrer
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-
             {# Affichage des messages flash #}
             {% for message in app.flashes('success') %}
               <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -122,31 +78,20 @@
                 <table class="table table-hover align-middle feedback-table">
                   <thead class="table-light">
                     <tr>
-                      {# ✨ CHANGÉ : Nom Utilisateur au lieu de # #}
-                      <th>Utilisateur</th>
+                      <th>#</th>
                       <th>Type</th>
                       <th>Date</th>
                       <th>Note</th>
                       <th>Message</th>
                       <th>État</th>
-                      {# ✨ NOUVEAU : Réponse Admin #}
-                      <th>Réponse Admin</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {% for feedback in feedbacks %}
                       <tr>
-                        {# ✨ COLONNE NOM UTILISATEUR #}
-                        <td>
-                          {% if feedback.utilisateur %}
-                            <strong>{{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}</strong>
-                            <br>
-                            <small class="text-muted">{{ feedback.utilisateur.email }}</small>
-                          {% else %}
-                            <span class="text-muted">Utilisateur inconnu</span>
-                          {% endif %}
-                        </td>
+                        {# COLONNE # #}
+                        <td class="fw-semibold">#{{ feedback.id }}</td>
 
                         {# COLONNE TYPE #}
                         <td>
@@ -235,46 +180,12 @@
                           {% endif %}
                         </td>
 
-                        {# ✨ NOUVELLE COLONNE : RÉPONSE ADMIN #}
-                        <td style="max-width: 250px;">
-                          {% set etat = feedback.etatfeedback|lower %}
-                          {% if etat == 'en_attente' %}
-                            <small class="text-muted fst-italic">
-                              <i class="bi bi-hourglass-split me-1"></i>Pas de réponse encore
-                            </small>
-                          {% elseif feedback.traitement %}
-                            <div class="alert alert-info py-2 px-3 mb-0">
-                              <strong>Type :</strong> 
-                              <span class="badge bg-primary">
-                                {{ feedback.traitement.typetraitement|replace({'_': ' '})|capitalize }}
-                              </span>
-                              <br>
-                              <strong>Réponse :</strong>
-                              <small>
-                                {% if feedback.traitement.description|length > 60 %}
-                                  {{ feedback.traitement.description|slice(0, 60) }}...
-                                  <button
-                                    class="btn btn-sm btn-link p-0"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#reponseModal{{ feedback.id }}">
-                                    Voir plus
-                                  </button>
-                                {% else %}
-                                  {{ feedback.traitement.description }}
-                                {% endif %}
-                              </small>
-                            </div>
-                          {% else %}
-                            <small class="text-muted fst-italic">Aucune réponse</small>
-                          {% endif %}
-                        </td>
-
                         {# COLONNE ACTIONS #}
                         <td>
                           {% set etat = feedback.etatfeedback|lower %}
                           
-                          {# SI TRAITÉ : Peut modifier et supprimer #}
-                          {% if etat == 'traite' or etat == 'traité' %}
+                          {# ✅ NOUVELLE LOGIQUE : Modifiable SEULEMENT si "en_attente" #}
+                          {% if etat == 'en_attente' %}
                             <div class="d-flex gap-2">
                               <a href="{{ path('front_feedback_edit', {id: feedback.id}) }}"
                                  class="btn btn-sm btn-warning"
@@ -293,17 +204,19 @@
                               </form>
                             </div>
 
-                          {# SINON : Non modifiable #}
+                          {# ❌ Si "traité" ou autre → Non modifiable #}
                           {% else %}
                             <span class="badge bg-secondary">
                               <i class="bi bi-lock me-1"></i>Non modifiable
                             </span>
+                            <br>
+                            <small class="text-muted">Déjà traité</small>
                           {% endif %}
                         </td>
 
                       </tr>
 
-                      {# Modal pour afficher le contenu complet du FEEDBACK #}
+                      {# Modal pour afficher le contenu complet #}
                       <div class="modal fade" id="feedbackModal{{ feedback.id }}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                           <div class="modal-content">
@@ -314,10 +227,6 @@
                               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                              <div class="mb-3">
-                                <strong><i class="bi bi-person me-2"></i>Utilisateur :</strong>
-                                {{ feedback.utilisateur.nom }} {{ feedback.utilisateur.prenom }}
-                              </div>
                               <div class="mb-3">
                                 <strong><i class="bi bi-tag me-2"></i>Type :</strong>
                                 {{ feedback.typefeedback|capitalize }}
@@ -349,8 +258,16 @@
                                 {% set etat = feedback.etatfeedback|lower %}
                                 {% if etat == 'en_attente' %}
                                   <span class="badge bg-warning text-dark">En attente</span>
+                                  <p class="text-muted small mt-2 mb-0">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Vous pouvez encore modifier ou supprimer ce feedback tant qu'il n'est pas traité.
+                                  </p>
                                 {% elseif etat == 'traite' or etat == 'traité' %}
                                   <span class="badge bg-success">Traité</span>
+                                  <p class="text-muted small mt-2 mb-0">
+                                    <i class="bi bi-lock me-1"></i>
+                                    Ce feedback a été traité et ne peut plus être modifié.
+                                  </p>
                                 {% elseif etat == 'rejete' or etat == 'rejeté' %}
                                   <span class="badge bg-danger">Rejeté</span>
                                 {% else %}
@@ -366,47 +283,6 @@
                           </div>
                         </div>
                       </div>
-
-                      {# ✨ Modal pour afficher la RÉPONSE ADMIN complète #}
-                      {% if feedback.traitement %}
-                      <div class="modal fade" id="reponseModal{{ feedback.id }}" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                          <div class="modal-content">
-                            <div class="modal-header bg-success text-white">
-                              <h5 class="modal-title">
-                                <i class="bi bi-reply me-2"></i>Réponse de l'administrateur
-                              </h5>
-                              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                              <div class="mb-3">
-                                <strong><i class="bi bi-gear me-2"></i>Type de traitement :</strong>
-                                <span class="badge bg-primary">
-                                  {{ feedback.traitement.typetraitement|replace({'_': ' '})|capitalize }}
-                                </span>
-                              </div>
-                              <div class="mb-3">
-                                <strong><i class="bi bi-calendar3 me-2"></i>Date :</strong>
-                                {{ feedback.traitement.datetraitement|date('d/m/Y à H:i') }}
-                              </div>
-                              <hr>
-                              <div>
-                                <strong><i class="bi bi-chat-quote me-2"></i>Décision / Réponse :</strong>
-                                <div class="mt-2 p-3 bg-light rounded">
-                                  <p class="mb-0">{{ feedback.traitement.description }}</p>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="modal-footer">
-                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                <i class="bi bi-x-circle me-2"></i>Fermer
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      {% endif %}
-
                     {% endfor %}
                   </tbody>
                 </table>

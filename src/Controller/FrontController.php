@@ -15,19 +15,15 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Repository\FeedbackRepository;
 use App\Repository\UtilisateurRepository;
 use App\Entity\Feedback;
-use App\Service\EmailNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 
 #[Route('/', name: 'front_')]
 final class FrontController extends AbstractController
 {
-    public function __construct(
-        private EmailNotificationService $emailNotificationService
-    ) {}
-
     // ============================================================
     // 🚨 TEMPORAIRE - UTILISATEUR MOCKÉ POUR TESTS
     // ============================================================
@@ -298,43 +294,8 @@ final class FrontController extends AbstractController
     // ============================================================
 
     /**
-     * ✨ VALIDATION PHP pour le feedback
-     */
-    private function validateFeedbackData(string $typeFeedback, string $contenu, $rating): array
-    {
-        $errors = [];
-        
-        // Type de feedback
-        $typesValides = ['suggestion', 'probleme', 'satisfaction'];
-        if (empty($typeFeedback)) {
-            $errors[] = "Le type de feedback est obligatoire.";
-        } elseif (!in_array($typeFeedback, $typesValides)) {
-            $errors[] = "Type de feedback invalide. Choisissez parmi : suggestion, problème, satisfaction.";
-        }
-        
-        // Contenu
-        if (empty($contenu)) {
-            $errors[] = "Le message est obligatoire.";
-        } elseif (strlen($contenu) < 10) {
-            $errors[] = "Le message doit contenir au moins 10 caractères.";
-        } elseif (strlen($contenu) > 2000) {
-            $errors[] = "Le message ne peut pas dépasser 2000 caractères.";
-        }
-        
-        // Note
-        if (empty($rating)) {
-            $errors[] = "La note est obligatoire.";
-        } elseif (!is_numeric($rating)) {
-            $errors[] = "La note doit être un nombre.";
-        } elseif ($rating < 1 || $rating > 5) {
-            $errors[] = "La note doit être entre 1 et 5.";
-        }
-        
-        return $errors;
-    }
-
-    /**
-     * AJOUT FEEDBACK (avec validation PHP + NOTIFICATION EMAIL)
+     * AJOUT FEEDBACK
+     * ✅ UTILISE LA VALIDATION PHP DES ENTITÉS
      * 
      * TEMPORAIRE : Utilise getMockUser()
      * APRÈS INTÉGRATION : Remplace par $this->getUser()
@@ -343,25 +304,17 @@ final class FrontController extends AbstractController
     public function addFeedback(
         Request $request,
         EntityManagerInterface $em,
-        UtilisateurRepository $userRepo  // ← TEMPORAIRE, à retirer après
+        UtilisateurRepository $userRepo,  // ← TEMPORAIRE, à retirer après
+        ValidatorInterface $validator
     ): Response {
+        // Créer une nouvelle instance de Feedback
+        $feedback = new Feedback();
+
         // Récupérer les données du formulaire
-        $typeFeedback = trim($request->request->get('type_feedback'));
-        $contenu = trim($request->request->get('contenu'));
+        $typeFeedback = $request->request->get('type_feedback');
+        $contenu = $request->request->get('contenu');
         $rating = $request->request->get('rating');
 
-        // ✨ VALIDATION PHP
-        $errors = $this->validateFeedbackData($typeFeedback, $contenu, $rating);
-        
-        if (!empty($errors)) {
-            foreach ($errors as $error) {
-                $this->addFlash('error', $error);
-            }
-            return $this->redirectToRoute('front_contact');
-        }
-
-        // Créer le feedback
-        $feedback = new Feedback();
         $feedback->setTypefeedback($typeFeedback);
         $feedback->setContenu($contenu);
         $feedback->setNote((int)$rating);
@@ -372,30 +325,35 @@ final class FrontController extends AbstractController
         // APRÈS : Remplace par $feedback->setUtilisateur($this->getUser());
         $feedback->setUtilisateur($this->getMockUser($userRepo));
 
-        // Sauvegarder
+        // ✅ VALIDATION PHP via les contraintes de l'entité
+        $errors = $validator->validate($feedback);
+        
+        if (count($errors) > 0) {
+            foreach ($errors as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
+            return $this->redirectToRoute('front_contact');
+        }
+
+        // Persister et sauvegarder
         $em->persist($feedback);
         $em->flush();
 
-        // ✨ ENVOYER L'EMAIL DE CONFIRMATION
-        try {
-            $this->emailNotificationService->sendFeedbackReceivedNotification($feedback);
-            $this->addFlash('success', 'Votre feedback a été envoyé avec succès ! Vous recevrez un email de confirmation.');
-        } catch (\Exception $e) {
-            $this->addFlash('warning', 'Feedback envoyé, mais l\'email de confirmation n\'a pas pu être envoyé.');
-        }
+        // Message de succès
+        $this->addFlash('success', 'Votre feedback a été envoyé avec succès !');
 
+        // Rediriger vers la liste
         return $this->redirectToRoute('front_feedback_list');
     }
 
     /**
-     * LISTE FEEDBACK (avec TRI et RECHERCHE)
+     * LISTE FEEDBACK
      * 
      * TEMPORAIRE : Utilise getMockUser()
      * APRÈS INTÉGRATION : Remplace par $this->getUser()
      */
     #[Route('feedback/list', name: 'feedback_list')]
     public function feedbackList(
-        Request $request,
         FeedbackRepository $repo,
         UtilisateurRepository $userRepo  // ← TEMPORAIRE, à retirer après
     ): Response {
@@ -403,48 +361,21 @@ final class FrontController extends AbstractController
         // APRÈS : Remplace par $user = $this->getUser();
         $user = $this->getMockUser($userRepo);
 
-        // Récupération des paramètres de tri et recherche
-        $sortBy = $request->query->get('sort', 'date_desc'); // Par défaut : date décroissante
-        $search = trim($request->query->get('search', ''));
-
-        // Récupérer tous les feedbacks de l'utilisateur
+        // Récupérer tous les feedbacks de cet utilisateur
         $feedbacks = $repo->findBy(
-            ['utilisateur' => $user]
+            ['utilisateur' => $user],
+            ['datefeedback' => 'DESC']
         );
 
-        // ✨ RECHERCHE par mot-clé dans le contenu
-        if (!empty($search)) {
-            $feedbacks = array_filter($feedbacks, function($feedback) use ($search) {
-                return stripos($feedback->getContenu(), $search) !== false 
-                    || stripos($feedback->getTypefeedback(), $search) !== false;
-            });
-        }
-
-        // ✨ TRI
-        usort($feedbacks, function($a, $b) use ($sortBy) {
-            switch ($sortBy) {
-                case 'date_asc':
-                    return $a->getDatefeedback() <=> $b->getDatefeedback();
-                case 'date_desc':
-                    return $b->getDatefeedback() <=> $a->getDatefeedback();
-                case 'note_asc':
-                    return $a->getNote() <=> $b->getNote();
-                case 'note_desc':
-                    return $b->getNote() <=> $a->getNote();
-                default:
-                    return $b->getDatefeedback() <=> $a->getDatefeedback();
-            }
-        });
-
         return $this->render('front/feedback_list.html.twig', [
-            'feedbacks' => $feedbacks,
-            'currentSort' => $sortBy,
-            'currentSearch' => $search,
+            'feedbacks' => $feedbacks
         ]);
     }
 
     /**
-     * MODIFIER FEEDBACK (avec validation PHP)
+     * MODIFIER FEEDBACK
+     * ✅ UTILISE LA VALIDATION PHP DES ENTITÉS
+     * ✅ NOUVELLE LOGIQUE : Modifiable SEULEMENT si "en_attente"
      * 
      * TEMPORAIRE : Utilise getMockUser()
      * APRÈS INTÉGRATION : Remplace par $this->getUser()
@@ -454,7 +385,8 @@ final class FrontController extends AbstractController
         Request $request,
         Feedback $feedback,
         EntityManagerInterface $em,
-        UtilisateurRepository $userRepo  // ← TEMPORAIRE, à retirer après
+        UtilisateurRepository $userRepo,  // ← TEMPORAIRE, à retirer après
+        ValidatorInterface $validator
     ): Response {
         // 🚨 TEMPORAIRE : Récupère un utilisateur mocké
         // APRÈS : Remplace par $user = $this->getUser();
@@ -466,33 +398,35 @@ final class FrontController extends AbstractController
             return $this->redirectToRoute('front_feedback_list');
         }
 
-        // Vérifier si le feedback est modifiable (seulement si "traité")
+        // ✅ NOUVELLE LOGIQUE : Vérifier si le feedback est modifiable
+        // Modifiable SEULEMENT si "en_attente"
         $etat = strtolower($feedback->getEtatfeedback() ?? '');
-        if ($etat !== 'traite' && $etat !== 'traité') {
-            $this->addFlash('error', 'Ce feedback ne peut pas être modifié. Statut actuel : ' . $feedback->getEtatfeedback());
+        
+        if ($etat === 'traite' || $etat === 'traité') {
+            $this->addFlash('error', 'Ce feedback a déjà été traité et ne peut plus être modifié.');
             return $this->redirectToRoute('front_feedback_list');
         }
 
         // Si c'est une requête POST, enregistrer les modifications
         if ($request->isMethod('POST')) {
-            $typeFeedback = trim($request->request->get('type_feedback'));
-            $contenu = trim($request->request->get('contenu'));
+            $typeFeedback = $request->request->get('type_feedback');
+            $contenu = $request->request->get('contenu');
             $rating = $request->request->get('rating');
-
-            // ✨ VALIDATION PHP
-            $errors = $this->validateFeedbackData($typeFeedback, $contenu, $rating);
-            
-            if (!empty($errors)) {
-                foreach ($errors as $error) {
-                    $this->addFlash('error', $error);
-                }
-                return $this->redirectToRoute('front_feedback_edit', ['id' => $feedback->getId()]);
-            }
 
             // Mettre à jour
             $feedback->setTypefeedback($typeFeedback);
             $feedback->setContenu($contenu);
             $feedback->setNote((int)$rating);
+
+            // ✅ VALIDATION PHP via les contraintes de l'entité
+            $errors = $validator->validate($feedback);
+            
+            if (count($errors) > 0) {
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error->getMessage());
+                }
+                return $this->redirectToRoute('front_feedback_edit', ['id' => $feedback->getId()]);
+            }
 
             $em->flush();
 
@@ -508,6 +442,8 @@ final class FrontController extends AbstractController
 
     /**
      * SUPPRIMER FEEDBACK
+     * 
+     * ✅ NOUVELLE LOGIQUE : Supprimable SEULEMENT si "en_attente"
      * 
      * TEMPORAIRE : Utilise getMockUser()
      * APRÈS INTÉGRATION : Remplace par $this->getUser()
@@ -529,10 +465,12 @@ final class FrontController extends AbstractController
             return $this->redirectToRoute('front_feedback_list');
         }
 
-        // Vérifier si le feedback est supprimable (seulement si "traité")
+        // ✅ NOUVELLE LOGIQUE : Vérifier si le feedback est supprimable
+        // Supprimable SEULEMENT si "en_attente"
         $etat = strtolower($feedback->getEtatfeedback() ?? '');
-        if ($etat !== 'traite' && $etat !== 'traité') {
-            $this->addFlash('error', 'Ce feedback ne peut pas être supprimé. Statut actuel : ' . $feedback->getEtatfeedback());
+        
+        if ($etat === 'traite' || $etat === 'traité') {
+            $this->addFlash('error', 'Ce feedback a déjà été traité et ne peut plus être supprimé.');
             return $this->redirectToRoute('front_feedback_list');
         }
 

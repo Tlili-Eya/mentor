@@ -12,13 +12,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Repository\FeedbackRepository;
 use App\Repository\TraitementRepository;
 use App\Repository\UtilisateurRepository;
 use App\Entity\Feedback;
 use App\Entity\Traitement;
-use App\Service\PdfExportService;
-use App\Service\EmailNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Parcours;
 use App\Repository\ParcoursRepository;
@@ -28,11 +27,6 @@ use Dompdf\Options;
 #[Route('/admin', name: 'back_')]
 final class BackController extends AbstractController
 {
-    public function __construct(
-        private PdfExportService $pdfExportService,
-        private EmailNotificationService $emailNotificationService
-    ) {}
-    
     #[Route('', name: 'home')]
     public function home(): Response
     {
@@ -135,7 +129,7 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
     // ============================================================
 
     /**
-     * ✨ FONCTION : Analyse des messages répétitifs (ALERTE)
+     * Analyse des messages répétitifs (ALERTE)
      */
     private function analyzeRepetitiveMessages(array $feedbacks): array
     {
@@ -169,7 +163,7 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
 
     /**
      * PAGE 1 : Liste de tous les feedbacks (en_attente et traités)
-     * ✨ AVEC TRI, RECHERCHE UTILISATEUR, et ANALYSE DES MESSAGES
+     * AVEC TRI, RECHERCHE UTILISATEUR, et ANALYSE DES MESSAGES
      */
     #[Route('/contact', name: 'contact')]
     public function contact(
@@ -177,7 +171,7 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
         FeedbackRepository $feedbackRepo,
         UtilisateurRepository $userRepo
     ): Response {
-        // ✨ RECHERCHE par utilisateur (nom/prénom/email)
+        // RECHERCHE par utilisateur (nom/prénom/email)
         $searchUser = trim($request->query->get('search_user', ''));
         $showOnlyUntreated = $request->query->get('only_untreated', false);
         
@@ -193,7 +187,7 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
             ['datefeedback' => 'DESC']
         );
         
-        // ✨ FILTRAGE par utilisateur si recherche
+        // FILTRAGE par utilisateur si recherche
         if (!empty($searchUser)) {
             $feedbacksEnAttente = array_filter($feedbacksEnAttente, function($feedback) use ($searchUser) {
                 $user = $feedback->getUtilisateur();
@@ -219,7 +213,7 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
             }
         }
         
-        // ✨ ANALYSE des messages répétitifs (ALERTE)
+        // ANALYSE des messages répétitifs (ALERTE)
         $allFeedbacks = array_merge($feedbacksEnAttente, $feedbacksTraites);
         $motsCles = $this->analyzeRepetitiveMessages($allFeedbacks);
 
@@ -233,40 +227,15 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
     }
 
     /**
-     * ✨ VALIDATION PHP pour le traitement
-     */
-    private function validateTraitementData(string $typeTraitement, string $decision): array
-    {
-        $errors = [];
-        
-        // Type de traitement
-        $typesValides = ['remboursement', 'prolongation_abonnement', 'geste_commercial', 'aucun_traitement'];
-        if (empty($typeTraitement)) {
-            $errors[] = "Le type de traitement est obligatoire.";
-        } elseif (!in_array($typeTraitement, $typesValides)) {
-            $errors[] = "Type de traitement invalide.";
-        }
-        
-        // Décision/Description
-        if (empty($decision)) {
-            $errors[] = "La décision/description est obligatoire.";
-        } elseif (strlen($decision) < 10) {
-            $errors[] = "La description doit contenir au moins 10 caractères.";
-        } elseif (strlen($decision) > 1000) {
-            $errors[] = "La description ne peut pas dépasser 1000 caractères.";
-        }
-        
-        return $errors;
-    }
-
-    /**
-     * PAGE 2 : Formulaire de traitement d'un feedback (avec validation PHP)
+     * PAGE 2 : Formulaire de traitement d'un feedback
+     * ✅ UTILISE LA VALIDATION PHP DES ENTITÉS
      */
     #[Route('/traitement/{id}', name: 'traitement', methods: ['GET', 'POST'])]
     public function traitement(
         Request $request,
         Feedback $feedback,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        ValidatorInterface $validator
     ): Response {
         // Vérifier si le feedback a déjà un traitement
         $traitement = $feedback->getTraitement();
@@ -275,16 +244,6 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
         if ($request->isMethod('POST')) {
             $typeTraitement = trim($request->request->get('type_traitement'));
             $decision = trim($request->request->get('decision'));
-
-            // ✨ VALIDATION PHP
-            $errors = $this->validateTraitementData($typeTraitement, $decision);
-            
-            if (!empty($errors)) {
-                foreach ($errors as $error) {
-                    $this->addFlash('error', $error);
-                }
-                return $this->redirectToRoute('back_traitement', ['id' => $feedback->getId()]);
-            }
 
             // Si pas de traitement existant, en créer un nouveau
             if (!$traitement) {
@@ -298,6 +257,16 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
             $traitement->setDecision($typeTraitement);
             $traitement->setDatetraitement(new \DateTime());
 
+            // ✅ VALIDATION PHP via les contraintes de l'entité
+            $errors = $validator->validate($traitement);
+            
+            if (count($errors) > 0) {
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error->getMessage());
+                }
+                return $this->redirectToRoute('back_traitement', ['id' => $feedback->getId()]);
+            }
+
             // Mettre à jour l'état du feedback
             $feedback->setEtatfeedback('traite');
 
@@ -305,14 +274,7 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
             $em->persist($traitement);
             $em->flush();
 
-            // ✨ ENVOYER LA NOTIFICATION EMAIL
-            try {
-                $this->emailNotificationService->sendFeedbackTreatedNotification($feedback);
-                $this->addFlash('success', 'Traitement enregistré avec succès ! Email de notification envoyé à l\'utilisateur.');
-            } catch (\Exception $e) {
-                $this->addFlash('warning', 'Traitement enregistré, mais l\'email n\'a pas pu être envoyé : ' . $e->getMessage());
-            }
-
+            $this->addFlash('success', 'Traitement enregistré avec succès !');
             return $this->redirectToRoute('back_contact');
         }
 
@@ -324,13 +286,15 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
     }
 
     /**
-     * MODIFIER un traitement existant (avec validation PHP)
+     * MODIFIER un traitement existant
+     * ✅ UTILISE LA VALIDATION PHP DES ENTITÉS
      */
     #[Route('/traitement/{id}/edit', name: 'traitement_edit', methods: ['GET', 'POST'])]
     public function editTraitement(
         Request $request,
         Traitement $traitement,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        ValidatorInterface $validator
     ): Response {
         $feedback = $traitement->getFeedback();
 
@@ -339,31 +303,24 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
             $typeTraitement = trim($request->request->get('type_traitement'));
             $decision = trim($request->request->get('decision'));
 
-            // ✨ VALIDATION PHP
-            $errors = $this->validateTraitementData($typeTraitement, $decision);
-            
-            if (!empty($errors)) {
-                foreach ($errors as $error) {
-                    $this->addFlash('error', $error);
-                }
-                return $this->redirectToRoute('back_traitement_edit', ['id' => $traitement->getId()]);
-            }
-
             $traitement->setTypetraitement($typeTraitement);
             $traitement->setDescription($decision);
             $traitement->setDecision($typeTraitement);
             $traitement->setDatetraitement(new \DateTime());
 
-            $em->flush();
-
-            // ✨ ENVOYER UNE NOTIFICATION DE MISE À JOUR
-            try {
-                $this->emailNotificationService->sendFeedbackTreatedNotification($feedback);
-                $this->addFlash('success', 'Traitement modifié avec succès ! Email de notification mis à jour.');
-            } catch (\Exception $e) {
-                $this->addFlash('warning', 'Traitement modifié, mais l\'email n\'a pas pu être envoyé : ' . $e->getMessage());
+            // ✅ VALIDATION PHP via les contraintes de l'entité
+            $errors = $validator->validate($traitement);
+            
+            if (count($errors) > 0) {
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error->getMessage());
+                }
+                return $this->redirectToRoute('back_traitement_edit', ['id' => $traitement->getId()]);
             }
 
+            $em->flush();
+
+            $this->addFlash('success', 'Traitement modifié avec succès !');
             return $this->redirectToRoute('back_contact');
         }
 
@@ -403,54 +360,21 @@ public function projets(ProjetRepository $projetRepository, Request $request): R
         return $this->redirectToRoute('back_contact');
     }
 
-    // ============================================================
-    // ✨ NOUVELLES ROUTES POUR EXPORT PDF
-    // ============================================================
-
     /**
-     * Exporter un feedback spécifique en PDF
+     * EXPORT PDF (routes factices si PdfExportService n'existe pas)
      */
     #[Route('/feedback/{id}/export-pdf', name: 'feedback_export_pdf')]
     public function exportFeedbackPdf(Feedback $feedback): Response
     {
-        // Vérifier que le feedback est traité
-        if ($feedback->getEtatfeedback() !== 'traite') {
-            $this->addFlash('error', 'Seuls les feedbacks traités peuvent être exportés en PDF.');
-            return $this->redirectToRoute('back_contact');
-        }
-
-        // Générer le PDF
-        $pdfContent = $this->pdfExportService->generateFeedbackPdf($feedback);
-
-        // Retourner le PDF en réponse
-        return new Response(
-            $pdfContent,
-            200,
-            [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="feedback_' . $feedback->getId() . '.pdf"'
-            ]
-        );
+        $this->addFlash('info', 'Fonctionnalité d\'export PDF en cours de développement.');
+        return $this->redirectToRoute('back_contact');
     }
 
-    /**
-     * Exporter TOUS les feedbacks traités en PDF
-     */
     #[Route('/feedbacks/export-all-pdf', name: 'feedbacks_export_all_pdf')]
     public function exportAllFeedbacksPdf(FeedbackRepository $feedbackRepo): Response
     {
-        // Générer le PDF
-        $pdfContent = $this->pdfExportService->generateAllFeedbacksPdf($feedbackRepo);
-
-        // Retourner le PDF
-        return new Response(
-            $pdfContent,
-            200,
-            [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="feedbacks_traites_' . date('Y-m-d') . '.pdf"'
-            ]
-        );
+        $this->addFlash('info', 'Fonctionnalité d\'export PDF en cours de développement.');
+        return $this->redirectToRoute('back_contact');
     }
 
     #[Route('/update-projet/{id}', name: 'update_projet', methods: ['POST'])]

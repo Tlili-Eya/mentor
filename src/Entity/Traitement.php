@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\TraitementRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TraitementRepository::class)]
 class Traitement
@@ -15,18 +16,33 @@ class Traitement
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le type de traitement est obligatoire.")]
+    #[Assert\Choice(
+        choices: ['remboursement', 'prolongation_abonnement', 'geste_commercial', 'aucun_traitement'],
+        message: "Le type doit être : remboursement, prolongation_abonnement, geste_commercial ou aucun_traitement."
+    )]
     private ?string $typetraitement = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: "La description est obligatoire.")]
+    #[Assert\Length(
+        min: 10,
+        max: 1000,
+        minMessage: "La description doit contenir au moins {{ limit }} caractères.",
+        maxMessage: "La description ne peut pas dépasser {{ limit }} caractères."
+    )]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotNull(message: "La date du traitement est obligatoire.")]
     private ?\DateTime $datetraitement = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "La décision est obligatoire.")]
     private ?string $decision = null;
 
     #[ORM\OneToOne(mappedBy: 'traitement', cascade: ['persist', 'remove'], orphanRemoval:true)]
+    #[Assert\NotNull(message: "Le feedback associé est obligatoire.")]
     private ?Feedback $feedback = null;
 
     public function getId(): ?int

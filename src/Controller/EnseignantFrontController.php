@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class EnseignantFrontController extends AbstractController
 {
-    #[Route('/enseignant/dashboard', name: 'app_enseignant_dashboard')]
+    #[Route('/enseignant', name: 'app_enseignant_dashboard')]
 public function dashboard(EntityManagerInterface $em): Response
 {
     $conn = $em->getConnection();

@@ -40,9 +40,9 @@ class mBackController extends AbstractController
         ];
 
         // Récents
-        $derniers_articles = $articleRepo->findBy([], ['createdAt' => 'DESC'], 5);
-        $derniers_plans = $planRepo->findBy([], ['createdAt' => 'DESC'], 5);
-        $dernieres_sorties = $sortieRepo->findBy([], ['createdAt' => 'DESC'], 5);
+        $derniers_articles = $articleRepo->findBy([], ['date' => 'DESC'], 5);
+        $derniers_plans = $planRepo->findBy([], ['date' => 'DESC'], 5);
+        $dernieres_sorties = $sortieRepo->findBy([], ['date' => 'DESC'], 5);
 
         return $this->render('back/dashboard.html.twig', [
             'stats' => $stats,

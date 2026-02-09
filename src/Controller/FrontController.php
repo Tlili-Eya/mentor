@@ -69,18 +69,8 @@ final class FrontController extends AbstractController
         return $this->render('front/terms.html.twig');
     }
 
-    #[Route('blog', name: 'blog')]
-    public function blog(): Response
-    {
-        return $this->render('front/blog.html.twig');
-    }
-
-    #[Route('blog-details', name: 'blog_details')]
-    public function blogDetails(): Response
-    {
-        return $this->render('front/blog-details.html.twig');
-    }
-
+// ⚠️ blog is now handled by CarnetController
+// ⚠️ blog-details is now handled by PlanningEtudeController
     #[Route('contact', name: 'contact')]
     public function contact(): Response
     {

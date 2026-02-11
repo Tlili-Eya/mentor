@@ -60,7 +60,7 @@ class UtilisateurType extends AbstractType
                 'choices' => [
                     'Étudiant' => 'etudiant',
                     'Enseignant' => 'enseignant',
-                    'Administrateur' => 'adminm',
+                    'AdminM' => 'adminm',
                 ],
                 'placeholder' => 'Sélectionnez un rôle',
                 'required' => true,

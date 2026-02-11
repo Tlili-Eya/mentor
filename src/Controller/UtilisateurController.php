@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route('/utilisateur')]
 final class UtilisateurController extends AbstractController
@@ -42,10 +43,9 @@ final class UtilisateurController extends AbstractController
                 $utilisateur->setMdp($hashedPassword);
             } else {
                 $this->addFlash('error', 'Le mot de passe est obligatoire pour créer un compte.');
-                return $this->render('utilisateur/new.html.twig', [
-                    'utilisateur' => $utilisateur,
-                    'form' => $form,
-                ]);
+                
+                // ✅ MODIFIÉ: Redirection vers administrateur même en cas d'erreur
+                return $this->redirectToRoute('back_administrateur', [], Response::HTTP_SEE_OTHER);
             }
 
             if (!$utilisateur->getDateInscription()) {
@@ -59,9 +59,10 @@ final class UtilisateurController extends AbstractController
             $entityManager->persist($utilisateur);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.');
+            // ✅ MODIFIÉ: Message de succès et redirection vers administrateur
+            $this->addFlash('success', 'Instructor created successfully!');
 
-            return $this->redirectToRoute('app_login', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('back_administrateur', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('utilisateur/new.html.twig', [
@@ -71,8 +72,12 @@ final class UtilisateurController extends AbstractController
     }
 
     // ✅ CRITIQUE: /profil DOIT ÊTRE AVANT /{id} pour éviter les conflits de routes
-    #[Route('/profil', name: 'app_profil', methods: ['GET'])]
-    public function profil(): Response
+    #[Route('/profil', name: 'app_profil', methods: ['GET', 'POST'])]
+    public function profil(
+        Request $request, 
+        EntityManagerInterface $entityManager, 
+        UserPasswordHasherInterface $passwordHasher
+    ): Response
     {
         $user = $this->getUser();
 
@@ -80,12 +85,31 @@ final class UtilisateurController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        return $this->render('utilisateur/show.html.twig', [
+        // Créer le formulaire de profil (différent de UtilisateurType pour la sécurité)
+        $form = $this->createForm(\App\Form\ProfileType::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Hacher le mot de passe seulement s'il est modifié
+            $plainPassword = $form->get('plainPassword')->getData();
+            if ($plainPassword) {
+                $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
+                $user->setMdp($hashedPassword);
+            }
+
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Profil mis à jour avec succès !');
+
+            return $this->redirectToRoute('app_profil', [], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->render('utilisateur/profil.html.twig', [
             'utilisateur' => $user,
+            'form' => $form->createView(),
         ]);
     }
 
-    // ✅ ROUTE SPÉCIFIQUE /{id}/edit AVANT la route générique /{id}
     #[Route('/{id}/edit', name: 'app_utilisateur_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(
         Request $request, 
@@ -106,10 +130,28 @@ final class UtilisateurController extends AbstractController
             }
 
             $entityManager->flush();
+            $this->addFlash('success', 'Instructor updated successfully!');
 
-            $this->addFlash('success', 'Profil mis à jour avec succès !');
+            // ✅ Si c'est une requête AJAX (depuis le modal), on renvoie du JSON
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['status' => 'success']);
+            }
 
+            // ✅ Sinon redirection classique
             return $this->redirectToRoute('back_administrateur', [], Response::HTTP_SEE_OTHER);
+        }
+
+        // Si le formulaire est soumis mais invalide en AJAX
+        if ($request->isXmlHttpRequest() && $form->isSubmitted() && !$form->isValid()) {
+            $errors = [];
+            foreach ($form->getErrors(true) as $error) {
+                $errors[] = $error->getMessage();
+            }
+
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => implode(' ', $errors) ?: 'Validation error. Please check your data.'
+            ], 422);
         }
 
         return $this->render('utilisateur/edit.html.twig', [
@@ -126,12 +168,20 @@ final class UtilisateurController extends AbstractController
         $token = $request->request->get('_token');
         
         if ($this->isCsrfTokenValid('delete'.$utilisateur->getId(), $token)) {
-            $entityManager->remove($utilisateur);
+            // ✅ MODIFIÉ: Changement de statut textuel
+            $utilisateur->setStatus('desactiver');
             $entityManager->flush();
 
-            $this->addFlash('success', 'Utilisateur supprimé avec succès.');
+            // Si l'utilisateur se supprime lui-même, on le déconnecte
+            if ($this->getUser() === $utilisateur) {
+                $request->getSession()->invalidate();
+                $this->container->get('security.token_storage')->setToken(null);
+                return $this->redirectToRoute('app_login');
+            }
+
+            $this->addFlash('success', 'Compte désactivé avec succès.');
         } else {
-            $this->addFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
+            $this->addFlash('error', 'Security error. Please try again.');
         }
 
         return $this->redirectToRoute('back_administrateur', [], Response::HTTP_SEE_OTHER);

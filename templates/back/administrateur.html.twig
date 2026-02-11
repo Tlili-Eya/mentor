@@ -32,10 +32,10 @@
           <i class="bi bi-file-earmark-pdf me-1"></i> Export to PDF
         </button>
         
-        <!-- Red action button (same as Enroll Now / Admin) -->
-        <a href="{{ path('app_utilisateur_new') }}" class="btn btn-danger">
+        <!-- Add Instructor Button -->
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#addInstructorModal">
           <i class="bi bi-plus-circle me-1"></i> Add Instructor
-        </a>
+        </button>
       </div>
     </div>
     
@@ -134,7 +134,13 @@
                   {% endif %}
                 </td>
                 <td>
-                  <span class="badge bg-success">ACTIVE</span>
+                  {% if utilisateur.status == 'actif' %}
+                    <span class="badge bg-success">ACTIF</span>
+                  {% elseif utilisateur.status == 'desactiver' %}
+                    <span class="badge bg-danger">DÉSACTIVÉ</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ utilisateur.status|upper }}</span>
+                  {% endif %}
                 </td>
                 <td class="text-end no-export">
                   <a href="{{ path('app_utilisateur_show', {'id': utilisateur.id}) }}" 
@@ -143,12 +149,16 @@
                      data-bs-toggle="tooltip">
                      <i class="bi bi-eye"></i>
                   </a>
-                  <a href="{{ path('app_utilisateur_edit', {'id': utilisateur.id}) }}" 
+                  
+                  <!-- MODIFIÉ: Edit button triggers modal instead of page navigation -->
+                  <button type="button"
                      class="btn btn-sm btn-outline-primary me-1" 
                      title="Edit"
-                     data-bs-toggle="tooltip">
+                     data-bs-toggle="modal"
+                     data-bs-target="#editInstructorModal{{ utilisateur.id }}">
                     <i class="bi bi-pencil"></i>
-                  </a>
+                  </button>
+                  
                   <button type="button" 
                           class="btn btn-sm btn-outline-danger" 
                           data-bs-toggle="modal" 
@@ -159,35 +169,208 @@
                 </td>
               </tr>
               
+              <!-- NOUVEAU: Edit Instructor Modal -->
+              <div class="modal fade" id="editInstructorModal{{ utilisateur.id }}" tabindex="-1" aria-labelledby="editInstructorModalLabel{{ utilisateur.id }}" aria-hidden="true" data-bs-backdrop="static">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+                  <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                    <!-- Modal Header -->
+                    <div class="modal-header border-0" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 1.5rem 2rem;">
+                      <div>
+                        <h4 class="modal-title text-white fw-bold mb-1" id="editInstructorModalLabel{{ utilisateur.id }}">
+                          <i class="bi bi-pencil-square me-2"></i>
+                          Edit Instructor
+                        </h4>
+                        <p class="text-white-50 mb-0 small">Update information for {{ utilisateur.prenom }} {{ utilisateur.nom }}</p>
+                      </div>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                   <!-- Modal Body -->
+<div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+  <form method="post" action="{{ path('app_utilisateur_edit', {'id': utilisateur.id}) }}" id="editInstructorForm{{ utilisateur.id }}">
+    <input type="hidden" name="_method" value="POST">
+    
+    <div class="row g-4">
+      <!-- Prénom -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-person me-1 text-primary"></i>
+          First Name <span class="text-danger">*</span>
+        </label>
+        <input type="text" 
+               name="utilisateur[prenom]" 
+               class="form-control form-control-lg" 
+               value="{{ utilisateur.prenom }}" 
+               placeholder="Enter first name" 
+               required>
+      </div>
+
+      <!-- Nom -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-person-badge me-1 text-primary"></i>
+          Last Name <span class="text-danger">*</span>
+        </label>
+        <input type="text" 
+               name="utilisateur[nom]" 
+               class="form-control form-control-lg" 
+               value="{{ utilisateur.nom }}" 
+               placeholder="Enter last name" 
+               required>
+      </div>
+
+      <!-- Email -->
+      <div class="col-12">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-envelope me-1 text-primary"></i>
+          Email Address <span class="text-danger">*</span>
+        </label>
+        <input type="email" 
+               name="utilisateur[email]" 
+               class="form-control form-control-lg" 
+               value="{{ utilisateur.email }}" 
+               placeholder="instructor@example.com" 
+               required>
+        <small class="text-muted">
+          <i class="bi bi-info-circle me-1"></i>
+          This email will be used for login
+        </small>
+      </div>
+
+      <!-- Mot de passe -->
+      <div class="col-12">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-lock me-1 text-primary"></i>
+          New Password 
+          <span class="badge bg-secondary ms-2">Optional</span>
+        </label>
+        <div class="input-group">
+          <input type="password" 
+                 name="utilisateur[mdp]" 
+                 id="editPasswordInput{{ utilisateur.id }}" 
+                 class="form-control form-control-lg" 
+                 placeholder="Leave empty to keep current password">
+          <button class="btn btn-outline-secondary" type="button" onclick="toggleEditPassword({{ utilisateur.id }})">
+            <i class="bi bi-eye" id="editToggleIcon{{ utilisateur.id }}"></i>
+          </button>
+        </div>
+        <small class="text-muted">
+          <i class="bi bi-info-circle me-1"></i>
+          Leave blank to keep the current password
+        </small>
+        <div class="password-strength mt-2">
+          <div class="progress" style="height: 6px;">
+            <div class="progress-bar" id="editStrengthBar{{ utilisateur.id }}" role="progressbar" style="width: 0%"></div>
+          </div>
+          <small class="text-muted" id="editStrengthText{{ utilisateur.id }}">Password strength</small>
+        </div>
+      </div>
+
+      <!-- Rôle -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-shield-check me-1 text-primary"></i>
+          Role <span class="text-danger">*</span>
+        </label>
+        <select name="utilisateur[role]" class="form-select form-select-lg" required>
+          <option value="">Select a role</option>
+          <option value="enseignant" {% if utilisateur.role == 'enseignant' %}selected{% endif %}>Enseignant (Teacher)</option>
+          <option value="administrateur" {% if utilisateur.role == 'administrateur' %}selected{% endif %}>Administrateur (Admin)</option>
+          <option value="etudiant" {% if utilisateur.role == 'etudiant' %}selected{% endif %}>Étudiant (Student)</option>
+        </select>
+      </div>
+
+      <!-- Date d'inscription -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-calendar-check me-1 text-primary"></i>
+          Registration Date
+        </label>
+        <input type="date" 
+               name="utilisateur[date_inscription]" 
+               class="form-control form-control-lg" 
+               value="{{ utilisateur.dateInscription ? utilisateur.dateInscription|date('Y-m-d') : '' }}">
+      </div>
+
+      <!-- Photo de profil URL -->
+      <div class="col-12">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-image me-1 text-primary"></i>
+          Profile Picture URL
+          <span class="badge bg-secondary ms-2">Optional</span>
+        </label>
+        <input type="text" 
+               name="utilisateur[pdp_url]" 
+               class="form-control form-control-lg" 
+               value="{{ utilisateur.pdpUrl }}" 
+               placeholder="photo.jpg or leave empty">
+        {% if utilisateur.pdpUrl %}
+          <small class="text-success d-block mt-1">
+            <i class="bi bi-check-circle me-1"></i>
+            Current: {{ utilisateur.pdpUrl }}
+          </small>
+        {% endif %}
+      </div>
+
+      <!-- CSRF Token -->
+      <input type="hidden" name="utilisateur[_token]" value="{{ csrf_token('utilisateur') }}">
+    </div>
+
+    <!-- Info Alert -->
+    <div class="alert alert-info border-0 mt-4" style="background: rgba(99, 102, 241, 0.1);">
+      <h6 class="fw-semibold mb-2">
+        <i class="bi bi-info-circle me-2"></i>
+        Update Information
+      </h6>
+      <ul class="mb-0 small">
+        <li>Only fill in the password field if you want to change it</li>
+        <li>Changes will be saved immediately after clicking "Update"</li>
+        <li>Make sure the email address is valid for notifications</li>
+      </ul>
+    </div>
+  </form>
+</div>
+                    <!-- Modal Footer -->
+                    <div class="modal-footer border-0 bg-light p-3">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                      </button>
+                      <button type="submit" form="editInstructorForm{{ utilisateur.id }}" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i> Update Instructor
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               <!-- Delete Modal -->
               <div class="modal fade" id="deleteModal{{ utilisateur.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ utilisateur.id }}" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                   <div class="modal-content">
                     <div class="modal-header">
                       <h5 class="modal-title" id="deleteModalLabel{{ utilisateur.id }}">
-                        <i class="bi bi-exclamation-triangle text-warning me-2"></i>
-                        Confirm Deletion
+                        <i class="bi bi-person-slash text-warning me-2"></i>
+                        Désactiver le compte
                       </h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                       <div class="alert alert-danger border-0">
                         <i class="bi bi-exclamation-circle me-2"></i>
-                        <strong>Warning:</strong> This action cannot be undone!
+                        <strong>Attention :</strong> Cette action désactivera l'accès au compte.
                       </div>
                       <p class="mb-0">
-                        Are you sure you want to delete <strong>{{ utilisateur.prenom }} {{ utilisateur.nom }}</strong>?
-                        <br><small class="text-muted">All associated data will be permanently removed.</small>
+                        Tu veux désactiver le compte <strong>{{ utilisateur.prenom }} {{ utilisateur.nom }}</strong> ??
                       </p>
                     </div>
                     <div class="modal-footer">
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i> Cancel
+                        <i class="bi bi-x-circle me-1"></i> Annuler
                       </button>
                       <form method="post" action="{{ path('app_utilisateur_delete', {'id': utilisateur.id}) }}" style="display: inline;">
                         <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ utilisateur.id) }}">
                         <button type="submit" class="btn btn-danger">
-                          <i class="bi bi-trash me-1"></i> Delete
+                          <i class="bi bi-person-slash me-1"></i> Désactiver
                         </button>
                       </form>
                     </div>
@@ -217,6 +400,147 @@
     
   </div>
 </section>
+
+<!-- Add Instructor Modal -->
+<div class="modal fade" id="addInstructorModal" tabindex="-1" aria-labelledby="addInstructorModalLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+      <!-- Modal Header -->
+      <div class="modal-header border-0" style="background: linear-gradient(135deg, #7A9AAD, #7A9AAD); padding: 1.5rem 2rem;">
+        <div>
+          <h4 class="modal-title text-white fw-bold mb-1" id="addInstructorModalLabel">
+            <i class="bi bi-person-plus-fill me-2"></i>
+            Add New Instructor
+          </h4>
+          <p class="text-white-50 mb-0 small">Fill in the details to create a new instructor account</p>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+        <form method="post" action="{{ path('app_utilisateur_new') }}" id="addInstructorForm">
+          <div class="row g-4">
+            <!-- Prénom -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-primary"></i>
+                First Name <span class="text-danger">*</span>
+              </label>
+              <input type="text" name="utilisateur[prenom]" class="form-control form-control-lg" placeholder="Enter first name" required>
+            </div>
+
+            <!-- Nom -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-person-badge me-1 text-primary"></i>
+                Last Name <span class="text-danger">*</span>
+              </label>
+              <input type="text" name="utilisateur[nom]" class="form-control form-control-lg" placeholder="Enter last name" required>
+            </div>
+
+            <!-- Email -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-envelope me-1 text-primary"></i>
+                Email Address <span class="text-danger">*</span>
+              </label>
+              <input type="email" name="utilisateur[email]" class="form-control form-control-lg" placeholder="instructor@example.com" required>
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                This email will be used for login
+              </small>
+            </div>
+
+            <!-- Mot de passe -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-lock me-1 text-primary"></i>
+                Password <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <input type="password" name="utilisateur[mdp]" id="modalPasswordInput" class="form-control form-control-lg" placeholder="Minimum 8 characters" required>
+                <button class="btn btn-outline-secondary" type="button" onclick="toggleModalPassword()">
+                  <i class="bi bi-eye" id="modalToggleIcon"></i>
+                </button>
+              </div>
+              <div class="password-strength mt-2">
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar" id="modalStrengthBar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <small class="text-muted" id="modalStrengthText">Password strength</small>
+              </div>
+            </div>
+
+            <!-- Rôle -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-shield-check me-1 text-primary"></i>
+                Role <span class="text-danger">*</span>
+              </label>
+              <select name="utilisateur[role]" class="form-select form-select-lg" required>
+                <option value="">Select a role</option>
+                <option value="enseignant">Enseignant (Teacher)</option>
+                <option value="administrateur">Administrateur (Admin)</option>
+                <option value="etudiant">Étudiant (Student)</option>
+              </select>
+            </div>
+
+            <!-- Date d'inscription -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-calendar-check me-1 text-primary"></i>
+                Registration Date
+                <span class="badge bg-info ms-2">Auto</span>
+              </label>
+              <input type="date" name="utilisateur[date_inscription]" class="form-control form-control-lg" value="{{ 'now'|date('Y-m-d') }}">
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Default: Today
+              </small>
+            </div>
+
+            <!-- Photo de profil URL (optionnel) -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-image me-1 text-primary"></i>
+                Profile Picture URL
+                <span class="badge bg-secondary ms-2">Optional</span>
+              </label>
+              <input type="text" name="utilisateur[pdp_url]" class="form-control form-control-lg" placeholder="photo.jpg or leave empty">
+            </div>
+
+            <!-- CSRF Token (important!) -->
+            <input type="hidden" name="utilisateur[_token]" value="{{ csrf_token('utilisateur') }}">
+          </div>
+
+          <!-- Security Tips -->
+          <div class="alert alert-info border-0 mt-4" style="background: rgba(99, 102, 241, 0.1);">
+            <h6 class="fw-semibold mb-2">
+              <i class="bi bi-shield-check me-2"></i>
+              Security Tips
+            </h6>
+            <ul class="mb-0 small">
+              <li>Use a strong password (8+ characters with uppercase, lowercase, and numbers)</li>
+              <li>Assign only necessary permissions based on the user's role</li>
+              <li>Ensure the email address is valid for notifications</li>
+            </ul>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer border-0 bg-light p-3">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="submit" form="addInstructorForm" class="btn btn-danger">
+          <i class="bi bi-check-circle me-1"></i> Create Instructor
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Include libraries for export functionality -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -564,6 +888,198 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<!-- Modal Scripts for Add and Edit -->
+<script>
+// Toggle password visibility in ADD modal
+function toggleModalPassword() {
+  const passwordInput = document.getElementById('modalPasswordInput');
+  const toggleIcon = document.getElementById('modalToggleIcon');
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    toggleIcon.classList.remove('bi-eye');
+    toggleIcon.classList.add('bi-eye-slash');
+  } else {
+    passwordInput.type = 'password';
+    toggleIcon.classList.remove('bi-eye-slash');
+    toggleIcon.classList.add('bi-eye');
+  }
+}
+
+// Toggle password visibility in EDIT modal
+function toggleEditPassword(userId) {
+  const passwordInput = document.getElementById('editPasswordInput' + userId);
+  const toggleIcon = document.getElementById('editToggleIcon' + userId);
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    toggleIcon.classList.remove('bi-eye');
+    toggleIcon.classList.add('bi-eye-slash');
+  } else {
+    passwordInput.type = 'password';
+    toggleIcon.classList.remove('bi-eye-slash');
+    toggleIcon.classList.add('bi-eye');
+  }
+}
+
+// Check password strength in ADD modal
+function checkModalPasswordStrength(password) {
+  let strength = 0;
+  
+  if (password.length >= 8) strength += 25;
+  if (password.length >= 12) strength += 25;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+  if (/[0-9]/.test(password)) strength += 15;
+  if (/[^a-zA-Z0-9]/.test(password)) strength += 10;
+
+  const strengthBar = document.getElementById('modalStrengthBar');
+  const strengthText = document.getElementById('modalStrengthText');
+
+  strengthBar.style.width = strength + '%';
+
+  if (strength < 40) {
+    strengthBar.className = 'progress-bar bg-danger';
+    strengthText.textContent = 'Weak password';
+    strengthText.style.color = '#dc3545';
+  } else if (strength < 70) {
+    strengthBar.className = 'progress-bar bg-warning';
+    strengthText.textContent = 'Medium strength';
+    strengthText.style.color = '#ffc107';
+  } else {
+    strengthBar.className = 'progress-bar bg-success';
+    strengthText.textContent = 'Strong password';
+    strengthText.style.color = '#198754';
+  }
+}
+
+// Check password strength in EDIT modal
+function checkEditPasswordStrength(password, userId) {
+  let strength = 0;
+  
+  if (password.length >= 8) strength += 25;
+  if (password.length >= 12) strength += 25;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+  if (/[0-9]/.test(password)) strength += 15;
+  if (/[^a-zA-Z0-9]/.test(password)) strength += 10;
+
+  const strengthBar = document.getElementById('editStrengthBar' + userId);
+  const strengthText = document.getElementById('editStrengthText' + userId);
+
+  if (!strengthBar || !strengthText) return;
+
+  strengthBar.style.width = strength + '%';
+
+  if (password.length === 0) {
+    strengthBar.style.width = '0%';
+    strengthText.textContent = 'Password strength';
+    strengthText.style.color = '#6c757d';
+    return;
+  }
+
+  if (strength < 40) {
+    strengthBar.className = 'progress-bar bg-danger';
+    strengthText.textContent = 'Weak password';
+    strengthText.style.color = '#dc3545';
+  } else if (strength < 70) {
+    strengthBar.className = 'progress-bar bg-warning';
+    strengthText.textContent = 'Medium strength';
+    strengthText.style.color = '#ffc107';
+  } else {
+    strengthBar.className = 'progress-bar bg-success';
+    strengthText.textContent = 'Strong password';
+    strengthText.style.color = '#198754';
+  }
+}
+
+// Initialize modal events
+document.addEventListener('DOMContentLoaded', function() {
+    // Mise à jour de l'aperçu en temps réel
+    function updatePreview() {
+        // ... (existing code for preview) ...
+    }
+  });
+
+  // Gestion de la soumission du formulaire modal via AJAX
+  document.addEventListener('submit', function(event) {
+    if (event.target && event.target.id && event.target.id.startsWith('editInstructorForm')) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+      // Fix: Button is outside the form, linked via 'form' attribute
+      const submitBtn = document.querySelector('button[type="submit"][form="' + form.id + '"]') || form.querySelector('button[type="submit"]');
+      
+      if (!submitBtn) {
+         // Fallback if button not found (unexpected)
+         return;
+      }
+
+      const originalBtnText = submitBtn.innerHTML;
+
+      // Désactiver le bouton pour éviter double soumission
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+           // Fermer le modal
+           const modalElement = form.closest('.modal');
+           const modalInstance = bootstrap.Modal.getInstance(modalElement);
+           if (modalInstance) {
+               modalInstance.hide();
+           }
+           
+           // Recharger la page pour afficher les changements et le flash message
+           window.location.reload(); 
+        } else {
+           alert('Error: ' + (data.message || 'An error occurred'));
+           submitBtn.disabled = false;
+           submitBtn.innerHTML = originalBtnText;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('A network error occurred');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      });
+    }
+  });
+  // ADD modal password strength
+  const modalPasswordInput = document.getElementById('modalPasswordInput');
+  if (modalPasswordInput) {
+    modalPasswordInput.addEventListener('keyup', function() {
+      checkModalPasswordStrength(this.value);
+    });
+  }
+
+  // EDIT modals password strength - attach to all edit password inputs
+  document.querySelectorAll('[id^="editPasswordInput"]').forEach(input => {
+    const userId = input.id.replace('editPasswordInput', '');
+    input.addEventListener('keyup', function() {
+      checkEditPasswordStrength(this.value, userId);
+    });
+  });
+
+  // Reset ADD form when modal is closed
+  const addInstructorModal = document.getElementById('addInstructorModal');
+  if (addInstructorModal) {
+    addInstructorModal.addEventListener('hidden.bs.modal', function () {
+      document.getElementById('addInstructorForm').reset();
+      checkModalPasswordStrength('');
+    });
+  }
+  
+
+    </script>
+
 <style>
 /* Custom styles for search */
 .input-group-text {
@@ -609,12 +1125,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
 #exportExcelBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px #818cf8;
 }
 
 #exportPdfBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px#818cf8;
+}
+
+/* Modal backdrop blur effect */
+.modal-backdrop.show {
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* Modal animation */
+.modal.fade .modal-dialog {
+  transform: scale(0.8);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal.show .modal-dialog {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Form control focus for both modals */
+.modal .form-control:focus,
+.modal .form-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+}
+
+/* Scrollbar styling for modals */
+.modal .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal .modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.modal .modal-body::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 10px;
+}
+
+.modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
 }
 </style>
 

@@ -8,11 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #7A9AAD;
-            --primary-light: #818cf8;
-            --primary-dark: #4f46e5;
+            --primary-light: #9dbbce;
+            --primary-color: #102c59;
+            --danger-color: #d52e28;
             --success-color: #10b981;
-            --danger-color: #ef4444;
             --dark-color: #1f2937;
             --light-color: #f9fafb;
         }
@@ -25,7 +24,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #7A9AAD 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #9dbbce 0%, #7a9aad 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -53,43 +52,52 @@
         .login-card {
             background: white;
             border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(16, 44, 89, 0.25);
             overflow: hidden;
+            border: 2px solid rgba(157, 187, 206, 0.3);
         }
 
         .login-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-            padding: 40px 30px;
+            background: linear-gradient(135deg, #102c59 0%, #0a1a36 100%);
+            padding: 30px 30px 25px;
             text-align: center;
             color: white;
+            position: relative;
         }
 
-        .login-header .logo {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
+        /* Logo simple centré */
+        .site-logo {
             display: flex;
-            align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
         }
 
-        .login-header .logo i {
-            font-size: 2.5rem;
+        .site-logo img {
+            max-width: 180px;
+            max-height: 80px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+            transition: transform 0.3s ease;
+        }
+
+        .site-logo img:hover {
+            transform: scale(1.05);
         }
 
         .login-header h1 {
             font-size: 1.75rem;
             font-weight: 700;
             margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            color: white;
         }
 
         .login-header p {
             font-size: 0.95rem;
             opacity: 0.9;
             margin: 0;
+            font-weight: 400;
+            color: #9dbbce;
         }
 
         .login-body {
@@ -104,11 +112,12 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            border-left: 4px solid var(--danger-color);
         }
 
         .alert-danger {
-            background: rgba(239, 68, 68, 0.1);
-            color: #dc2626;
+            background: rgba(213, 46, 40, 0.1);
+            color: #d52e28;
         }
 
         .alert i {
@@ -122,9 +131,13 @@
         .form-label {
             display: block;
             font-weight: 600;
-            color: var(--dark-color);
+            color: var(--primary-color);
             margin-bottom: 10px;
             font-size: 0.95rem;
+        }
+
+        .form-label i {
+            color: #9dbbce;
         }
 
         .input-group-custom {
@@ -136,7 +149,7 @@
             left: 18px;
             top: 50%;
             transform: translateY(-50%);
-            color: #9ca3af;
+            color: #9dbbce;
             font-size: 1.1rem;
             transition: color 0.3s ease;
         }
@@ -148,22 +161,23 @@
             border-radius: 12px;
             font-size: 1rem;
             transition: all 0.3s ease;
-            background: #f9fafb;
+            background: #f8fafc;
+            color: #102c59;
         }
 
         .form-control:focus {
             outline: none;
-            border-color: var(--primary-color);
+            border-color: #9dbbce;
             background: white;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 4px rgba(157, 187, 206, 0.2);
         }
 
         .form-control:focus + i {
-            color: var(--primary-color);
+            color: #102c59;
         }
 
         .input-group-custom:has(.form-control:focus) i {
-            color: var(--primary-color);
+            color: #102c59;
         }
 
         .password-toggle {
@@ -173,14 +187,14 @@
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #9ca3af;
+            color: #9dbbce;
             cursor: pointer;
             padding: 8px;
             transition: color 0.3s ease;
         }
 
         .password-toggle:hover {
-            color: var(--primary-color);
+            color: #102c59;
         }
 
         .form-check {
@@ -193,27 +207,27 @@
         .form-check-input {
             width: 20px;
             height: 20px;
-            border: 2px solid #d1d5db;
+            border: 2px solid #9dbbce;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .form-check-input:checked {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            background-color: #102c59;
+            border-color: #102c59;
         }
 
         .form-check-label {
             font-size: 0.9rem;
-            color: #6b7280;
+            color: #64748b;
             cursor: pointer;
         }
 
         .btn-login {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            background: linear-gradient(135deg, #102c59 0%, #0a1a36 100%);
             border: none;
             border-radius: 12px;
             color: white;
@@ -221,7 +235,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 16px rgba(16, 44, 89, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -230,35 +244,52 @@
 
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px#7A9AAD(76, 79, 218, 0.4);
+            box-shadow: 0 8px 24px rgba(16, 44, 89, 0.4);
+            background: linear-gradient(135deg, #0a1a36 0%, #102c59 100%);
         }
 
         .btn-login:active {
             transform: translateY(0);
         }
 
+        .forgot-password-link a {
+            color: #102c59;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .forgot-password-link a:hover {
+            color: #d52e28;
+            text-decoration: underline;
+        }
+
         .login-footer {
             padding: 24px 30px;
-            background: #f9fafb;
+            background: #f1f5f9;
             text-align: center;
-            border-top: 1px solid #e5e7eb;
+            border-top: 2px solid #9dbbce;
         }
 
         .login-footer p {
             margin: 0;
-            color: #6b7280;
+            color: #475569;
             font-size: 0.9rem;
         }
 
         .login-footer a {
-            color: var(--primary-color);
+            color: #102c59;
             text-decoration: none;
             font-weight: 600;
             transition: color 0.3s ease;
         }
 
         .login-footer a:hover {
-            color: var(--primary-dark);
+            color: #d52e28;
             text-decoration: underline;
         }
 
@@ -290,7 +321,7 @@
             }
 
             .login-header {
-                padding: 30px 20px;
+                padding: 25px 20px 20px;
             }
 
             .login-body {
@@ -300,6 +331,11 @@
             .login-header h1 {
                 font-size: 1.5rem;
             }
+
+            .site-logo img {
+                max-width: 150px;
+                max-height: 70px;
+            }
         }
     </style>
 </head>
@@ -308,9 +344,11 @@
         <div class="login-card">
             <!-- Header -->
             <div class="login-header">
-                <div class="logo">
-                    <i class="fas fa-user-shield"></i>
+                <!-- Logo du site -->
+                <div class="site-logo">
+                    <img src="{{ asset('assets/img/123.png') }}" alt="MentorAI Logo">
                 </div>
+
                 <h1>Bienvenue</h1>
                 <p>Connectez-vous pour accéder à votre espace</p>
             </div>
@@ -383,7 +421,7 @@
 
                     <!-- Mot de passe oublié -->
                     <div class="forgot-password-link" style="text-align: right; margin-bottom: 24px;">
-                        <a href="{{ path('app_forgot_password') }}" style="color: #7A9AAD; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.3s ease;">
+                        <a href="{{ path('app_forgot_password') }}">
                             <i class="fas fa-key me-1"></i>Mot de passe oublié ?
                         </a>
                     </div>
@@ -435,14 +473,26 @@
         // Focus animation
         document.querySelectorAll('.form-control').forEach(input => {
             input.addEventListener('focus', function() {
-                this.parentElement.querySelector('i').style.color = 'var(--primary-color)';
+                this.parentElement.querySelector('i').style.color = '#102c59';
             });
             
             input.addEventListener('blur', function() {
                 if (!this.value) {
-                    this.parentElement.querySelector('i').style.color = '#9ca3af';
+                    this.parentElement.querySelector('i').style.color = '#9dbbce';
                 }
             });
+        });
+
+        // Animation au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation du logo
+            const logo = document.querySelector('.site-logo img');
+            setTimeout(() => {
+                logo.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    logo.style.transform = 'scale(1)';
+                }, 200);
+            }, 300);
         });
     </script>
 

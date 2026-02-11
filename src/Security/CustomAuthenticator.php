@@ -44,21 +44,52 @@ class CustomAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        // Si l'utilisateur essayait d'accéder à une page protégée avant login
+        // Récupérer l'utilisateur connecté
+        $user = $token->getUser();
+        $roles = $user->getRoles();
+
+        // #region agent log
+        $logEntry = json_encode([
+            'id' => 'log_' . uniqid(),
+            'timestamp' => (int) (microtime(true) * 1000),
+            'location' => 'CustomAuthenticator.php:onAuthenticationSuccess',
+            'message' => 'onAuthenticationSuccess roles & firewall',
+            'runId' => 'pre-fix',
+            'hypothesisId' => 'H1-H3',
+            'data' => [
+                'roles' => $roles,
+                'firewallName' => $firewallName,
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        @file_put_contents(
+            __DIR__ . '/../../.cursor/debug.log',
+            $logEntry . PHP_EOL,
+            FILE_APPEND
+        );
+        // #endregion agent log
+
+        // ✅ SI ADMIN → redirection vers back office
+        if (in_array('ROLE_ADMIN', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('back_home'));
+        }
+
+        // ✅ ADMINM → tableau administrateur
+        if (in_array('ROLE_ADMINM', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('back_administrateur'));
+        }
+
+        // ✅ ENSEIGNANT → (à adapter si tu as un dashboard dédié)
+        if (in_array('ROLE_ENSEIGNANT', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('app_home'));
+        }
+
+        // ✅ SI ÉTUDIANT ou défaut → page front normale
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
             return new RedirectResponse($targetPath);
         }
 
-        // Récupérer l'utilisateur connecté
-        $user = $token->getUser();
-
-        // SI ADMIN → redirection vers /admin (back_home)
-        if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
-            return new RedirectResponse($this->urlGenerator->generate('back_home'));
-        }
-
-        // Sinon → page front normale (accueil)
-        return new RedirectResponse($this->urlGenerator->generate('front_home'));
+        return new RedirectResponse($this->urlGenerator->generate('app_home'));
     }
 
     protected function getLoginUrl(Request $request): string

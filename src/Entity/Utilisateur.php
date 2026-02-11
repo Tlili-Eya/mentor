@@ -39,15 +39,14 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $role = null;
 
-    // ==================== NOUVEAUX CHAMPS POUR RESET PASSWORD ====================
-    
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $resetToken = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $resetTokenExpiresAt = null;
 
-    // =============================================================================
+    #[ORM\Column(length: 20, options: ['default' => 'actif'])]
+    private ?string $status = 'actif';
 
     /**
      * @var Collection<int, CategorieArticle>
@@ -95,19 +94,34 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
         $this->objectifs = new ArrayCollection();
     }
 
-    // Méthodes pour UserInterface
+    // ==================== MÉTHODES POUR UserInterface ====================
+    
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
+    /**
+     * ✅ MÉTHODE CRITIQUE : Convertit le rôle string en tableau ROLE_XXX
+     */
     public function getRoles(): array
     {
-        return ['ROLE_' . strtoupper($this->role ?? 'USER')];
+        $roles = [];
+        
+        // Convertir le rôle en format Symfony (ROLE_XXX)
+        if ($this->role) {
+            $roles[] = 'ROLE_' . strtoupper($this->role);
+        }
+        
+        // Garantir que chaque utilisateur a au moins ROLE_USER
+        $roles[] = 'ROLE_USER';
+        
+        return array_unique($roles);
     }
 
     public function eraseCredentials(): void
     {
+        // Effacer les données sensibles temporaires si nécessaire
     }
 
     public function getPassword(): ?string
@@ -115,45 +129,8 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->mdp;
     }
 
-    // ==================== GETTERS/SETTERS POUR RESET PASSWORD ====================
+    // ==================== GETTERS/SETTERS ====================
 
-    public function getResetToken(): ?string
-    {
-        return $this->resetToken;
-    }
-
-    public function setResetToken(?string $resetToken): static
-    {
-        $this->resetToken = $resetToken;
-        return $this;
-    }
-
-    public function getResetTokenExpiresAt(): ?\DateTimeInterface
-    {
-        return $this->resetTokenExpiresAt;
-    }
-
-    public function setResetTokenExpiresAt(?\DateTimeInterface $resetTokenExpiresAt): static
-    {
-        $this->resetTokenExpiresAt = $resetTokenExpiresAt;
-        return $this;
-    }
-
-    /**
-     * Vérifie si le token de réinitialisation est encore valide
-     */
-    public function isResetTokenValid(): bool
-    {
-        if (!$this->resetToken || !$this->resetTokenExpiresAt) {
-            return false;
-        }
-
-        return new \DateTime() < $this->resetTokenExpiresAt;
-    }
-
-    // =============================================================================
-
-    // Getters et Setters existants
     public function getId(): ?int
     {
         return $this->id;
@@ -235,6 +212,57 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
         $this->role = $role;
         return $this;
     }
+
+    // ==================== RESET PASSWORD ====================
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function setResetToken(?string $resetToken): static
+    {
+        $this->resetToken = $resetToken;
+        return $this;
+    }
+
+    public function getResetTokenExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->resetTokenExpiresAt;
+    }
+
+    public function setResetTokenExpiresAt(?\DateTimeInterface $resetTokenExpiresAt): static
+    {
+        $this->resetTokenExpiresAt = $resetTokenExpiresAt;
+        return $this;
+    }
+
+    public function isResetTokenValid(): bool
+    {
+        if (!$this->resetToken || !$this->resetTokenExpiresAt) {
+            return false;
+        }
+        return new \DateTime() < $this->resetTokenExpiresAt;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'actif';
+    }
+
+    // ==================== RELATIONS ====================
 
     /**
      * @return Collection<int, CategorieArticle>

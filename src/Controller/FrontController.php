@@ -5,11 +5,25 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
 
 #[Route('/', name: 'front_')]
 final class FrontController extends AbstractController
 {
-    #[Route('', name: 'home')]
+
+    #[Route('affiche', name: 'affiche')]
+    
+    public function affiche(): Response
+    {
+        return $this->render('front/affiche.html.twig');
+    }
+
+    
+    
+
+
+    #[Route('home', name: 'home')]
     public function home(): Response
     {
         return $this->render('front/home.html.twig');
@@ -104,4 +118,9 @@ final class FrontController extends AbstractController
     {
         return $this->render('front/404.html.twig');
     }
+
+  
+
+
+
 }

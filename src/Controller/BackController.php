@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\UtilisateurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -9,7 +10,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/admin', name: 'back_')]
 final class BackController extends AbstractController
 {
-    #[Route('', name: 'home')]
+    #[Route('/', name: 'home')]
     public function home(): Response
     {
         return $this->render('back/home.html.twig');
@@ -73,5 +74,13 @@ final class BackController extends AbstractController
     public function contact(): Response
     {
         return $this->render('back/contact.html.twig');
+    }
+
+    #[Route('/administrateur', name: 'administrateur')]
+    public function administrateur(UtilisateurRepository $utilisateurRepository): Response
+    {
+        return $this->render('back/administrateur.html.twig', [
+            'utilisateurs' => $utilisateurRepository->findAll(),
+        ]);
     }
 }

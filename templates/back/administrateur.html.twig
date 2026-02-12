@@ -1,0 +1,1181 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Instructors Management{% endblock %}
+
+{% block body %}
+<!-- Page Title -->
+<div class="page-title light-background">
+  <div class="container d-lg-flex justify-content-between align-items-center">
+    <h1 class="mb-2 mb-lg-0 text-primary">Instructors Management</h1>
+    <nav class="breadcrumbs">
+      <ol>
+        <li><a href="{{ path('back_home') }}">Home</a></li>
+        <li class="current">Instructors</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    
+    <!-- Header actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="mb-0 text-secondary">Manage Instructors</h2>
+      
+      <div class="d-flex gap-2">
+        <!-- Export Buttons -->
+        <button type="button" class="btn btn-success" id="exportExcelBtn">
+          <i class="bi bi-file-earmark-excel me-1"></i> Export to Excel
+        </button>
+        <button type="button" class="btn btn-warning" id="exportPdfBtn">
+          <i class="bi bi-file-earmark-pdf me-1"></i> Export to PDF
+        </button>
+        
+        <!-- Add Instructor Button -->
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#addInstructorModal">
+          <i class="bi bi-plus-circle me-1"></i> Add Instructor
+        </button>
+      </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-3 g-3">
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search"></i>
+          </span>
+          <input type="text" 
+                 class="form-control border-start-0" 
+                 placeholder="Search by name, email, or role..." 
+                 id="searchInput">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <select class="form-select" id="sortSelect">
+          <option value="">Sort by</option>
+          <option value="name">Name (A-Z)</option>
+          <option value="email">Email (A-Z)</option>
+          <option value="role">Role</option>
+          <option value="date">Registration Date</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="button" class="btn btn-outline-secondary w-100" id="resetBtn">
+          <i class="bi bi-arrow-clockwise"></i> Reset
+        </button>
+      </div>
+    </div>
+    
+    <!-- Results counter -->
+    <div class="mb-2">
+      <small class="text-muted">
+        Showing <strong id="resultCount">{{ utilisateurs|length }}</strong> of {{ utilisateurs|length }} instructor(s)
+      </small>
+    </div>
+    
+    <!-- Table -->
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0" id="instructorsTable">
+            <thead style="background-color: #eef3f7;">
+              <tr class="text-secondary">
+                <th>#</th>
+                <th>Instructor</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Registration Date</th>
+                <th>Status</th>
+                <th class="text-end no-export">Actions</th>
+              </tr>
+            </thead>
+            
+            <tbody id="tableBody">
+              {% for utilisateur in utilisateurs %}
+              <tr class="data-row">
+                <td>{{ utilisateur.id }}</td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    {% if utilisateur.pdpUrl %}
+                      <img src="{{ asset('uploads/pdp/' ~ utilisateur.pdpUrl) }}" 
+                           alt="{{ utilisateur.prenom ~ ' ' ~ utilisateur.nom }}" 
+                           class="rounded-circle me-2" 
+                           style="width: 40px; height: 40px; object-fit: cover;">
+                    {% else %}
+                      <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center me-2" 
+                           style="width: 40px; height: 40px; font-size: 0.9rem;">
+                        {{ utilisateur.prenom|first|upper }}{{ utilisateur.nom|first|upper }}
+                      </div>
+                    {% endif %}
+                    <div>
+                      <strong class="text-dark">{{ utilisateur.prenom }} {{ utilisateur.nom }}</strong><br>
+                      <small class="text-muted">ID: {{ utilisateur.id }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <a href="mailto:{{ utilisateur.email }}" class="text-primary text-decoration-none">
+                    {{ utilisateur.email }}
+                  </a>
+                </td>
+                <td>
+                  <span class="badge {% if utilisateur.role == 'administrateur' %}bg-danger{% elseif utilisateur.role == 'enseignant' %}bg-primary{% elseif utilisateur.role == 'etudiant' %}bg-info{% else %}bg-secondary{% endif %}">
+                    {{ utilisateur.role|upper }}
+                  </span>
+                </td>
+                <td>
+                  {% if utilisateur.dateInscription %}
+                    <i class="bi bi-calendar-event me-1"></i>
+                    {{ utilisateur.dateInscription|date('Y-m-d') }}
+                  {% else %}
+                    <span class="text-muted">N/A</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if utilisateur.status == 'actif' %}
+                    <span class="badge bg-success">ACTIF</span>
+                  {% elseif utilisateur.status == 'desactiver' %}
+                    <span class="badge bg-danger">DÉSACTIVÉ</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ utilisateur.status|upper }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-end no-export">
+                  <a href="{{ path('app_utilisateur_show', {'id': utilisateur.id}) }}" 
+                     class="btn btn-sm btn-outline-info me-1" 
+                     title="View"
+                     data-bs-toggle="tooltip">
+                     <i class="bi bi-eye"></i>
+                  </a>
+                  
+                  <!-- MODIFIÉ: Edit button triggers modal instead of page navigation -->
+                  <button type="button"
+                     class="btn btn-sm btn-outline-primary me-1" 
+                     title="Edit"
+                     data-bs-toggle="modal"
+                     data-bs-target="#editInstructorModal{{ utilisateur.id }}">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  
+                  <button type="button" 
+                          class="btn btn-sm btn-outline-danger" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#deleteModal{{ utilisateur.id }}" 
+                          title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              
+              <!-- NOUVEAU: Edit Instructor Modal -->
+              <div class="modal fade" id="editInstructorModal{{ utilisateur.id }}" tabindex="-1" aria-labelledby="editInstructorModalLabel{{ utilisateur.id }}" aria-hidden="true" data-bs-backdrop="static">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+                  <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                    <!-- Modal Header -->
+                    <div class="modal-header border-0" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 1.5rem 2rem;">
+                      <div>
+                        <h4 class="modal-title text-white fw-bold mb-1" id="editInstructorModalLabel{{ utilisateur.id }}">
+                          <i class="bi bi-pencil-square me-2"></i>
+                          Edit Instructor
+                        </h4>
+                        <p class="text-white-50 mb-0 small">Update information for {{ utilisateur.prenom }} {{ utilisateur.nom }}</p>
+                      </div>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                   <!-- Modal Body -->
+<div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+  <form method="post" action="{{ path('app_utilisateur_edit', {'id': utilisateur.id}) }}" id="editInstructorForm{{ utilisateur.id }}">
+    <input type="hidden" name="_method" value="POST">
+    
+    <div class="row g-4">
+      <!-- Prénom -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-person me-1 text-primary"></i>
+          First Name <span class="text-danger">*</span>
+        </label>
+        <input type="text" 
+               name="utilisateur[prenom]" 
+               class="form-control form-control-lg" 
+               value="{{ utilisateur.prenom }}" 
+               placeholder="Enter first name" 
+               required>
+      </div>
+
+      <!-- Nom -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-person-badge me-1 text-primary"></i>
+          Last Name <span class="text-danger">*</span>
+        </label>
+        <input type="text" 
+               name="utilisateur[nom]" 
+               class="form-control form-control-lg" 
+               value="{{ utilisateur.nom }}" 
+               placeholder="Enter last name" 
+               required>
+      </div>
+
+      <!-- Email -->
+      <div class="col-12">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-envelope me-1 text-primary"></i>
+          Email Address <span class="text-danger">*</span>
+        </label>
+        <input type="email" 
+               name="utilisateur[email]" 
+               class="form-control form-control-lg" 
+               value="{{ utilisateur.email }}" 
+               placeholder="instructor@example.com" 
+               required>
+        <small class="text-muted">
+          <i class="bi bi-info-circle me-1"></i>
+          This email will be used for login
+        </small>
+      </div>
+
+      <!-- Mot de passe -->
+      <div class="col-12">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-lock me-1 text-primary"></i>
+          New Password 
+          <span class="badge bg-secondary ms-2">Optional</span>
+        </label>
+        <div class="input-group">
+          <input type="password" 
+                 name="utilisateur[mdp]" 
+                 id="editPasswordInput{{ utilisateur.id }}" 
+                 class="form-control form-control-lg" 
+                 placeholder="Leave empty to keep current password">
+          <button class="btn btn-outline-secondary" type="button" onclick="toggleEditPassword({{ utilisateur.id }})">
+            <i class="bi bi-eye" id="editToggleIcon{{ utilisateur.id }}"></i>
+          </button>
+        </div>
+        <small class="text-muted">
+          <i class="bi bi-info-circle me-1"></i>
+          Leave blank to keep the current password
+        </small>
+        <div class="password-strength mt-2">
+          <div class="progress" style="height: 6px;">
+            <div class="progress-bar" id="editStrengthBar{{ utilisateur.id }}" role="progressbar" style="width: 0%"></div>
+          </div>
+          <small class="text-muted" id="editStrengthText{{ utilisateur.id }}">Password strength</small>
+        </div>
+      </div>
+
+      <!-- Rôle -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-shield-check me-1 text-primary"></i>
+          Role <span class="text-danger">*</span>
+        </label>
+        <select name="utilisateur[role]" class="form-select form-select-lg" required>
+          <option value="">Select a role</option>
+          <option value="enseignant" {% if utilisateur.role == 'enseignant' %}selected{% endif %}>Enseignant (Teacher)</option>
+          <option value="administrateur" {% if utilisateur.role == 'administrateur' %}selected{% endif %}>Administrateur (Admin)</option>
+          <option value="etudiant" {% if utilisateur.role == 'etudiant' %}selected{% endif %}>Étudiant (Student)</option>
+        </select>
+      </div>
+
+      <!-- Date d'inscription -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-calendar-check me-1 text-primary"></i>
+          Registration Date
+        </label>
+        <input type="date" 
+               name="utilisateur[date_inscription]" 
+               class="form-control form-control-lg" 
+               value="{{ utilisateur.dateInscription ? utilisateur.dateInscription|date('Y-m-d') : '' }}">
+      </div>
+
+      <!-- Photo de profil URL -->
+      <div class="col-12">
+        <label class="form-label fw-semibold">
+          <i class="bi bi-image me-1 text-primary"></i>
+          Profile Picture URL
+          <span class="badge bg-secondary ms-2">Optional</span>
+        </label>
+        <input type="text" 
+               name="utilisateur[pdp_url]" 
+               class="form-control form-control-lg" 
+               value="{{ utilisateur.pdpUrl }}" 
+               placeholder="photo.jpg or leave empty">
+        {% if utilisateur.pdpUrl %}
+          <small class="text-success d-block mt-1">
+            <i class="bi bi-check-circle me-1"></i>
+            Current: {{ utilisateur.pdpUrl }}
+          </small>
+        {% endif %}
+      </div>
+
+      <!-- CSRF Token -->
+      <input type="hidden" name="utilisateur[_token]" value="{{ csrf_token('utilisateur') }}">
+    </div>
+
+    <!-- Info Alert -->
+    <div class="alert alert-info border-0 mt-4" style="background: rgba(99, 102, 241, 0.1);">
+      <h6 class="fw-semibold mb-2">
+        <i class="bi bi-info-circle me-2"></i>
+        Update Information
+      </h6>
+      <ul class="mb-0 small">
+        <li>Only fill in the password field if you want to change it</li>
+        <li>Changes will be saved immediately after clicking "Update"</li>
+        <li>Make sure the email address is valid for notifications</li>
+      </ul>
+    </div>
+  </form>
+</div>
+                    <!-- Modal Footer -->
+                    <div class="modal-footer border-0 bg-light p-3">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                      </button>
+                      <button type="submit" form="editInstructorForm{{ utilisateur.id }}" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i> Update Instructor
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Delete Modal -->
+              <div class="modal fade" id="deleteModal{{ utilisateur.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ utilisateur.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="deleteModalLabel{{ utilisateur.id }}">
+                        <i class="bi bi-person-slash text-warning me-2"></i>
+                        Désactiver le compte
+                      </h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="alert alert-danger border-0">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        <strong>Attention :</strong> Cette action désactivera l'accès au compte.
+                      </div>
+                      <p class="mb-0">
+                        Tu veux désactiver le compte <strong>{{ utilisateur.prenom }} {{ utilisateur.nom }}</strong> ??
+                      </p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Annuler
+                      </button>
+                      <form method="post" action="{{ path('app_utilisateur_delete', {'id': utilisateur.id}) }}" style="display: inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ utilisateur.id) }}">
+                        <button type="submit" class="btn btn-danger">
+                          <i class="bi bi-person-slash me-1"></i> Désactiver
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% else %}
+              <tr class="no-data-row">
+                <td colspan="7" class="text-center text-muted py-4">
+                  <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                  <p class="mt-2">No instructors found</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer info -->
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <p class="text-muted mb-0">
+        Total: <strong>{{ utilisateurs|length }}</strong> instructor(s)
+      </p>
+    </div>
+    
+  </div>
+</section>
+
+<!-- Add Instructor Modal -->
+<div class="modal fade" id="addInstructorModal" tabindex="-1" aria-labelledby="addInstructorModalLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+      <!-- Modal Header -->
+      <div class="modal-header border-0" style="background: linear-gradient(135deg, #7A9AAD, #7A9AAD); padding: 1.5rem 2rem;">
+        <div>
+          <h4 class="modal-title text-white fw-bold mb-1" id="addInstructorModalLabel">
+            <i class="bi bi-person-plus-fill me-2"></i>
+            Add New Instructor
+          </h4>
+          <p class="text-white-50 mb-0 small">Fill in the details to create a new instructor account</p>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+        <form method="post" action="{{ path('app_utilisateur_new') }}" id="addInstructorForm">
+          <div class="row g-4">
+            <!-- Prénom -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-primary"></i>
+                First Name <span class="text-danger">*</span>
+              </label>
+              <input type="text" name="utilisateur[prenom]" class="form-control form-control-lg" placeholder="Enter first name" required>
+            </div>
+
+            <!-- Nom -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-person-badge me-1 text-primary"></i>
+                Last Name <span class="text-danger">*</span>
+              </label>
+              <input type="text" name="utilisateur[nom]" class="form-control form-control-lg" placeholder="Enter last name" required>
+            </div>
+
+            <!-- Email -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-envelope me-1 text-primary"></i>
+                Email Address <span class="text-danger">*</span>
+              </label>
+              <input type="email" name="utilisateur[email]" class="form-control form-control-lg" placeholder="instructor@example.com" required>
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                This email will be used for login
+              </small>
+            </div>
+
+            <!-- Mot de passe -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-lock me-1 text-primary"></i>
+                Password <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <input type="password" name="utilisateur[mdp]" id="modalPasswordInput" class="form-control form-control-lg" placeholder="Minimum 8 characters" required>
+                <button class="btn btn-outline-secondary" type="button" onclick="toggleModalPassword()">
+                  <i class="bi bi-eye" id="modalToggleIcon"></i>
+                </button>
+              </div>
+              <div class="password-strength mt-2">
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar" id="modalStrengthBar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <small class="text-muted" id="modalStrengthText">Password strength</small>
+              </div>
+            </div>
+
+            <!-- Rôle -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-shield-check me-1 text-primary"></i>
+                Role <span class="text-danger">*</span>
+              </label>
+              <select name="utilisateur[role]" class="form-select form-select-lg" required>
+                <option value="">Select a role</option>
+                <option value="enseignant">Enseignant (Teacher)</option>
+                <option value="administrateur">Administrateur (Admin)</option>
+                <option value="etudiant">Étudiant (Student)</option>
+              </select>
+            </div>
+
+            <!-- Date d'inscription -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-calendar-check me-1 text-primary"></i>
+                Registration Date
+                <span class="badge bg-info ms-2">Auto</span>
+              </label>
+              <input type="date" name="utilisateur[date_inscription]" class="form-control form-control-lg" value="{{ 'now'|date('Y-m-d') }}">
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Default: Today
+              </small>
+            </div>
+
+            <!-- Photo de profil URL (optionnel) -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-image me-1 text-primary"></i>
+                Profile Picture URL
+                <span class="badge bg-secondary ms-2">Optional</span>
+              </label>
+              <input type="text" name="utilisateur[pdp_url]" class="form-control form-control-lg" placeholder="photo.jpg or leave empty">
+            </div>
+
+            <!-- CSRF Token (important!) -->
+            <input type="hidden" name="utilisateur[_token]" value="{{ csrf_token('utilisateur') }}">
+          </div>
+
+          <!-- Security Tips -->
+          <div class="alert alert-info border-0 mt-4" style="background: rgba(99, 102, 241, 0.1);">
+            <h6 class="fw-semibold mb-2">
+              <i class="bi bi-shield-check me-2"></i>
+              Security Tips
+            </h6>
+            <ul class="mb-0 small">
+              <li>Use a strong password (8+ characters with uppercase, lowercase, and numbers)</li>
+              <li>Assign only necessary permissions based on the user's role</li>
+              <li>Ensure the email address is valid for notifications</li>
+            </ul>
+          </div>
+        </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer border-0 bg-light p-3">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="submit" form="addInstructorForm" class="btn btn-danger">
+          <i class="bi bi-check-circle me-1"></i> Create Instructor
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include libraries for export functionality -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<!-- Search, Sort and Filter Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('searchInput');
+  const sortSelect = document.getElementById('sortSelect');
+  const resetBtn = document.getElementById('resetBtn');
+  const tableBody = document.getElementById('tableBody');
+  const resultCount = document.getElementById('resultCount');
+  const exportExcelBtn = document.getElementById('exportExcelBtn');
+  const exportPdfBtn = document.getElementById('exportPdfBtn');
+  
+  // Get all data rows (excluding modals and no-data-row)
+  const allRows = Array.from(document.querySelectorAll('.data-row'));
+  const totalRows = allRows.length;
+  
+  // Search functionality - INSTANT SEARCH
+  if (searchInput) {
+    searchInput.addEventListener('keyup', function() {
+      const searchTerm = this.value.toLowerCase().trim();
+      filterAndDisplay(searchTerm);
+    });
+  }
+  
+  // Sort functionality
+  if (sortSelect) {
+    sortSelect.addEventListener('change', function() {
+      const sortBy = this.value;
+      sortRows(sortBy);
+    });
+  }
+  
+  // Reset button
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function() {
+      searchInput.value = '';
+      sortSelect.value = '';
+      filterAndDisplay('');
+      
+      // Reset to original order
+      allRows.forEach(row => tableBody.appendChild(row));
+      
+      // Show success message
+      showNotification('Filters reset successfully', 'success');
+    });
+  }
+  
+  // Export to Excel functionality
+  if (exportExcelBtn) {
+    exportExcelBtn.addEventListener('click', function() {
+      exportToExcel();
+    });
+  }
+  
+  // Export to PDF functionality
+  if (exportPdfBtn) {
+    exportPdfBtn.addEventListener('click', function() {
+      exportToPDF();
+    });
+  }
+  
+  // Filter and display rows
+  function filterAndDisplay(searchTerm) {
+    let visibleCount = 0;
+    
+    allRows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const isVisible = text.includes(searchTerm);
+      
+      row.style.display = isVisible ? '' : 'none';
+      if (isVisible) visibleCount++;
+    });
+    
+    // Update result count
+    if (resultCount) {
+      resultCount.textContent = visibleCount;
+    }
+    
+    // Show/hide "no results" message
+    showNoResultsMessage(visibleCount);
+  }
+  
+  // Sort rows
+  function sortRows(sortBy) {
+    if (!sortBy) return;
+    
+    const sortedRows = [...allRows].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch(sortBy) {
+        case 'name':
+          // Column index 1 (Instructor name)
+          aValue = a.cells[1].textContent.trim().toLowerCase();
+          bValue = b.cells[1].textContent.trim().toLowerCase();
+          break;
+        case 'email':
+          // Column index 2 (Email)
+          aValue = a.cells[2].textContent.trim().toLowerCase();
+          bValue = b.cells[2].textContent.trim().toLowerCase();
+          break;
+        case 'role':
+          // Column index 3 (Role)
+          aValue = a.cells[3].textContent.trim().toLowerCase();
+          bValue = b.cells[3].textContent.trim().toLowerCase();
+          break;
+        case 'date':
+          // Column index 4 (Registration Date)
+          const dateA = a.cells[4].textContent.trim();
+          const dateB = b.cells[4].textContent.trim();
+          aValue = dateA === 'N/A' ? '0000-00-00' : dateA;
+          bValue = dateB === 'N/A' ? '0000-00-00' : dateB;
+          // Sort descending (most recent first)
+          return bValue.localeCompare(aValue);
+        default:
+          return 0;
+      }
+      
+      return aValue.localeCompare(bValue);
+    });
+    
+    // Re-append rows in sorted order
+    sortedRows.forEach(row => tableBody.appendChild(row));
+    
+    showNotification(`Sorted by ${sortBy}`, 'info');
+  }
+  
+  // Export to Excel function
+  function exportToExcel() {
+    try {
+      // Get visible rows only
+      const visibleRows = allRows.filter(row => row.style.display !== 'none');
+      
+      if (visibleRows.length === 0) {
+        showNotification('No data to export', 'warning');
+        return;
+      }
+      
+      // Prepare data for Excel
+      const data = [];
+      
+      // Add headers
+      data.push(['ID', 'Instructor Name', 'Email', 'Role', 'Registration Date', 'Status']);
+      
+      // Add data rows
+      visibleRows.forEach(row => {
+        const cells = row.cells;
+        const id = cells[0].textContent.trim();
+        const name = cells[1].textContent.trim().replace(/ID:\s*\d+/g, '').trim();
+        const email = cells[2].textContent.trim();
+        const role = cells[3].textContent.trim();
+        const date = cells[4].textContent.trim().replace(/\s+/g, ' ');
+        const status = cells[5].textContent.trim();
+        
+        data.push([id, name, email, role, date, status]);
+      });
+      
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 8 },  // ID
+        { wch: 25 }, // Name
+        { wch: 30 }, // Email
+        { wch: 15 }, // Role
+        { wch: 20 }, // Date
+        { wch: 12 }  // Status
+      ];
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Instructors');
+      
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const filename = `instructors_${timestamp}.xlsx`;
+      
+      // Save file
+      XLSX.writeFile(wb, filename);
+      
+      showNotification('Excel file exported successfully!', 'success');
+    } catch (error) {
+      console.error('Export error:', error);
+      showNotification('Error exporting to Excel', 'danger');
+    }
+  }
+  
+  // Export to PDF function
+  function exportToPDF() {
+    try {
+      // Get visible rows only
+      const visibleRows = allRows.filter(row => row.style.display !== 'none');
+      
+      if (visibleRows.length === 0) {
+        showNotification('No data to export', 'warning');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // landscape orientation
+      
+      // Add title
+      doc.setFontSize(18);
+      doc.setTextColor(40, 40, 40);
+      doc.text('Instructors Management Report', 14, 15);
+      
+      // Add date
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 22);
+      
+      // Prepare data for PDF table
+      const headers = [['ID', 'Instructor Name', 'Email', 'Role', 'Registration Date', 'Status']];
+      const data = [];
+      
+      visibleRows.forEach(row => {
+        const cells = row.cells;
+        const id = cells[0].textContent.trim();
+        const name = cells[1].textContent.trim().replace(/ID:\s*\d+/g, '').trim();
+        const email = cells[2].textContent.trim();
+        const role = cells[3].textContent.trim();
+        const date = cells[4].textContent.trim().replace(/\s+/g, ' ');
+        const status = cells[5].textContent.trim();
+        
+        data.push([id, name, email, role, date, status]);
+      });
+      
+      // Add table
+      doc.autoTable({
+        head: headers,
+        body: data,
+        startY: 28,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontSize: 10,
+          fontStyle: 'bold',
+          halign: 'left'
+        },
+        bodyStyles: {
+          fontSize: 9,
+          textColor: 50
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        },
+        columnStyles: {
+          0: { cellWidth: 15, halign: 'center' },  // ID
+          1: { cellWidth: 50 },  // Name
+          2: { cellWidth: 65 },  // Email
+          3: { cellWidth: 30, halign: 'center' },  // Role
+          4: { cellWidth: 40, halign: 'center' },  // Date
+          5: { cellWidth: 25, halign: 'center' }   // Status
+        },
+        margin: { top: 28, left: 14, right: 14 },
+        didDrawPage: function (data) {
+          // Add footer with page number
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.setFontSize(8);
+          doc.setTextColor(150);
+          doc.text(
+            `Page ${data.pageNumber} of ${pageCount}`,
+            doc.internal.pageSize.width / 2,
+            doc.internal.pageSize.height - 10,
+            { align: 'center' }
+          );
+        }
+      });
+      
+      // Add summary at the bottom
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      doc.text(`Total Instructors: ${visibleRows.length}`, 14, finalY);
+      
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const filename = `instructors_${timestamp}.pdf`;
+      
+      // Save PDF
+      doc.save(filename);
+      
+      showNotification('PDF file exported successfully!', 'success');
+    } catch (error) {
+      console.error('Export error:', error);
+      showNotification('Error exporting to PDF', 'danger');
+    }
+  }
+  
+  // Show/hide "no results" message
+  function showNoResultsMessage(count) {
+    let noResultsRow = document.querySelector('.no-results-row');
+    
+    if (count === 0 && totalRows > 0) {
+      if (!noResultsRow) {
+        noResultsRow = document.createElement('tr');
+        noResultsRow.className = 'no-results-row';
+        noResultsRow.innerHTML = `
+          <td colspan="7" class="text-center text-muted py-5">
+            <i class="bi bi-search" style="font-size: 3rem; opacity: 0.3;"></i>
+            <p class="mt-3 mb-0 fw-semibold">No results found</p>
+            <small class="text-muted">Try adjusting your search terms</small>
+          </td>
+        `;
+        tableBody.appendChild(noResultsRow);
+      }
+      noResultsRow.style.display = '';
+    } else {
+      if (noResultsRow) {
+        noResultsRow.style.display = 'none';
+      }
+    }
+  }
+  
+  // Show notification (toast-like)
+  function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 250px;';
+    notification.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+  
+  // Initialize tooltips
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+});
+</script>
+
+<!-- Modal Scripts for Add and Edit -->
+<script>
+// Toggle password visibility in ADD modal
+function toggleModalPassword() {
+  const passwordInput = document.getElementById('modalPasswordInput');
+  const toggleIcon = document.getElementById('modalToggleIcon');
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    toggleIcon.classList.remove('bi-eye');
+    toggleIcon.classList.add('bi-eye-slash');
+  } else {
+    passwordInput.type = 'password';
+    toggleIcon.classList.remove('bi-eye-slash');
+    toggleIcon.classList.add('bi-eye');
+  }
+}
+
+// Toggle password visibility in EDIT modal
+function toggleEditPassword(userId) {
+  const passwordInput = document.getElementById('editPasswordInput' + userId);
+  const toggleIcon = document.getElementById('editToggleIcon' + userId);
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    toggleIcon.classList.remove('bi-eye');
+    toggleIcon.classList.add('bi-eye-slash');
+  } else {
+    passwordInput.type = 'password';
+    toggleIcon.classList.remove('bi-eye-slash');
+    toggleIcon.classList.add('bi-eye');
+  }
+}
+
+// Check password strength in ADD modal
+function checkModalPasswordStrength(password) {
+  let strength = 0;
+  
+  if (password.length >= 8) strength += 25;
+  if (password.length >= 12) strength += 25;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+  if (/[0-9]/.test(password)) strength += 15;
+  if (/[^a-zA-Z0-9]/.test(password)) strength += 10;
+
+  const strengthBar = document.getElementById('modalStrengthBar');
+  const strengthText = document.getElementById('modalStrengthText');
+
+  strengthBar.style.width = strength + '%';
+
+  if (strength < 40) {
+    strengthBar.className = 'progress-bar bg-danger';
+    strengthText.textContent = 'Weak password';
+    strengthText.style.color = '#dc3545';
+  } else if (strength < 70) {
+    strengthBar.className = 'progress-bar bg-warning';
+    strengthText.textContent = 'Medium strength';
+    strengthText.style.color = '#ffc107';
+  } else {
+    strengthBar.className = 'progress-bar bg-success';
+    strengthText.textContent = 'Strong password';
+    strengthText.style.color = '#198754';
+  }
+}
+
+// Check password strength in EDIT modal
+function checkEditPasswordStrength(password, userId) {
+  let strength = 0;
+  
+  if (password.length >= 8) strength += 25;
+  if (password.length >= 12) strength += 25;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+  if (/[0-9]/.test(password)) strength += 15;
+  if (/[^a-zA-Z0-9]/.test(password)) strength += 10;
+
+  const strengthBar = document.getElementById('editStrengthBar' + userId);
+  const strengthText = document.getElementById('editStrengthText' + userId);
+
+  if (!strengthBar || !strengthText) return;
+
+  strengthBar.style.width = strength + '%';
+
+  if (password.length === 0) {
+    strengthBar.style.width = '0%';
+    strengthText.textContent = 'Password strength';
+    strengthText.style.color = '#6c757d';
+    return;
+  }
+
+  if (strength < 40) {
+    strengthBar.className = 'progress-bar bg-danger';
+    strengthText.textContent = 'Weak password';
+    strengthText.style.color = '#dc3545';
+  } else if (strength < 70) {
+    strengthBar.className = 'progress-bar bg-warning';
+    strengthText.textContent = 'Medium strength';
+    strengthText.style.color = '#ffc107';
+  } else {
+    strengthBar.className = 'progress-bar bg-success';
+    strengthText.textContent = 'Strong password';
+    strengthText.style.color = '#198754';
+  }
+}
+
+// Initialize modal events
+document.addEventListener('DOMContentLoaded', function() {
+    // Mise à jour de l'aperçu en temps réel
+    function updatePreview() {
+        // ... (existing code for preview) ...
+    }
+  });
+
+  // Gestion de la soumission du formulaire modal via AJAX
+  document.addEventListener('submit', function(event) {
+    if (event.target && event.target.id && event.target.id.startsWith('editInstructorForm')) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+      // Fix: Button is outside the form, linked via 'form' attribute
+      const submitBtn = document.querySelector('button[type="submit"][form="' + form.id + '"]') || form.querySelector('button[type="submit"]');
+      
+      if (!submitBtn) {
+         // Fallback if button not found (unexpected)
+         return;
+      }
+
+      const originalBtnText = submitBtn.innerHTML;
+
+      // Désactiver le bouton pour éviter double soumission
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+           // Fermer le modal
+           const modalElement = form.closest('.modal');
+           const modalInstance = bootstrap.Modal.getInstance(modalElement);
+           if (modalInstance) {
+               modalInstance.hide();
+           }
+           
+           // Recharger la page pour afficher les changements et le flash message
+           window.location.reload(); 
+        } else {
+           alert('Error: ' + (data.message || 'An error occurred'));
+           submitBtn.disabled = false;
+           submitBtn.innerHTML = originalBtnText;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('A network error occurred');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      });
+    }
+  });
+  // ADD modal password strength
+  const modalPasswordInput = document.getElementById('modalPasswordInput');
+  if (modalPasswordInput) {
+    modalPasswordInput.addEventListener('keyup', function() {
+      checkModalPasswordStrength(this.value);
+    });
+  }
+
+  // EDIT modals password strength - attach to all edit password inputs
+  document.querySelectorAll('[id^="editPasswordInput"]').forEach(input => {
+    const userId = input.id.replace('editPasswordInput', '');
+    input.addEventListener('keyup', function() {
+      checkEditPasswordStrength(this.value, userId);
+    });
+  });
+
+  // Reset ADD form when modal is closed
+  const addInstructorModal = document.getElementById('addInstructorModal');
+  if (addInstructorModal) {
+    addInstructorModal.addEventListener('hidden.bs.modal', function () {
+      document.getElementById('addInstructorForm').reset();
+      checkModalPasswordStrength('');
+    });
+  }
+  
+
+    </script>
+
+<style>
+/* Custom styles for search */
+.input-group-text {
+  background-color: white !important;
+  border-right: 0 !important;
+}
+
+.form-control.border-start-0:focus {
+  border-left: 0 !important;
+  box-shadow: none;
+}
+
+/* Smooth transitions for table rows */
+.data-row {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.data-row:hover {
+  background-color: #f8f9fa;
+  transform: scale(1.01);
+}
+
+/* Badge animations */
+.badge {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Export button styling */
+#exportExcelBtn, #exportPdfBtn {
+  transition: all 0.3s ease;
+}
+
+#exportExcelBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px #818cf8;
+}
+
+#exportPdfBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px#818cf8;
+}
+
+/* Modal backdrop blur effect */
+.modal-backdrop.show {
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* Modal animation */
+.modal.fade .modal-dialog {
+  transform: scale(0.8);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal.show .modal-dialog {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Form control focus for both modals */
+.modal .form-control:focus,
+.modal .form-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+}
+
+/* Scrollbar styling for modals */
+.modal .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal .modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.modal .modal-body::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 10px;
+}
+
+.modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
+}
+</style>
+
+{% endblock %}

@@ -1,16 +1,16 @@
 {% extends 'back/base.html.twig' %}
 
-{% block title %}Instructors Management{% endblock %}
+{% block title %}Gestion des utilisateurs{% endblock %}
 
 {% block body %}
 <!-- Page Title -->
 <div class="page-title light-background">
   <div class="container d-lg-flex justify-content-between align-items-center">
-    <h1 class="mb-2 mb-lg-0 text-primary">Instructors Management</h1>
+    <h1 class="mb-2 mb-lg-0 text-primary">Gestion des utilisateurs</h1>
     <nav class="breadcrumbs">
       <ol>
         <li><a href="{{ path('back_home') }}">Home</a></li>
-        <li class="current">Instructors</li>
+        <li class="current">utilisateur</li>
       </ol>
     </nav>
   </div>
@@ -21,20 +21,20 @@
     
     <!-- Header actions -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="mb-0 text-secondary">Manage Instructors</h2>
+      <h2 class="mb-0 text-secondary">Gérer les utilisateurs</h2>
       
       <div class="d-flex gap-2">
         <!-- Export Buttons -->
         <button type="button" class="btn btn-success" id="exportExcelBtn">
-          <i class="bi bi-file-earmark-excel me-1"></i> Export to Excel
+          <i class="bi bi-file-earmark-excel me-1"></i> Exporter  Excel
         </button>
         <button type="button" class="btn btn-warning" id="exportPdfBtn">
-          <i class="bi bi-file-earmark-pdf me-1"></i> Export to PDF
+          <i class="bi bi-file-earmark-pdf me-1"></i> Exporter  PDF
         </button>
         
         <!-- Add Instructor Button -->
         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#addInstructorModal">
-          <i class="bi bi-plus-circle me-1"></i> Add Instructor
+          <i class="bi bi-plus-circle me-1"></i> Ajouter Membre
         </button>
       </div>
     </div>
@@ -63,7 +63,7 @@
       </div>
       <div class="col-md-2">
         <button type="button" class="btn btn-outline-secondary w-100" id="resetBtn">
-          <i class="bi bi-arrow-clockwise"></i> Reset
+          <i class="bi bi-arrow-clockwise"></i> Réinitialiser
         </button>
       </div>
     </div>
@@ -277,6 +277,7 @@
           <option value="enseignant" {% if utilisateur.role == 'enseignant' %}selected{% endif %}>Enseignant (Teacher)</option>
           <option value="administrateur" {% if utilisateur.role == 'administrateur' %}selected{% endif %}>Administrateur (Admin)</option>
           <option value="etudiant" {% if utilisateur.role == 'etudiant' %}selected{% endif %}>Étudiant (Student)</option>
+           <option value="adminm" {% if utilisateur.role == 'adminm' %}selected{% endif %}>Adminm (Adminm)</option>
         </select>
       </div>
 
@@ -333,10 +334,10 @@
                     <!-- Modal Footer -->
                     <div class="modal-footer border-0 bg-light p-3">
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i> Cancel
+                        <i class="bi bi-x-circle me-1"></i> Annuler
                       </button>
                       <button type="submit" form="editInstructorForm{{ utilisateur.id }}" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-1"></i> Update Instructor
+                        <i class="bi bi-check-circle me-1"></i>  modifier 
                       </button>
                     </div>
                   </div>
@@ -483,6 +484,7 @@
                 <option value="enseignant">Enseignant (Teacher)</option>
                 <option value="administrateur">Administrateur (Admin)</option>
                 <option value="etudiant">Étudiant (Student)</option>
+                <option value="adminm">Adminm (Adminm)</option>
               </select>
             </div>
 

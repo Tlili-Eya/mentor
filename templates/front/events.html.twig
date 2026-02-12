@@ -13,6 +13,27 @@
       <h1 class="mb-2 mb-lg-0">MES OBJECTIFS</h1>
       
       <div class="d-flex align-items-center gap-3">
+      {% for flash in app.flashes('success') %}
+  <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-3" role="alert">
+    <i class="bi {{ flash.icon|default('bi-check-circle-fill') }} fs-3"></i>
+    <div>
+      <strong>{{ flash.title|default('Succès') }}</strong><br>
+      {{ flash.message|default('Action réalisée avec succès.') }}
+    </div>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endfor %}
+
+{% for flash in app.flashes('danger') %}
+  <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-3" role="alert">
+    <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+    <div>
+      <strong>Erreur</strong><br>
+      {{ flash.message|default('Une erreur est survenue.') }}
+    </div>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endfor %}
         <!-- Recherche -->
         <!-- Barre de recherche améliorée -->
 <!-- Barre de recherche par titre objectif -->
@@ -85,30 +106,64 @@
 
       <div class="table-responsive">
    <div class="mb-4 d-flex flex-wrap gap-3">
-   <div class="mb-4 d-flex flex-wrap gap-3">
-    <!-- Total -->
-    <div class="badge" style="background-color: rgba(122, 154, 173, 0.15); color: #7a9aad; border: 1px solid rgba(122, 154, 173, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
-        <i class="bi bi-list-ul me-2"></i>
-        Total : {{ total }} objectif{{ total > 1 ? 's' : '' }}
+   
+    <!-- Répartition des objectifs (mini) -->
+<div class="container mb-4">
+  <div class="card shadow-sm border-0 rounded-4 p-3">
+
+    <h6 class="mb-3 text-center fw-semibold">Répartition des objectifs</h6>
+
+    <div class="d-flex justify-content-center">
+      <div class="d-flex align-items-center gap-3 flex-column flex-md-row">
+
+        <!-- Cercle mini -->
+        
+        <div class="stat-pie-circle">
+          <div class="pie" style="
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: conic-gradient(
+              #195987 0% {{ max(0, (atteints / total * 100)|default(0)) }}%,
+              #ffc107 {{ max(0, (atteints / total * 100))|default(0) }}% {{ max(0, ((atteints + enCours) / total * 100))|default(0) }}%,
+              #d52e28 {{ max(0, ((atteints + enCours) / total * 100))|default(0) }}% 100%
+            );
+          ">
+            <div class="inner-circle d-flex align-items-center justify-content-center">
+              <div class="text-center">
+                <div class="fw-bold text-primary" style="font-size: 1.2rem;">
+                  {{ total }}
+                </div>
+                <small class="text-muted">obj.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Légende compacte -->
+        <div class="legend d-flex flex-column justify-content-center gap-1">
+          <div class="d-flex align-items-center">
+            <span class="legend-color me-2" style="background:#195987"></span>
+            <small>Atteints : <strong>{{ atteints }}</strong></small>
+          </div>
+
+          <div class="d-flex align-items-center">
+            <span class="legend-color me-2" style="background:#ffc107"></span>
+            <small>En cours : <strong>{{ enCours }}</strong></small>
+          </div>
+
+          <div class="d-flex align-items-center">
+            <span class="legend-color me-2" style="background:#d52e28"></span>
+            <small>Abandonnés : <strong>{{ abandonnes }}</strong></small>
+          </div>
+        </div>
+
+      </div>
     </div>
 
-    <!-- Atteints -->
-    <div class="badge" style="background-color: rgba(122, 154, 173, 0.15); color: #7a9aad; border: 1px solid rgba(122, 154, 173, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
-        <i class="bi bi-check-circle me-2"></i>
-        Atteints : {{ atteints }}
-    </div>
+  </div>
+</div>
 
-    <!-- En cours -->
-    <div class="badge" style="background-color: rgba(122, 154, 173, 0.15); color: #7a9aad; border: 1px solid rgba(122, 154, 173, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
-        <i class="bi bi-hourglass me-2"></i>
-        En cours : {{ enCours }}
-    </div>
-
-    <!-- Abandonnés -->
-    <div class="badge" style="background-color: rgba(122, 154, 173, 0.15); color: #7a9aad; border: 1px solid rgba(122, 154, 173, 0.3); font-size: 1rem; padding: 0.5rem 1.25rem; border-radius: 50rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);">
-        <i class="bi bi-x-circle me-2"></i>
-        Abandonnés : {{ abandonnes }}
-    </div>
 </div>
 </div>
         <table class="table table-hover align-middle objectif-table">
@@ -147,13 +202,14 @@
       <td>{{ objectif.datefin ? objectif.datefin|date('d/m/Y') : '—' }}</td>
 
       <td>
-        <span class="badge rounded-pill px-3 py-2 fs-6
+        <span class="badge rounded-pill px-4 py-2 fs-6
           {% if objectif.statut.value == 'validee' %}bg-success text-white
           {% elseif objectif.statut.value == 'en_cours' %}bg-warning text-dark
           {% elseif objectif.statut.value == 'refusee' %}bg-danger text-white
           {% else %}bg-secondary text-white{% endif %}">
           {{ objectif.statut ? objectif.statut.value|capitalize : 'Inconnu' }}
         </span>
+        
       </td>
 
       <td class="text-end">
@@ -172,6 +228,12 @@
              title="Détails de l'objectif">
             <i class="bi bi-eye"></i>
           </a>
+          <!-- 3. Modifier -->
+          <a href="{{ path('front_objectif_edit', {id: objectif.id}) }}"
+   class="btn btn-sm btn-outline-warning rounded-circle"
+   title="Modifier l'objectif">
+  <i class="bi bi-pencil"></i>
+</a>
 
           <!-- 3. Supprimer -->
           <form method="post"
@@ -335,6 +397,35 @@
       font-size: 0.9rem;
       margin-top: 6px;
     }
+.stat-pie-circle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pie {
+  position: relative;
+}
+
+.inner-circle {
+  position: absolute;
+  inset: 20%;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.legend {
+  font-size: 0.85rem;
+}
+
+.legend-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
 
     
     .objectif-table .btn-rounded-circle:hover { transform: scale(1.15); }

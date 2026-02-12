@@ -278,13 +278,13 @@ $enCours = 0;
 $abandonnes = 0;
 
 foreach ($objectifs as $objectif) {
-    $statut = $objectif->getStatut() ? strtolower($objectif->getStatut()->value) : null;
+    $statut = $objectif->getStatut()?->value;
 
-    if (str_contains($statut, 'valide') || str_contains($statut, 'valid')) {
+    if ($statut === Statutobj::Atteint->value) {
         $atteints++;
-    } elseif (str_contains($statut, 'cours') || str_contains($statut, 'en cours')) {
+    } elseif ($statut === Statutobj::EnCours->value) {
         $enCours++;
-    } elseif (str_contains($statut, 'abandon') || str_contains($statut, 'abandonne') || str_contains($statut, 'abandonner')) {
+    } elseif ($statut === Statutobj::Abandonner->value) {
         $abandonnes++;
     }
 }
@@ -338,7 +338,7 @@ public function show(Objectif $objectif): Response
 }
 
 #[Route('/events/{id}', name: 'objectif_delete', methods: ['POST'])]
-public function delete(Request $request, Objectif $objectif, EntityManagerInterface $entityManager): Response
+public function deleteobjectif(Request $request, Objectif $objectif, EntityManagerInterface $entityManager): Response
 {
     if ($this->isCsrfTokenValid('delete' . $objectif->getId(), $request->request->get('_token'))) {
         
@@ -349,6 +349,38 @@ public function delete(Request $request, Objectif $objectif, EntityManagerInterf
     }
 
     return $this->redirectToRoute('front_events');
+}
+#[Route('/events/{id}/edit', name: 'objectif_edit', methods: ['GET', 'POST'])]
+public function editerObjectif(
+    Request $request,
+    Objectif $objectif,
+    EntityManagerInterface $entityManager
+): Response
+{
+    $form = $this->createForm(ObjectifType::class, $objectif);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+
+        // ────────────────────────────────────────────────
+        // SYNCHRONISATION DU TITRE DU PROGRAMME
+        // ────────────────────────────────────────────────
+        if ($objectif->getProgramme()) {
+            $objectif->getProgramme()->setTitre($objectif->getTitre());
+            // Optionnel : tu peux synchroniser d'autres champs si tu veux
+            // $objectif->getProgramme()->setAutreChamp($objectif->getAutreChamp());
+        }
+
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Modification enregistrée avec succès !');
+        return $this->redirectToRoute('front_events');
+    }
+
+    return $this->render('front/objectif_edit.html.twig', [
+        'objectif' => $objectif,
+        'form' => $form->createView(),
+    ]);
 }
 #[Route('/events/reset', name: 'events_reset', methods: ['POST'])]
 public function reset(EntityManagerInterface $entityManager): Response
@@ -488,21 +520,20 @@ public function exportWord(ObjectifRepository $repo): Response
         return $this->render('front/starter-page.html.twig');
     }
 
-    #[Route('404', name: '404')]
-    public function error404(): Response
-    {
-        return $this->render('front/404.html.twig');
-    }
+#[Route('404', name: '404')]
+public function error404(): Response
+{
+    return $this->render('front/404.html.twig');
 }
 
-    // ============================================================
-    // CRUD FEEDBACK (avec utilisateur mocké)
-    // ============================================================
+// ============================================================
+// CRUD FEEDBACK (avec utilisateur mocké)
+// ============================================================
 
-    /**
-     * ✨ VALIDATION PHP pour le feedback
-     */
-    private function validateFeedbackData(string $typeFeedback, string $contenu, $rating): array
+/**
+ * ✨ VALIDATION PHP pour le feedback
+ */
+private function validateFeedbackData(string $typeFeedback, string $contenu, $rating): array
     {
         $errors = [];
         
@@ -1125,9 +1156,5 @@ public function exportWord(ObjectifRepository $repo): Response
             ]);
         }
 */
-
-
-
-
 }
 

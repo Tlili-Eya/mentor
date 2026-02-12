@@ -28,7 +28,6 @@ use App\Repository\ParcoursRepository;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/admin', name: 'back_')]
 final class BackController extends AbstractController

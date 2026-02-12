@@ -17,18 +17,21 @@ class Tache
 
     #[ORM\Column]
     private ?int $ordre = null;
+    
+    #[ORM\Column(length: 255)]
+    private ?string $titre = null;
 
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $description = null;
 
     #[ORM\Column(enumType: Etat::class)]
-    private ?Etat $etat;
+    private ?Etat $etat = null;
 
     #[ORM\Column]
-    private ?int $score = null;
+    private ?int $score = 0;
 
     #[ORM\Column(enumType: Medaille::class)]
-    private ?Medaille $medaille;
+    private ?Medaille $medaille = Medaille::Aucune;
 
     #[ORM\ManyToOne(inversedBy: 'tache')]
     private ?Programme $programme = null;
@@ -49,6 +52,17 @@ class Tache
 
         return $this;
     }
+    public function getTitre(): ?string
+   {
+    return $this->titre;
+    }
+
+    public function setTitre(string $titre): static
+    {
+    $this->titre = $titre;
+
+     return $this;
+     }
 
     public function getDescription(): ?string
     {

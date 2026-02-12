@@ -46,7 +46,7 @@ class Objectif
     private ?\DateTime $datefin = null;
 
     #[ORM\Column(enumType: Statutobj::class)]
-    private ?Statutobj $statut = Statutobj::Abandonner;
+    private ?Statutobj $statut = Statutobj::Atteint;
 
     #[ORM\OneToOne(inversedBy: 'objectif', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]

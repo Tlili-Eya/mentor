@@ -7958,6 +7958,7 @@ input:invalid, textarea:invalid {
   border-color: #dc3545;
 }
 
+
 @media (max-width: 768px) {
   .error-404 {
     padding: 70px 0;

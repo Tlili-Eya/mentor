@@ -5,7 +5,8 @@ namespace App\Entity;
 use App\Repository\TacheRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\Etat;
-use App\Enum\Medaille;
+
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TacheRepository::class)]
 class Tache
@@ -16,22 +17,22 @@ class Tache
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: "L'ordre est obligatoire")]
+    #[Assert\Positive(message: "L'ordre doit être un nombre positif")]
     private ?int $ordre = null;
     
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le titre est obligatoire")]
+    #[Assert\Length(max: 255, maxMessage: "Le titre ne peut pas dépasser 255 caractères")]
     private ?string $titre = null;
 
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $description = null;
 
     #[ORM\Column(enumType: Etat::class)]
+    #[Assert\NotNull(message: "L'état est obligatoire")]
     private ?Etat $etat = null;
 
-    #[ORM\Column]
-    private ?int $score = 0;
-
-    #[ORM\Column(enumType: Medaille::class)]
-    private ?Medaille $medaille = Medaille::Aucune;
 
     #[ORM\ManyToOne(inversedBy: 'tache')]
     private ?Programme $programme = null;
@@ -84,30 +85,6 @@ class Tache
     public function setEtat(Etat $etat): static
     {
         $this->etat = $etat;
-
-        return $this;
-    }
-
-    public function getScore(): ?int
-    {
-        return $this->score;
-    }
-
-    public function setScore(int $score): static
-    {
-        $this->score = $score;
-
-        return $this;
-    }
-
-    public function getMedaille(): ?Medaille
-    {
-        return $this->medaille;
-    }
-
-    public function setMedaille(Medaille $medaille): static
-    {
-        $this->medaille = $medaille;
 
         return $this;
     }

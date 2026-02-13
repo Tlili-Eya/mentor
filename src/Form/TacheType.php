@@ -48,13 +48,14 @@ class TacheType extends AbstractType
                 'expanded' => true,   // boutons radio
                 'multiple' => false,
             ]);
-        // score et medaille volontairement absents (calculés plus tard)
+      
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Tache::class,
+            'attr' => ['novalidate' => 'novalidate'],
         ]);
     }
 }

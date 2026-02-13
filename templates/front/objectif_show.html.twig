@@ -40,9 +40,9 @@
               <div class="mb-4">
                 <strong>Statut :</strong>
                 <span class="badge rounded-pill px-3 py-2 fs-6
-                  {% if objectif.statut.value == 'validee' %}bg-success text-white
-                  {% elseif objectif.statut.value == 'en_cours' %}bg-warning text-dark
-                  {% elseif objectif.statut.value == 'refusee' %}bg-danger text-white
+                  {% if objectif.statut.value == 'Atteint' %}bg-success text-white
+                  {% elseif objectif.statut.value == 'EnCours' %}bg-warning text-dark
+                  {% elseif objectif.statut.value == 'Abandonner' %}bg-danger text-white
                   {% else %}bg-secondary text-white{% endif %}">
                   {{ objectif.statut ? objectif.statut.value|capitalize : 'Inconnu' }}
                 </span>
@@ -58,7 +58,7 @@
               {% endif %}
 
               <div class="text-center mt-5">
-  <a href="{{ path('front_events') }}" class="btn rounded-pill px-4 py-2" style="background-color: var(--accent-color); color: var(--contrast-color); border: none;">
+  <a href="{{ path('front_events_index') }}" class="btn rounded-pill px-4 py-2" style="background-color: var(--accent-color); color: var(--contrast-color); border: none;">
     <i class="bi bi-arrow-left me-2"></i>Retour à la liste
   </a>
 </div>

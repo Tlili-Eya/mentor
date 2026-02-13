@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260210224843 extends AbstractMigration
+final class Version20260212213818 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,14 +20,12 @@ final class Version20260210224843 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE objectif ADD titre VARCHAR(255) NOT NULL, CHANGE description description VARCHAR(500) NOT NULL');
-        $this->addSql('ALTER TABLE tache ADD titre VARCHAR(255) NOT NULL');
+        $this->addSql('ALTER TABLE programme ADD score_pourcentage INT DEFAULT 0 NOT NULL');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE objectif DROP titre, CHANGE description description VARCHAR(50) NOT NULL');
-        $this->addSql('ALTER TABLE tache DROP titre');
+        $this->addSql('ALTER TABLE programme DROP score_pourcentage');
     }
 }

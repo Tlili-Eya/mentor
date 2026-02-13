@@ -3,103 +3,85 @@
 {% block title %}Modifier la tâche : {{ tache.titre ?? 'Sans titre' }}{% endblock %}
 
 {% block body %}
-<div class="container my-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8 col-xl-6">
-      <!-- Card d'édition -->
-      <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-        <!-- En-tête -->
-        <div class="card-header bg-gradient-primary text-white py-4 text-center">
-          <h3 class="mb-0 fw-bold">
-            <i class="bi bi-pencil-square me-3"></i>
-            Modifier la tâche
-          </h3>
-          <small class="d-block mt-2 opacity-75">
-            {{ tache.programme.titre ?? 'Programme associé' }}
-          </small>
-        </div>
+<main class="main">
 
-        <!-- Corps -->
-        <div class="card-body p-4 p-md-5 bg-white">
-          {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'needs-validation'}}) }}
+  <div class="page-title light-background">
+    <div class="container">
+      <h1>Modifier la tâche</h1>
+    </div>
+  </div>
 
-          {# Erreurs globales #}
-          {% if form_errors(form) %}
-            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+  <section class="section">
+    <div class="container" data-aos="fade-up">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-5">
+
+              <h2 class="card-title mb-4">
+                {{ tache.titre ?? 'Sans titre' }}
+              </h2>
+
+              <p class="text-muted mb-4">
+                Programme : {{ tache.programme.titre ?? 'Non défini' }}
+              </p>
+
+              {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
               {{ form_errors(form) }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+
+              <!-- Titre -->
+              <div class="mb-4">
+                <strong>{{ form_label(form.titre) }}</strong>
+                {{ form_widget(form.titre, {'attr': {'class': 'form-control mt-2'}}) }}
+                {{ form_errors(form.titre) }}
+              </div>
+
+              <!-- Ordre -->
+              <div class="mb-4">
+                <strong>{{ form_label(form.ordre) }}</strong>
+                {{ form_widget(form.ordre, {'attr': {'class': 'form-control mt-2'}}) }}
+                {{ form_errors(form.ordre) }}
+              </div>
+
+              <!-- Description -->
+              <div class="mb-4">
+                <strong>{{ form_label(form.description) }}</strong>
+                {{ form_widget(form.description, {'attr': {'class': 'form-control mt-2', 'rows': 5}}) }}
+                {{ form_errors(form.description) }}
+              </div>
+
+              <!-- État -->
+              <div class="mb-5">
+                <strong>{{ form_label(form.etat) }}</strong>
+                {{ form_widget(form.etat, {'attr': {'class': 'form-select mt-2'}}) }}
+                {{ form_errors(form.etat) }}
+              </div>
+
+              <!-- Boutons -->
+              <div class="text-center mt-5">
+                <a href="{{ path('front_programme_show', {'id': tache.programme.id}) }}"
+                   class="btn rounded-pill px-4 py-2 me-3"
+                   style="background-color: var(--accent-color); color: var(--contrast-color); border: none;">
+                  <i class="bi bi-arrow-left me-2"></i>Annuler
+                </a>
+
+                <button type="submit"
+                        class="btn btn-outline-primary rounded-pill px-4 py-2">
+                  <i class="bi bi-save me-2"></i>Enregistrer
+                </button>
+              </div>
+
+              {{ form_end(form) }}
+
             </div>
-          {% endif %}
-
-          <!-- Titre -->
-          <div class="mb-4">
-            {{ form_label(form.titre, null, {'label_attr': {'class': 'form-label fw-bold fs-5'}}) }}
-            <div class="input-group input-group-lg">
-              <span class="input-group-text"><i class="bi bi-card-heading"></i></span>
-              {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': 'Titre de la tâche'}}) }}
-            </div>
-            {{ form_errors(form.titre, {'attr': {'class': 'invalid-feedback d-block'}}) }}
           </div>
 
-          <!-- Ordre -->
-          <div class="mb-4">
-            {{ form_label(form.ordre, null, {'label_attr': {'class': 'form-label fw-bold fs-5'}}) }}
-            <div class="input-group input-group-lg">
-              <span class="input-group-text"><i class="bi bi-sort-numeric-down"></i></span>
-              {{ form_widget(form.ordre, {'attr': {'class': 'form-control', 'min': '1'}}) }}
-            </div>
-            {{ form_errors(form.ordre, {'attr': {'class': 'invalid-feedback d-block'}}) }}
-          </div>
-
-          <!-- Description -->
-          <div class="mb-4">
-            {{ form_label(form.description, null, {'label_attr': {'class': 'form-label fw-bold fs-5'}}) }}
-            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 5, 'placeholder': 'Détails de la tâche...'}}) }}
-            {{ form_errors(form.description, {'attr': {'class': 'invalid-feedback d-block'}}) }}
-          </div>
-
-          <!-- État -->
-          <div class="mb-5">
-            {{ form_label(form.etat, null, {'label_attr': {'class': 'form-label fw-bold fs-5'}}) }}
-            {{ form_widget(form.etat, {'attr': {'class': 'form-select form-select-lg'}}) }}
-            {{ form_errors(form.etat, {'attr': {'class': 'invalid-feedback d-block'}}) }}
-          </div>
-
-          <!-- Boutons -->
-          <div class="d-flex flex-column flex-md-row gap-3 justify-content-end">
-            <a href="{{ path('front_programme_show', {'id': tache.programme.id}) }}"
-               class="btn btn-outline-secondary btn-lg px-5 py-3">
-              <i class="bi bi-arrow-left me-2"></i>Annuler
-            </a>
-            <button type="submit" class="btn btn-primary btn-lg px-5 py-3">
-              <i class="bi bi-save me-2"></i>Enregistrer les modifications
-            </button>
-          </div>
-
-          {{ form_end(form) }}
         </div>
       </div>
     </div>
-  </div>
-</div>
-{% endblock %}
+  </section>
 
-{% block stylesheets %}
-  {{ parent() }}
-  <style>
-    .bg-gradient-primary {
-      background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
-    }
-    .card {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
-    }
-    .form-control:focus, .form-select:focus {
-      border-color: #0d6efd;
-      box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
-    }
-  </style>
+</main>
 {% endblock %}

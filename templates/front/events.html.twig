@@ -124,7 +124,7 @@
             height: 140px;
             border-radius: 50%;
             background: conic-gradient(
-              #195987 0% {{ max(0, (atteints / total * 100)|default(0)) }}%,
+              #198754 0% {{ max(0, (atteints / total * 100)|default(0)) }}%,
               #ffc107 {{ max(0, (atteints / total * 100))|default(0) }}% {{ max(0, ((atteints + enCours) / total * 100))|default(0) }}%,
               #d52e28 {{ max(0, ((atteints + enCours) / total * 100))|default(0) }}% 100%
             );
@@ -143,7 +143,7 @@
         <!-- Légende compacte -->
         <div class="legend d-flex flex-column justify-content-center gap-1">
           <div class="d-flex align-items-center">
-            <span class="legend-color me-2" style="background:#195987"></span>
+            <span class="legend-color me-2" style="background:#198754"></span>
             <small>Atteints : <strong>{{ atteints }}</strong></small>
           </div>
 
@@ -203,9 +203,9 @@
 
       <td>
         <span class="badge rounded-pill px-4 py-2 fs-6
-          {% if objectif.statut.value == 'validee' %}bg-success text-white
-          {% elseif objectif.statut.value == 'en_cours' %}bg-warning text-dark
-          {% elseif objectif.statut.value == 'refusee' %}bg-danger text-white
+          {% if objectif.statut.value == 'Atteint' %}bg-success text-white
+          {% elseif objectif.statut.value == 'EnCours' %}bg-warning text-dark
+          {% elseif objectif.statut.value == 'Abandonner' %}bg-danger text-white
           {% else %}bg-secondary text-white{% endif %}">
           {{ objectif.statut ? objectif.statut.value|capitalize : 'Inconnu' }}
         </span>
@@ -223,13 +223,13 @@
           </a>
 
           <!-- 2. Voir les détails de l'objectif -->
-          <a href="{{ path('front_objectif_show', {id: objectif.id}) }}"
+          <a href="{{ path('front_events_show', {id: objectif.id}) }}"
              class="btn btn-sm btn-outline-info rounded-circle"
              title="Détails de l'objectif">
             <i class="bi bi-eye"></i>
           </a>
           <!-- 3. Modifier -->
-          <a href="{{ path('front_objectif_edit', {id: objectif.id}) }}"
+          <a href="{{ path('front_events_edit', {id: objectif.id}) }}"
    class="btn btn-sm btn-outline-warning rounded-circle"
    title="Modifier l'objectif">
   <i class="bi bi-pencil"></i>
@@ -237,7 +237,7 @@
 
           <!-- 3. Supprimer -->
           <form method="post"
-                action="{{ path('front_objectif_delete', {id: objectif.id}) }}"
+                action="{{ path('front_events_delete', {id: objectif.id}) }}"
                 onsubmit="return confirm('Supprimer cet objectif ? Cette action est irréversible.');"
                 style="display: inline;">
             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ objectif.id) }}">

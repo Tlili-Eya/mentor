@@ -1,0 +1,142 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Objectif;
+use App\Repository\ObjectifRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\IOFactory;
+
+#[Route('/admin/events', name: 'back_events_')]
+class BackObjectifController extends AbstractController
+{
+    // Liste des objectifs (lecture seule pour l'admin)
+    #[Route('', name: 'index', methods: ['GET'])]
+    public function index(ObjectifRepository $objectifRepository): Response
+    {
+        $objectifs = $objectifRepository->findAll();
+
+        // Compteurs pour le cercle de répartition
+        $total = count($objectifs);
+        $atteints = 0;
+        $enCours = 0;
+        $abandonnes = 0;
+
+        foreach ($objectifs as $objectif) {
+            $statut = $objectif->getStatut()?->value ?? '';
+            if (in_array($statut, ['Atteint', 'validee'])) {
+                $atteints++;
+            } elseif (in_array($statut, ['EnCours', 'encours'])) {
+                $enCours++;
+            } elseif (in_array($statut, ['Abandonner', 'abandonner'])) {
+                $abandonnes++;
+            }
+        }
+
+        return $this->render('back/events.html.twig', [
+            'objectifs'   => $objectifs,
+            'total'       => $total,
+            'atteints'    => $atteints,
+            'enCours'     => $enCours,
+            'abandonnes'  => $abandonnes,
+        ]);
+    }
+
+    // Détails d'un objectif (lecture seule + lien vers programme)
+    #[Route('/{id}', name: 'show', methods: ['GET'])]
+    public function show(Objectif $objectif): Response
+    {
+        return $this->render('back/objectif_show.html.twig', [
+            'objectif' => $objectif,
+        ]);
+    }
+
+    // Export Excel (lecture seule)
+    #[Route('/export/excel', name: 'export_excel', methods: ['GET'])]
+    public function exportExcel(ObjectifRepository $repo): Response
+    {
+        $objectifs = $repo->findAll();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->setCellValue('A1', 'N°');
+        $sheet->setCellValue('B1', 'ID Objectif');
+        $sheet->setCellValue('C1', 'Titre');
+        $sheet->setCellValue('D1', 'Date début');
+        $sheet->setCellValue('E1', 'Date fin');
+        $sheet->setCellValue('F1', 'Statut');
+
+        $row = 2;
+        foreach ($objectifs as $index => $objectif) {
+            $sheet->setCellValue('A'.$row, $row - 1);
+            $sheet->setCellValue('B'.$row, $objectif->getId() ?? 'PPD' . $objectif->getId());
+            $sheet->setCellValue('C'.$row, $objectif->getTitre() ?? 'Sans titre');
+            $sheet->setCellValue('D'.$row, $objectif->getDatedebut() ? $objectif->getDatedebut()->format('d/m/Y') : '—');
+            $sheet->setCellValue('E'.$row, $objectif->getDatefin() ? $objectif->getDatefin()->format('d/m/Y') : '—');
+            $sheet->setCellValue('F'.$row, $objectif->getStatut() ? $objectif->getStatut()->value : 'Inconnu');
+            $row++;
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'objectifs_admin_' . date('Y-m-d') . '.xlsx';
+        $tempFile = sys_get_temp_dir() . '/' . $filename;
+
+        $writer->save($tempFile);
+
+        $response = new BinaryFileResponse($tempFile);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $filename);
+
+        return $response;
+    }
+
+    // Export Word (lecture seule)
+    #[Route('/export/word', name: 'export_word', methods: ['GET'])]
+    public function exportWord(ObjectifRepository $repo): Response
+    {
+        $phpWord = new PhpWord();
+        $section = $phpWord->addSection();
+
+        $section->addTitle('Liste des Objectifs (Admin)', 1);
+        $section->addTextBreak(1);
+
+        $table = $section->addTable();
+        $table->addRow();
+        $table->addCell(2000)->addText('N°', ['bold' => true]);
+        $table->addCell(3000)->addText('ID Objectif', ['bold' => true]);
+        $table->addCell(5000)->addText('Titre', ['bold' => true]);
+        $table->addCell(3000)->addText('Date début', ['bold' => true]);
+        $table->addCell(3000)->addText('Date fin', ['bold' => true]);
+        $table->addCell(2500)->addText('Statut', ['bold' => true]);
+
+        $i = 1;
+        foreach ($repo->findAll() as $objectif) {
+            $table->addRow();
+            $table->addCell(2000)->addText($i++);
+            $table->addCell(3000)->addText($objectif->getId() ?? 'PPD' . $objectif->getId());
+            $table->addCell(5000)->addText($objectif->getTitre() ?? 'Sans titre');
+            $table->addCell(3000)->addText($objectif->getDatedebut() ? $objectif->getDatedebut()->format('d/m/Y') : '—');
+            $table->addCell(3000)->addText($objectif->getDatefin() ? $objectif->getDatefin()->format('d/m/Y') : '—');
+            $table->addCell(2500)->addText($objectif->getStatut() ? $objectif->getStatut()->value : 'Inconnu');
+        }
+
+        $writer = IOFactory::createWriter($phpWord, 'Word2007');
+        $filename = 'objectifs_admin_' . date('Y-m-d') . '.docx';
+        $tempFile = sys_get_temp_dir() . '/' . $filename;
+
+        $writer->save($tempFile);
+
+        $response = new BinaryFileResponse($tempFile);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $filename);
+
+        return $response;
+    }
+}

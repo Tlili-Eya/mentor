@@ -7,7 +7,7 @@
 
   <!-- Bouton retour en haut à gauche -->
   <div class="position-absolute top-0 start-0 mt-4 ms-4">
-    <a href="{{ path('front_events') }}"
+    <a href="{{ path('front_events_index') }}"
        class="btn btn-outline-primary btn-sm rounded-circle d-flex align-items-center justify-content-center"
        style="width: 38px; height: 38px;"
        title="Retour">
@@ -44,49 +44,134 @@
     {% endif %}
   </div>
 
-  <!-- Score + Médaille -->
-  <div class="row g-4 mb-5 justify-content-center">
-    {% set totalScore = programme.tache|reduce((carry, tache) => carry + (tache.score|default(0)), 0) %}
+  <!-- ==================== CADRE SCORE + MÉDAILLE + CERCLE RÉPARTITION ==================== -->
+  {% set totalTaches = programme.tache|length %}
+  {% set realisees = programme.tache|filter(t => t.etat.value in ['realisee', 'validee'])|length %}
+  {% set encours = programme.tache|filter(t => t.etat.value in ['encours', 'en_cours'])|length %}
+  {% set abandonnes = programme.tache|filter(t => t.etat.value in ['Abandonner', 'abandonner'])|length %}
 
-    {% set medailleMax = null %}
-    {% for t in programme.tache %}
-      {% if t.medaille and (medailleMax is null or t.medaille.value > medailleMax.value) %}
-        {% set medailleMax = t.medaille %}
-      {% endif %}
-    {% endfor %}
+  {% set score = totalTaches > 0 ? (realisees * 100 / totalTaches)|round(0) : 0 %}
 
-    <div class="col-md-5 col-lg-4">
-      <div class="card h-100 shadow-sm text-center" style="background-color: var(--surface-color); border-color: var(--default-color);">
+  {% set medaille = null %}
+  {% if score > 0 %}
+    {% if score <= 50 %}
+      {% set medaille = 'Bronze 🥉' %}
+    {% elseif score <= 80 %}
+      {% set medaille = 'Argent 🥈' %}
+    {% else %}
+      {% set medaille = 'Or 🥇' %}
+    {% endif %}
+  {% endif %}
+
+  {% set pRealisees = totalTaches > 0 ? (realisees * 100 / totalTaches) : 0 %}
+  {% set pEncours = totalTaches > 0 ? (encours * 100 / totalTaches) : 0 %}
+  {% set pAbandonnes = totalTaches > 0 ? (abandonnes * 100 / totalTaches) : 0 %}
+
+  <!-- ==================== SCORE + DONUT + MÉDAILLE ==================== -->
+  <div class="row g-4 mb-5 justify-content-center align-items-stretch">
+
+    <!-- Score -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm text-center">
         <div class="card-body d-flex flex-column justify-content-center py-5">
-          <h5 class="card-title mb-3" style="color: var(--heading-color);">
+          <h5 class="mb-3" style="color: var(--heading-color);">
             Score total
           </h5>
           <div class="display-4 fw-bold" style="color: var(--accent-color);">
-            {{ totalScore }}
+            {{ score }}%
           </div>
+          <small class="text-muted mt-2">
+            ({{ realisees }} tâches réalisées)
+          </small>
         </div>
       </div>
     </div>
 
-    <div class="col-md-5 col-lg-4">
-      <div class="card h-100 shadow-sm text-center" style="background-color: var(--surface-color); border-color: var(--default-color);">
+    <!-- Donut Répartition -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm text-center">
+        <div class="card-body d-flex flex-column justify-content-center py-4">
+
+          <h5 class="mb-4" style="color: var(--heading-color);">
+            Répartition des tâches
+          </h5>
+
+          <div class="d-flex justify-content-center mb-4">
+            <div style="
+              width:160px;
+              height:160px;
+              border-radius:50%;
+              background:
+              conic-gradient(
+                #198754 0% {{ pRealisees }}%,
+                #ffc107 {{ pRealisees }}% {{ pRealisees + pEncours }}%,
+                #dc3545 {{ pRealisees + pEncours }}% 100%
+              );
+              position:relative;
+            ">
+
+              <div style="
+                position:absolute;
+                top:50%;
+                left:50%;
+                transform:translate(-50%, -50%);
+                width:100px;
+                height:100px;
+                background:white;
+                border-radius:50%;
+                display:flex;
+                flex-direction:column;
+                justify-content:center;
+                align-items:center;
+              ">
+                <span class="fs-3 fw-bold" style="color: var(--accent-color);">
+                  {{ totalTaches }}
+                </span>
+                <small>tâches</small>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Légende -->
+          <div class="text-start small mx-auto" style="max-width:200px;">
+            <div class="d-flex align-items-center mb-2">
+              <span style="width:12px;height:12px;border-radius:50%;background:#198754;" class="me-2"></span>
+              Atteints : <strong class="ms-1">{{ realisees }}</strong>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+              <span style="width:12px;height:12px;border-radius:50%;background:#ffc107;" class="me-2"></span>
+              En cours : <strong class="ms-1">{{ encours }}</strong>
+            </div>
+            <div class="d-flex align-items-center">
+              <span style="width:12px;height:12px;border-radius:50%;background:#dc3545;" class="me-2"></span>
+              Abandonnés : <strong class="ms-1">{{ abandonnes }}</strong>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Médaille -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm text-center">
         <div class="card-body d-flex flex-column justify-content-center py-5">
-          <h5 class="card-title mb-3" style="color: var(--heading-color);">
+          <h5 class="mb-3" style="color: var(--heading-color);">
             Médaille obtenue
           </h5>
-          {% if medailleMax %}
-            <div class="fs-1 fw-bold" style="color: var(--accent-color);">
-              {% if medailleMax.value == 'Or' %}🥇{% elseif medailleMax.value == 'Argent' %}🥈{% else %}🥉{% endif %}
-              {{ medailleMax.value }}
+
+          {% if medaille %}
+            <div class="fs-1 fw-bold">
+              {{ medaille }}
             </div>
           {% else %}
-            <p class="fs-5 mt-2" style="color: var(--default-color); opacity: 0.8;">
-              Aucune médaille pour l’instant
-            </p>
+            <p class="text-muted">Aucune médaille</p>
           {% endif %}
         </div>
       </div>
     </div>
+
   </div>
 
   <!-- Bouton + Tableau -->
@@ -130,7 +215,7 @@
                   <td>
                     <span class="badge rounded-pill px-4 py-2 fs-6
                       {% if tache.etat.value == 'realisee' %}bg-success text-white
-                      {% elseif tache.etat.value == 'encours' %}bg-info text-white
+                      {% elseif tache.etat.value == 'encours' %}bg-warning text-dark
                       {% elseif tache.etat.value == 'Abandonner' %}bg-danger text-white
                       {% else %}bg-secondary text-white{% endif %}">
                       {{ tache.etat ? tache.etat.value|capitalize : '—' }}

@@ -1,0 +1,100 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Programme;
+use App\Enum\Statutobj;
+use App\Service\ObjectifStatusService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+#[Route('/programme', name: 'back_programme_')]
+class ProgrammeController extends AbstractController
+{
+    private ObjectifStatusService $objectifStatusService;
+
+    public function __construct(ObjectifStatusService $objectifStatusService)
+    {
+        $this->objectifStatusService = $objectifStatusService;
+    }
+
+    /**
+     * Calcule et met à jour le score et la meilleure médaille du programme
+     */
+    private function updateProgrammeStats(Programme $programme, EntityManagerInterface $entityManager): void
+    {
+        $taches = $programme->getTache();
+        $total = $taches->count();
+
+        if ($total === 0) {
+            $programme->setScorePourcentage(0);
+            $programme->setMeilleureMedaille(null);
+
+            if ($programme->getObjectif()) {
+                $programme->getObjectif()->setStatut(Statutobj::Abandonner);
+            }
+
+            $entityManager->flush();
+            return;
+        }
+
+        // Nombre de tâches réalisées
+        $realisees = 0;
+        foreach ($taches as $tache) {
+            if ($tache->getEtat()->value === 'realisee') {
+                $realisees++;
+            }
+        }
+
+        // Calcul du score
+        $score = (int) round(($realisees / $total) * 100);
+        $programme->setScorePourcentage($score);
+
+        // Calcul de la médaille selon le score
+        if ($score === 0) {
+            $meilleureMedaille = null; // aucune médaille
+        } elseif ($score > 0 && $score < 50) {
+            $meilleureMedaille = 'bronze';
+        } elseif ($score >= 50 && $score < 80) {
+            $meilleureMedaille = 'argent';
+        } else {
+            $meilleureMedaille = 'or';
+        }
+        $programme->setMeilleureMedaille($meilleureMedaille);
+
+        // Mise à jour du statut de l'objectif
+        if ($programme->getObjectif()) {
+            $this->objectifStatusService->updateStatusFromProgrammeScore($programme->getObjectif());
+        }
+
+        $entityManager->flush();
+    }
+
+    #[Route('/', name: 'index', methods: ['GET'])]
+    public function index(EntityManagerInterface $entityManager): Response
+    {
+        $programmes = $entityManager->getRepository(Programme::class)->findAll();
+
+        // Mise à jour des stats pour chaque programme
+        foreach ($programmes as $programme) {
+            $this->updateProgrammeStats($programme, $entityManager);
+        }
+
+        return $this->render('back/programme_index.html.twig', [
+            'programmes' => $programmes,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'show', methods: ['GET'])]
+    public function show(Programme $programme, EntityManagerInterface $entityManager): Response
+    {
+        // Mise à jour du score et de la médaille avant affichage
+        $this->updateProgrammeStats($programme, $entityManager);
+
+        return $this->render('back/programme_show.html.twig', [
+            'programme' => $programme,
+        ]);
+    }
+}

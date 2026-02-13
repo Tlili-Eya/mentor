@@ -22,10 +22,10 @@ final class BackController extends AbstractController
         return $this->render('back/about.html.twig');
     }
 
-    #[Route('/courses', name: 'courses')]
-    public function courses(): Response
+    #[Route('/parcours', name: 'parcours')]
+    public function parcours(): Response
     {
-        return $this->render('back/courses.html.twig');
+        return $this->render('back/parcours.html.twig');
     }
 
     #[Route('/course-details', name: 'course_details')]
@@ -34,10 +34,10 @@ final class BackController extends AbstractController
         return $this->render('back/course-details.html.twig');
     }
 
-    #[Route('/instructors', name: 'instructors')]
-    public function instructors(): Response
+    #[Route('/projets', name: 'projets')]
+    public function projets(): Response
     {
-        return $this->render('back/instructors.html.twig');
+        return $this->render('back/projets.html.twig');
     }
 
     #[Route('/instructor-profile', name: 'instructor_profile')]

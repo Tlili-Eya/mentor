@@ -90,8 +90,26 @@
         <li><a href="{{ path('front_home') }}">Home</a></li>
         <li><a href="{{ path('front_course_details') }}">Etude</a></li>
         <li><a href="{{ path('front_blog') }}">Note</a></li>
-        <li><a href="{{ path('front_projets') }}">Projets</a></li>
-        <li><a href="{{ path('front_parcours') }}">Parcours</a></li>
+       <li class="dropdown">
+          <a href="#">
+            <span>Projets</span>
+            <i class="bi bi-chevron-down toggle-dropdown"></i>
+          </a>
+          <ul>
+            <li><a href="{{ path('front_projets') }}">Ajout Projet</a></li>
+            <li><a href="{{ path('front_projets') }}">Mes Projets</a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#">
+            <span>Parcour</span>
+            <i class="bi bi-chevron-down toggle-dropdown"></i>
+          </a>
+          <ul>
+            <li><a href="{{ path('front_parcours') }}">Ajout Parcour</a></li>
+            <li><a href="{{ path('front_parcours') }}">Mes Parcours</a></li>
+          </ul>
+        </li>
 
         <li class="dropdown">
           <a href="#">

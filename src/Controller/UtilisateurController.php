@@ -76,7 +76,8 @@ final class UtilisateurController extends AbstractController
     public function profil(
         Request $request, 
         EntityManagerInterface $entityManager, 
-        UserPasswordHasherInterface $passwordHasher
+        UserPasswordHasherInterface $passwordHasher,
+        \Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface $tokenStorage
     ): Response
     {
         $user = $this->getUser();
@@ -98,6 +99,10 @@ final class UtilisateurController extends AbstractController
             }
 
             $entityManager->flush();
+
+            // Rafraîchir le token de sécurité pour mettre à jour la session
+            $token = new \Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken($user, 'main', $user->getRoles());
+            $tokenStorage->setToken($token);
 
             $this->addFlash('success', 'Profil mis à jour avec succès !');
 

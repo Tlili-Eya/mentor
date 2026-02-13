@@ -1,6 +1,423 @@
 {% extends 'back/base.html.twig' %}
 
+{% block title %}Gestion des Projets
+{% endblock %}
 
-{% block title %}Projets{% endblock %}
+{% block body %}
+	<div class="page-title light-background">
+		<div class="container d-lg-flex justify-content-between align-items-center">
+			<h1 class="mb-2 mb-lg-0 text-primary">Gestion des Projets</h1>
+			<nav class="breadcrumbs">
+				<ol>
+					<li>
+						<a href="{{ path('back_home') }}">Home</a>
+					</li>
+					<li class="current">Projets</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
 
+	<section class="section">
+		<div class="container">
 
+			<div class="d-flex justify-content-between align-items-center mb-4">
+				<h2 class="mb-0 text-secondary">Liste des Projets</h2>
+
+				<form method="get" class="d-flex gap-2">
+					<div class="input-group">
+						<span class="input-group-text bg-white border-end-0">
+							<i class="bi bi-search"></i>
+						</span>
+						<input type="text" name="q" value="{{ search }}" class="form-control border-start-0" placeholder="Rechercher (Titre, Utilisateur, Type)...">
+					</div>
+
+					<select name="sort" class="form-select" onchange="this.form.submit()">
+						<option value="">Trier par...</option>
+						<option value="titre" {% if sortBy == 'titre' %} selected {% endif %}>Titre (A-Z)</option>
+						<option value="utilisateur" {% if sortBy == 'utilisateur' %} selected {% endif %}>Utilisateur (A-Z)</option>
+						<option value="nb_ressources" {% if sortBy == 'nb_ressources' %} selected {% endif %}>Nombre de Ressources</option>
+					</select>
+
+					{% if search or sortBy %}
+						<a href="{{ path('back_projets') }}" class="btn btn-outline-secondary" title="Réinitialiser">
+							<i class="bi bi-arrow-clockwise"></i>
+						</a>
+					{% endif %}
+
+					<button type="submit" class="btn btn-primary">
+						<i class="bi bi-filter"></i>
+					</button>
+
+					<a href="{{ path('back_export_pdf_projets') }}" class="btn btn-danger" target="_blank" title="Générer PDF">
+						<i class="bi bi-file-earmark-pdf"></i>
+						PDF
+					</a>
+				</form>
+			</div>
+
+			{% for message in app.flashes('success') %}
+				<div class="alert alert-success">
+					{{ message }}
+				</div>
+			{% endfor %}
+
+			<div class="card shadow-sm border-0">
+				<div class="card-body p-0">
+					<div class="table-responsive">
+						<table class="table table-hover align-middle mb-0">
+							<thead style="background-color: #eef3f7;">
+								<tr class="text-secondary">
+									<th>#</th>
+									<th>Titre</th>
+									<th>Utilisateur</th>
+									<th>Type</th>
+									<th>Ressources</th>
+									<th class="text-end">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for projet in projets %}
+									<tr>
+										<td>{{ projet.id }}</td>
+										<td>
+											<strong class="text-dark">{{ projet.titre }}</strong><br>
+											<small class="text-muted">{{ projet.dateCreation|date('d/m/Y') }}</small>
+										</td>
+										<td>
+											{% if projet.utilisateur %}
+												{{ projet.utilisateur.prenom }}
+												{{ projet.utilisateur.nom }}<br>
+												<small class="text-muted">{{ projet.utilisateur.email }}</small>
+											{% else %}
+												<span class="text-muted">Inconnu</span>
+											{% endif %}
+										</td>
+										<td>
+											<span class="badge bg-info">{{ projet.type }}</span>
+										</td>
+										<td>
+											{% if projet.ressources is not empty %}
+												<ul class="list-unstyled mb-0">
+													{% for ressource in projet.ressources %}
+														<li class="d-flex justify-content-between align-items-center mb-1">
+															<span>
+																<i class="bi bi-file-earmark me-1"></i>
+																{{ ressource.nom }}
+																<small class="text-muted">({{ ressource.typeRessource.value }})</small>
+															</span>
+															<div class="d-flex align-items-center">
+																<a href="{{ path('back_edit_ressource', {'id': ressource.id}) }}" class="text-primary me-2" title="Modifier la ressource">
+																	<i class="bi bi-pencil-square"></i>
+																</a>
+																<a href="{{ path('back_delete_ressource', {'id': ressource.id}) }}" class="text-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette ressource ?');" title="Supprimer la ressource">
+																	<i class="bi bi-x-circle"></i>
+																</a>
+															</div>
+														</li>
+													{% endfor %}
+												</ul>
+											{% else %}
+												<span class="text-muted small">Aucune ressource</span>
+											{% endif %}
+										</td>
+										<td class="text-end">
+											<a href="{{ path('back_show_projet', {'id': projet.id}) }}" class="btn btn-sm btn-outline-info me-1" title="Voir les détails">
+												<i class="bi bi-eye"></i>
+											</a>
+											<a href="{{ path('back_edit_projet', {'id': projet.id}) }}" class="btn btn-sm btn-outline-primary me-1" title="Modifier">
+												<i class="bi bi-pencil"></i>
+											</a>
+											<a href="{{ path('back_delete_projet', {'id': projet.id}) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ?');" title="Supprimer">
+												<i class="bi bi-trash"></i>
+											</a>
+										</td>
+									</tr>
+								{% else %}
+									<tr>
+										<td colspan="6" class="text-center text-muted py-4">
+											<i class="bi bi-inbox" style="font-size: 3rem;"></i>
+											<p class="mt-2">Aucun projet trouvé</p>
+										</td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+
+					{% if totalPages > 1 %}
+						<div class="d-flex justify-content-center mt-4">
+							<nav aria-label="Page navigation">
+								<ul class="pagination">
+									<li class="page-item {% if currentPage == 1 %}disabled{% endif %}">
+										<a class="page-link" href="{{ path('back_projets', {'page': currentPage - 1, 'q': search, 'sort': sortBy}) }}" tabindex="-1" aria-disabled="true">
+											<i class="bi bi-chevron-left"></i>
+											Précédent
+										</a>
+									</li>
+									{% for i in 1..totalPages %}
+										<li class="page-item {% if currentPage == i %}active{% endif %}">
+											<a class="page-link" href="{{ path('back_projets', {'page': i, 'q': search, 'sort': sortBy}) }}">{{ i }}</a>
+										</li>
+									{% endfor %}
+									<li class="page-item {% if currentPage == totalPages %}disabled{% endif %}">
+										<a class="page-link" href="{{ path('back_projets', {'page': currentPage + 1, 'q': search, 'sort': sortBy}) }}">
+											Suivant
+											<i class="bi bi-chevron-right"></i>
+										</a>
+									</li>
+								</ul>
+							</nav>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+
+		</div>
+	</section>
+
+	<!-- STATISTICS SECTION -->
+	<section class="section pt-0">
+		<div class="container">
+			<div class="row mb-4">
+				<div class="col-12">
+					<hr class="my-5">
+					<h2 class="text-secondary mb-4">
+						<i class="bi bi-bar-chart-line me-2"></i>Statistiques Globales</h2>
+				</div>
+
+				<!-- Quick Stats Cards -->
+				<div class="col-md-4 mb-4">
+					<div class="card shadow-sm border-0 bg-primary text-white h-100">
+						<div class="card-body d-flex align-items-center">
+							<div class="me-3">
+								<i class="bi bi-folder2-open" style="font-size: 2.5rem;"></i>
+							</div>
+							<div>
+								<h3 class="mb-0 fw-bold">{{ globalStats.total_projects }}</h3>
+								<span>Total Projets</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4 mb-4">
+					<div class="card shadow-sm border-0 bg-success text-white h-100">
+						<div class="card-body d-flex align-items-center">
+							<div class="me-3">
+								<i class="bi bi-file-earmark-text" style="font-size: 2.5rem;"></i>
+							</div>
+							<div>
+								<h3 class="mb-0 fw-bold">{{ globalStats.total_resources }}</h3>
+								<span>Total Ressources</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4 mb-4">
+					<div class="card shadow-sm border-0 bg-info text-white h-100">
+						<div class="card-body d-flex align-items-center">
+							<div class="me-3">
+								<i class="bi bi-people" style="font-size: 2.5rem;"></i>
+							</div>
+							<div>
+								<h3 class="mb-0 fw-bold">{{ globalStats.total_users_with_projects }}</h3>
+								<span>Utilisateurs Actifs</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div
+				class="row">
+				<!-- Top Users Chart -->
+				<div class="col-lg-6 mb-4">
+					<div class="card shadow-sm border-0 h-100">
+						<div class="card-header bg-white py-3">
+							<h5 class="mb-0">Utilisateurs avec le plus de projets</h5>
+						</div>
+						<div class="card-body">
+							<canvas id="topUsersChart"></canvas>
+						</div>
+					</div>
+				</div>
+
+				<!-- Top Projects by Resources -->
+				<div class="col-lg-6 mb-4">
+					<div class="card shadow-sm border-0 h-100">
+						<div class="card-header bg-white py-3">
+							<h5 class="mb-0">Projets avec le plus de ressources</h5>
+						</div>
+						<div class="card-body">
+							<canvas id="topProjectsChart"></canvas>
+						</div>
+					</div>
+				</div>
+
+				<!-- Projects by Type -->
+				<div class="col-lg-4 mb-4">
+					<div class="card shadow-sm border-0 h-100">
+						<div class="card-header bg-white py-3">
+							<h5 class="mb-0">Répartition par Type</h5>
+						</div>
+						<div class="card-body">
+							<canvas id="projectsByTypeChart"></canvas>
+						</div>
+					</div>
+				</div>
+
+				<!-- Stats summary table -->
+				<div class="col-lg-8 mb-4">
+					<div class="card shadow-sm border-0 h-100">
+						<div class="card-header bg-white py-3">
+							<h5 class="mb-0">Résumé des Tops</h5>
+						</div>
+						<div class="card-body p-0">
+							<div class="table-responsive">
+								<table class="table table-hover mb-0">
+									<thead class="table-light">
+										<tr>
+											<th>Top Utilisateur</th>
+											<th>Projets</th>
+											<th>Top Projet</th>
+											<th>Ressources</th>
+										</tr>
+									</thead>
+									<tbody>
+										{% for i in 0..4 %}
+											{% set user = topUsers[i]|default(null) %}
+											{% set project = topProjects[i]|default(null) %}
+											{% if user or project %}
+												<tr>
+													<td>
+														{% if user %}
+															{{ user.prenom }}
+															{{ user.nom }}
+															{% else %}-
+														{% endif %}
+													</td>
+													<td>
+														{% if user %}
+															<span class="badge bg-primary">{{ user.totalProjects }}</span>
+															{% else %}-
+														{% endif %}
+													</td>
+													<td>
+														{% if project %}
+															{{ project.titre }}
+															{% else %}-
+														{% endif %}
+													</td>
+													<td>
+														{% if project %}
+															<span class="badge bg-success">{{ project.totalResources }}</span>
+															{% else %}-
+														{% endif %}
+													</td>
+												</tr>
+											{% endif %}
+										{% endfor %}
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Chart.js -->
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () { // Colors from the palette provided by user if possible, or similar
+const primaryColor = '#102c59';
+const secondaryColor = '#9dbbce';
+const accentColor = '#d52e28';
+const successColor = '#198754';
+const infoColor = '#0dcaf0';
+
+// 1. Top Users Chart
+const ctx1 = document.getElementById('topUsersChart').getContext('2d');
+new Chart(ctx1, {
+type: 'bar',
+data: {
+labels: {{ topUsers|map(u => u.prenom ~ ' ' ~ u.nom)|json_encode|raw }},
+datasets: [
+{
+label: 'Nombre de Projets',
+data: {{ topUsers|map(u => u.totalProjects)|json_encode|raw }},
+backgroundColor: primaryColor,
+borderRadius: 5
+}
+]
+},
+options: {
+responsive: true,
+scales: {
+y: {
+beginAtZero: true,
+stepSize: 1
+}
+}
+}
+});
+
+// 2. Top Projects by Resources
+const ctx2 = document.getElementById('topProjectsChart').getContext('2d');
+new Chart(ctx2, {
+type: 'bar',
+data: {
+labels: {{ topProjects|map(p => p.titre)|json_encode|raw }},
+datasets: [
+{
+label: 'Nombre de Ressources',
+data: {{ topProjects|map(p => p.totalResources)|json_encode|raw }},
+backgroundColor: successColor,
+borderRadius: 5
+}
+]
+},
+options: {
+indexAxis: 'y',
+responsive: true,
+scales: {
+x: {
+beginAtZero: true,
+stepSize: 1
+}
+}
+}
+});
+
+// 3. Projects by Type
+const ctx3 = document.getElementById('projectsByTypeChart').getContext('2d');
+new Chart(ctx3, {
+type: 'doughnut',
+data: {
+labels: {{ projectsByType|map(t => t.type)|json_encode|raw }},
+datasets: [
+{
+data: {{ projectsByType|map(t => t.count)|json_encode|raw }},
+backgroundColor: [
+primaryColor,
+secondaryColor,
+accentColor,
+successColor,
+infoColor
+]
+}
+]
+},
+options: {
+responsive: true,
+plugins: {
+legend: {
+position: 'bottom'
+}
+}
+}
+});
+});
+	</script>
+{% endblock %}

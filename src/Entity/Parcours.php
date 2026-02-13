@@ -8,6 +8,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
 #[ORM\Entity(repositoryClass: ParcoursRepository::class)]
 class Parcours
 {
@@ -17,9 +19,12 @@ class Parcours
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le type de parcours est obligatoire.")]
     private ?string $type_parcours = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le titre est obligatoire.")]
+    #[Assert\Length(min: 3, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères.")]
     private ?string $titre = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
@@ -29,12 +34,15 @@ class Parcours
     private ?\DateTime $date_fin = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: "La description est obligatoire.")]
     private ?string $description = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "L'établissement est obligatoire.")]
     private ?string $etablissement = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le diplôme est obligatoire.")]
     private ?string $diplome = null;
 
     #[ORM\Column(length: 255, nullable: true)]

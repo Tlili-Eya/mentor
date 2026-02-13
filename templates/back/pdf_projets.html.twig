@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Liste des Projets</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 20px;
+				color: #102c59; /* Bleu foncé de la charte */
+			}
+			.header {
+				text-align: center;
+				margin-bottom: 30px;
+				border-bottom: 3px solid #d52e28; /* Rouge de la charte */
+				padding-bottom: 10px;
+			}
+			.header h1 {
+				color: #102c59; /* Bleu foncé */
+				margin: 0;
+				text-transform: uppercase;
+				letter-spacing: 2px;
+			}
+			.date {
+				text-align: right;
+				font-size: 0.9em;
+				color: #9dbbce; /* Bleu clair */
+				margin-bottom: 20px;
+				font-weight: bold;
+			}
+			table {
+				width: 100%;
+				border-collapse: collapse;
+				margin-bottom: 20px;
+				background-color: #fff;
+			}
+			th,
+			td {
+				border: 1px solid #9dbbce; /* Bleu clair pour les bordures */
+				padding: 12px;
+				text-align: left;
+			}
+			th {
+				background-color: #102c59; /* Bleu foncé */
+				color: #ffffff;
+				text-transform: uppercase;
+				font-size: 0.9em;
+			}
+			.project-title {
+				font-weight: bold;
+				font-size: 1.1em;
+				color: #102c59;
+			}
+			.user-info {
+				font-size: 0.9em;
+			}
+			.badge {
+				display: inline-block;
+				padding: 4px 8px;
+				border-radius: 4px;
+				background-color: #9dbbce; /* Bleu clair */
+				color: #102c59; /* Bleu foncé */
+				font-size: 0.8em;
+				font-weight: bold;
+			}
+			.ressources-list {
+				margin: 5px 0 0;
+				padding-left: 20px;
+				font-size: 0.85em;
+				color: #102c59;
+			}
+			.footer {
+				text-align: center;
+				font-size: 0.8em;
+				color: #9dbbce;
+				margin-top: 40px;
+				border-top: 1px solid #9dbbce;
+				padding-top: 10px;
+			}
+			tr:nth-child(even) {
+				background-color: #f9fbff;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="header">
+			<h1>Rapport des Projets Mentor</h1>
+		</div>
+
+		<div class="date">
+			Généré le:
+			{{ "now"|date("d/m/Y H:i") }}
+		</div>
+
+		<table>
+			<thead>
+				<tr>
+					<th width="5%">#</th>
+					<th width="30%">Projet</th>
+					<th width="25%">Utilisateur</th>
+					<th width="15%">Type</th>
+					<th width="25%">Ressources</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for projet in projets %}
+					<tr>
+						<td>{{ projet.id }}</td>
+						<td>
+							<div class="project-title">{{ projet.titre }}</div>
+							<div style="font-size: 0.8em; color: #d52e28;">{{ projet.dateCreation|date("d/m/Y") }}</div>
+						</td>
+						<td>
+							{% if projet.utilisateur %}
+								<div class="user-info">
+									<strong>{{ projet.utilisateur.prenom }}
+										{{ projet.utilisateur.nom }}</strong><br>
+									<span style="font-size: 0.85em;">{{ projet.utilisateur.email }}</span>
+								</div>
+							{% else %}
+								<span style="color: #9dbbce; font-style: italic;">Inconnu</span>
+							{% endif %}
+						</td>
+						<td>
+							<span class="badge">{{ projet.type }}</span>
+						</td>
+						<td>
+							{% if projet.ressources is not empty %}
+								<ul class="ressources-list">
+									{% for ressource in projet.ressources %}
+										<li>{{ ressource.nom }}
+											({{ ressource.typeRessource.value }})</li>
+									{% endfor %}
+								</ul>
+							{% else %}
+								<span style="color: #9dbbce; font-style: italic;">Aucune ressource</span>
+							{% endif %}
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+
+		<div class="footer">
+			&copy;
+			{{ "now"|date("Y") }}
+			Mentor App - Rapport Officiel des Projets
+		</div>
+	</body>
+</html>

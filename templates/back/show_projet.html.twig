@@ -1,0 +1,150 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Détails du Projet
+{% endblock %}
+
+{% block body %}
+	<div class="page-title light-background">
+		<div class="container">
+			<h1 class="mb-0 text-primary">Détails du Projet</h1>
+			<nav class="breadcrumbs">
+				<ol>
+					<li>
+						<a href="{{ path('back_home') }}">Home</a>
+					</li>
+					<li>
+						<a href="{{ path('back_projets') }}">Projets</a>
+					</li>
+					<li class="current">Détails</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+
+	<section class="section">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-8">
+					<div class="card shadow-sm border-0 mb-4">
+						<div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+							<h5 class="mb-0 text-primary">{{ projet.titre }}</h5>
+							<span class="badge bg-info">{{ projet.type }}</span>
+						</div>
+						<div class="card-body">
+							<p class="text-muted mb-4">{{ projet.description }}</p>
+
+							<div class="row mb-3">
+								<div class="col-md-6">
+									<strong>Technologies:</strong><br>
+									<span>{{ projet.technologies }}</span>
+								</div>
+								<div class="col-md-6">
+									<strong>Parcours:</strong><br>
+									{% if projet.parcours %}
+										<span>{{ projet.parcours.titre }}</span>
+									{% else %}
+										<span class="text-muted">Aucun parcours associé</span>
+									{% endif %}
+								</div>
+							</div>
+
+							<div class="row mb-3">
+								<div class="col-md-6">
+									<strong>Date de début:</strong><br>
+									<span>{{ projet.dateDebut ? projet.dateDebut|date('d/m/Y') : 'Non définie' }}</span>
+								</div>
+								<div class="col-md-6">
+									<strong>Date de fin:</strong><br>
+									<span>{{ projet.dateFin ? projet.dateFin|date('d/m/Y') : 'Non définie' }}</span>
+								</div>
+							</div>
+
+							<div class="row">
+								<div class="col-md-6">
+									<strong>Créé le:</strong><br>
+									<span>{{ projet.dateCreation|date('d/m/Y H:i') }}</span>
+								</div>
+								<div class="col-md-6">
+									<strong>Dernière modification:</strong><br>
+									<span>{{ projet.dateModification ? projet.dateModification|date('d/m/Y H:i') : 'Non définie' }}</span>
+								</div>
+							</div>
+
+						</div>
+					</div>
+
+					<div class="card shadow-sm border-0">
+						<div class="card-header bg-white py-3">
+							<h5 class="mb-0 text-secondary">Ressources associées</h5>
+						</div>
+						<div class="card-body">
+							{% if projet.ressources is not empty %}
+								<div class="list-group list-group-flush">
+									{% for ressource in projet.ressources %}
+										<div class="list-group-item d-flex justify-content-between align-items-center">
+											<div>
+												<h6 class="mb-1">
+													<i class="bi bi-file-earmark me-2"></i>
+													<a href="{{ ressource.urlRessource }}" target="_blank" class="text-decoration-none">{{ ressource.nom }}</a>
+												</h6>
+												<p class="mb-1 small text-muted">{{ ressource.description }}</p>
+												<span class="badge bg-secondary rounded-pill">{{ ressource.typeRessource.value }}</span>
+											</div>
+											<div>
+												<a href="{{ path('back_edit_ressource', {'id': ressource.id}) }}" class="btn btn-sm btn-outline-primary me-1" title="Modifier">
+													<i class="bi bi-pencil"></i>
+												</a>
+												<a href="{{ path('back_delete_ressource', {'id': ressource.id}) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette ressource ?');" title="Supprimer">
+													<i class="bi bi-trash"></i>
+												</a>
+											</div>
+										</div>
+									{% endfor %}
+								</div>
+							{% else %}
+								<p class="text-muted text-center py-3">Aucune ressource associée à ce projet.</p>
+							{% endif %}
+						</div>
+					</div>
+
+				</div>
+
+				<div class="col-lg-4">
+					<div class="card shadow-sm border-0 mb-4">
+						<div class="card-header bg-white py-3">
+							<h5 class="mb-0">Auteur</h5>
+						</div>
+						<div class="card-body text-center">
+							{% if projet.utilisateur %}
+								{% if projet.utilisateur.pdpUrl %}
+									<img src="{{ asset('uploads/pdp/' ~ projet.utilisateur.pdpUrl) }}" alt="{{ projet.utilisateur.prenom }} {{ projet.utilisateur.nom }}" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover;">
+								{% else %}
+									<div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+										{{ projet.utilisateur.prenom|first|upper }}{{ projet.utilisateur.nom|first|upper }}
+									</div>
+								{% endif %}
+								<h5>{{ projet.utilisateur.prenom }}
+									{{ projet.utilisateur.nom }}</h5>
+								<p class="text-muted mb-0">{{ projet.utilisateur.email }}</p>
+								<span class="badge bg-secondary mt-2">{{ projet.utilisateur.role|upper }}</span>
+							{% else %}
+								<p class="text-muted">Utilisateur inconnu</p>
+							{% endif %}
+						</div>
+					</div>
+
+					<div class="d-grid gap-2">
+						<a href="{{ path('back_edit_projet', {'id': projet.id}) }}" class="btn btn-primary">
+							<i class="bi bi-pencil me-2"></i>
+							Modifier le Projet
+						</a>
+						<a href="{{ path('back_projets') }}" class="btn btn-outline-secondary">
+							<i class="bi bi-arrow-left me-2"></i>
+							Retour à la liste
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+{% endblock %}

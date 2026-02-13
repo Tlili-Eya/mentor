@@ -7,18 +7,24 @@ use App\Entity\Ressource;
 use App\Form\ProjetType;
 use App\Form\RessourceType;
 use App\Repository\ProjetRepository;
+use App\Repository\RessourceRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/projets', name: 'front_')]
 class ProjetController extends AbstractController
 {
-    #[Route('/', name: 'projets')]
-    public function index(Request $request, EntityManagerInterface $entityManager, ProjetRepository $projetRepository, \App\Repository\RessourceRepository $ressourceRepository): Response
+    /**
+     * FRONT OFFICE
+     */
+
+    #[Route('/projets', name: 'front_projets')]
+    public function index(Request $request, EntityManagerInterface $entityManager, ProjetRepository $projetRepository, RessourceRepository $ressourceRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -29,15 +35,11 @@ class ProjetController extends AbstractController
         $projectId = $request->query->get('id');
         $activeProject = null;
 
-        // Si l'ID est fourni et > 0, on cherche le projet
         if ($projectId && $projectId > 0) {
             $activeProject = $projetRepository->findOneBy(['id' => $projectId, 'utilisateur' => $user]);
-        } 
-        // Si aucun ID n'est fourni (null), on affiche le premier projet par défaut
-        elseif ($projectId === null && !empty($projects)) {
+        } elseif ($projectId === null && !empty($projects)) {
             $activeProject = $projects[0];
         }
-        // Si l'ID est '0', on ne fait rien : activeProject reste null => Formulaire de création
 
         $projectForm = $this->createForm(ProjetType::class, $activeProject ?? new Projet());
         $projectForm->handleRequest($request);
@@ -59,19 +61,16 @@ class ProjetController extends AbstractController
 
         $resourceForm = null;
         if ($activeProject && $activeProject->getId()) {
-            // Gestion de l'édition d'une ressource
             $resourceId = $request->query->get('resource_id');
             $resource = null;
             
             if ($resourceId) {
                 $resource = $ressourceRepository->findOneBy(['id' => $resourceId]);
-                // Vérifier que la ressource appartient bien au projet actif (sécurité)
                 if ($resource && $resource->getProjet()->getId() !== $activeProject->getId()) {
-                    $resource = null; // Rejet silencieux ou throw AccessDenied
+                    $resource = null;
                 }
             }
             
-            // Si pas de ressource trouvée ou pas d'ID, on crée une nouvelle
             if (!$resource) {
                 $resource = new Ressource();
             }
@@ -89,7 +88,6 @@ class ProjetController extends AbstractController
                 $entityManager->persist($resource);
                 $entityManager->flush();
 
-                // Redirection sans le paramètre resource_id pour sortir du mode édition
                 return $this->redirectToRoute('front_projets', ['id' => $activeProject->getId()]);
             }
         }
@@ -102,7 +100,7 @@ class ProjetController extends AbstractController
         ]);
     }
 
-    #[Route('/delete/{id}', name: 'delete_project')]
+    #[Route('/projets/delete/{id}', name: 'front_delete_project')]
     public function deleteProject(Projet $projet, EntityManagerInterface $entityManager): Response
     {
         if ($projet->getUtilisateur() !== $this->getUser()) {
@@ -115,7 +113,7 @@ class ProjetController extends AbstractController
         return $this->redirectToRoute('front_projets');
     }
 
-    #[Route('/ressource/delete/{id}', name: 'delete_ressource')]
+    #[Route('/projets/ressource/delete/{id}', name: 'front_delete_ressource')]
     public function deleteRessource(Ressource $ressource, EntityManagerInterface $entityManager): Response
     {
          if ($ressource->getProjet()->getUtilisateur() !== $this->getUser()) {
@@ -127,5 +125,199 @@ class ProjetController extends AbstractController
          $entityManager->flush();
 
          return $this->redirectToRoute('front_projets', ['id' => $projectId]);
+    }
+
+    #[Route('/mes-projets', name: 'front_mes_projets')]
+    public function mesProjets(ProjetRepository $projetRepository): Response
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $projects = $projetRepository->findBy(['utilisateur' => $user]);
+
+        return $this->render('front/mesprojets.html.twig', [
+            'projects' => $projects,
+        ]);
+    }
+
+    /**
+     * BACK OFFICE (MOVED)
+     */
+
+    #[Route('/admin/projets', name: 'back_projets')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminProjets(Request $request, ProjetRepository $projetRepository, EntityManagerInterface $entityManager): Response
+    {
+        $limit = 3;
+        $page = max(1, $request->query->getInt('page', 1));
+        $search = $request->query->get('q');
+        $sortBy = $request->query->get('sort');
+
+        $qb = $projetRepository->createQueryBuilder('p')
+            ->leftJoin('p.utilisateur', 'u')
+            ->addSelect('u');
+
+        if ($search) {
+            $qb->andWhere('p.titre LIKE :search OR p.type LIKE :search OR u.nom LIKE :search OR u.prenom LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
+        }
+
+        switch ($sortBy) {
+            case 'titre':
+                $qb->orderBy('p.titre', 'ASC');
+                break;
+            case 'utilisateur':
+                $qb->orderBy('u.nom', 'ASC');
+                break;
+            case 'nb_ressources':
+                $qb->leftJoin('p.ressources', 'r')
+                   ->groupBy('p.id')
+                   ->orderBy('COUNT(r.id)', 'DESC');
+                break;
+            default:
+                $qb->orderBy('p.id', 'ASC');
+                break;
+        }
+
+        $query = $qb->getQuery();
+        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query);
+        $paginator->getQuery()
+            ->setFirstResult(($limit * ($page - 1)))
+            ->setMaxResults($limit);
+
+        $totalProjets = count($paginator);
+        $totalPages = (int) ceil($totalProjets / $limit);
+
+        $topUsers = $entityManager->createQuery('
+            SELECT u.prenom, u.nom, COUNT(p.id) as totalProjects 
+            FROM App\Entity\Projet p 
+            JOIN p.utilisateur u 
+            GROUP BY u.id 
+            ORDER BY totalProjects DESC
+        ')->setMaxResults(5)->getResult();
+
+        $topProjectsByResources = $entityManager->createQuery('
+            SELECT p.titre, COUNT(r.id) as totalResources 
+            FROM App\Entity\Projet p 
+            LEFT JOIN p.ressources r 
+            GROUP BY p.id 
+            ORDER BY totalResources DESC
+        ')->setMaxResults(5)->getResult();
+
+        $projectsByType = $entityManager->createQuery('
+            SELECT p.type, COUNT(p.id) as count 
+            FROM App\Entity\Projet p 
+            GROUP BY p.type
+        ')->getResult();
+
+        $stats = [
+            'total_projects' => $projetRepository->count([]),
+            'total_resources' => $entityManager->createQuery('SELECT COUNT(r.id) FROM App\Entity\Ressource r')->getSingleScalarResult(),
+            'total_users_with_projects' => $entityManager->createQuery('SELECT COUNT(DISTINCT u.id) FROM App\Entity\Projet p JOIN p.utilisateur u')->getSingleScalarResult(),
+        ];
+
+        return $this->render('back/projets.html.twig', [
+            'projets' => $paginator,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'search' => $search,
+            'sortBy' => $sortBy,
+            'topUsers' => $topUsers,
+            'topProjects' => $topProjectsByResources,
+            'projectsByType' => $projectsByType,
+            'globalStats' => $stats
+        ]);
+    }
+
+    #[Route('/admin/projets/pdf', name: 'back_export_pdf_projets')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminExportPdf(ProjetRepository $projetRepository): Response
+    {
+        $projets = $projetRepository->findAll();
+        $pdfOptions = new Options();
+        $pdfOptions->set('defaultFont', 'Arial');
+        $dompdf = new Dompdf($pdfOptions);
+
+        $html = $this->renderView('back/pdf_projets.html.twig', [
+            'projets' => $projets,
+        ]);
+
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        return new Response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="liste_projets.pdf"',
+        ]);
+    }
+
+    #[Route('/admin/projets/delete/{id}', name: 'back_delete_projet')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminDeleteProjet(Projet $projet, EntityManagerInterface $entityManager): Response
+    {
+        $entityManager->remove($projet);
+        $entityManager->flush();
+        $this->addFlash('success', 'Projet supprimé avec succès.');
+        return $this->redirectToRoute('back_projets');
+    }
+
+    #[Route('/admin/projets/ressource/delete/{id}', name: 'back_delete_ressource')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminDeleteRessource(Ressource $ressource, EntityManagerInterface $entityManager): Response
+    {
+        $entityManager->remove($ressource);
+        $entityManager->flush();
+        $this->addFlash('success', 'Ressource supprimée avec succès.');
+        return $this->redirectToRoute('back_projets');
+    }
+
+    #[Route('/admin/projets/show/{id}', name: 'back_show_projet')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminShowProjet(Projet $projet): Response
+    {
+        return $this->render('back/show_projet.html.twig', [
+            'projet' => $projet,
+        ]);
+    }
+
+    #[Route('/admin/projets/edit/{id}', name: 'back_edit_projet')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminEditProjet(Request $request, Projet $projet, EntityManagerInterface $entityManager): Response
+    {
+        $form = $this->createForm(ProjetType::class, $projet);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Projet modifié avec succès.');
+            return $this->redirectToRoute('back_projets');
+        }
+
+        return $this->render('back/edit_projet.html.twig', [
+            'projet' => $projet,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/admin/projets/ressource/edit/{id}', name: 'back_edit_ressource')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminEditRessource(Request $request, Ressource $ressource, EntityManagerInterface $entityManager): Response
+    {
+        $form = $this->createForm(RessourceType::class, $ressource);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Ressource modifiée avec succès.');
+            return $this->redirectToRoute('back_projets');
+        }
+
+        return $this->render('back/edit_ressource.html.twig', [
+            'ressource' => $ressource,
+            'form' => $form->createView(),
+        ]);
     }
 }

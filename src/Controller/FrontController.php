@@ -27,9 +27,31 @@ class FrontController extends AbstractController
     }
 
     #[Route('parcours', name: 'parcours')]
-    public function parcours(): Response
+    public function parcours(\Symfony\Component\HttpFoundation\Request $request, \App\Repository\ParcoursRepository $parcoursRepository, \Doctrine\ORM\EntityManagerInterface $entityManager): Response
     {
-        return $this->render('front/parcours.html.twig');
+        $newParcours = new \App\Entity\Parcours();
+        $form = $this->createForm(\App\Form\ParcoursType::class, $newParcours);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $newParcours->setDateCreation(new \DateTime());
+            $entityManager->persist($newParcours);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Votre parcours a été ajouté avec succès !');
+            return $this->redirectToRoute('front_parcours');
+        }
+
+        return $this->render('front/parcours.html.twig', [
+            'parcoursList' => $parcoursRepository->findBy([], ['id' => 'DESC']),
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('mesparcours', name: 'mesparcours')]
+    public function mesparcours(): Response
+    {
+        return $this->render('front/mesparcours.html.twig');
     }
 
     #[Route('course-details', name: 'course_details')]

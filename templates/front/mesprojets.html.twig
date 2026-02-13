@@ -1,0 +1,288 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Mes Projets - MentorAI{% endblock %}
+
+{% block body %}
+<style>
+    :root {
+        --mentor-light-blue: #9dbbce;
+        --mentor-dark-blue: #102c59;
+        --mentor-red: #d52e28;
+    }
+
+    .page-title .heading {
+        background-color: var(--mentor-dark-blue);
+        color: white;
+    }
+
+    .btn-mentor-primary {
+        background-color: var(--mentor-dark-blue);
+        color: white;
+        border: 2px solid var(--mentor-dark-blue);
+        transition: all 0.3s;
+    }
+
+    .btn-mentor-primary:hover {
+        background-color: transparent;
+        color: var(--mentor-dark-blue);
+    }
+
+    .card-project {
+        border-top: 4px solid var(--mentor-light-blue);
+        transition: transform 0.3s ease;
+    }
+
+    .card-project:hover {
+        transform: translateY(-5px);
+        border-top-color: var(--mentor-dark-blue);
+    }
+
+    .text-mentor-dark {
+        color: var(--mentor-dark-blue);
+    }
+
+    .table-mentor thead {
+        background-color: var(--mentor-dark-blue);
+        color: white;
+    }
+    
+    .table-mentor thead th {
+        border-bottom: none;
+    }
+
+    .btn-outline-mentor-edit {
+        color: var(--mentor-dark-blue);
+        border-color: var(--mentor-dark-blue);
+    }
+
+    .btn-outline-mentor-edit:hover {
+        background-color: var(--mentor-dark-blue);
+        color: white;
+    }
+
+    .btn-mentor-danger {
+        background-color: var(--mentor-red);
+        color: white;
+        border: none;
+    }
+
+    .btn-mentor-danger:hover {
+        background-color: #b5221d;
+        color: white;
+    }
+    
+    .badge-mentor {
+        background-color: var(--mentor-light-blue);
+        color: var(--mentor-dark-blue);
+    }
+
+    /* Style pour les vidéos YouTube */
+    .youtube-thumbnail {
+        position: relative;
+        cursor: pointer;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+
+    .youtube-thumbnail img {
+        width: 100%;
+        transition: transform 0.3s;
+    }
+
+    .youtube-thumbnail:hover img {
+        transform: scale(1.05);
+    }
+
+    .play-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 48px;
+        height: 48px;
+        background-color: rgba(0, 0, 0, 0.7);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        transition: background-color 0.3s;
+    }
+
+    .youtube-thumbnail:hover .play-button {
+        background-color: #ff0000;
+    }
+</style>
+
+<div class="page-title" data-aos="fade">
+  <div class="heading">
+    <div class="container">
+      <div class="row d-flex justify-content-center text-center">
+        <div class="col-lg-8">
+          <h1>Mes Projets</h1>
+          <p class="mb-0">Gérez vos projets et vos ressources d'apprentissage.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="mes-projets" class="courses section">
+  <div class="container" data-aos="fade-up">
+
+    <div class="d-flex justify-content-end mb-4">
+        <a href="{{ path('front_projets') }}" class="btn btn-mentor-primary rounded-pill">
+            <i class="bi bi-plus-circle me-2"></i>Nouveau Projet
+        </a>
+    </div>
+
+    <div class="row">
+      {% for project in projects %}
+        <div class="col-lg-12 mb-4">
+          <div class="card card-project shadow-sm border-0">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="card-title text-mentor-dark mb-0 fw-bold">{{ project.titre }}</h3>
+                <div>
+                   <span class="badge badge-mentor me-2 px-3 py-2 rounded-pill">{{ project.type }}</span>
+                   <small class="text-muted">{{ project.dateCreation|date('d/m/Y') }}</small>
+                </div>
+              </div>
+              
+              <p class="card-text text-muted">{{ project.description }}</p>
+              
+              {% if project.technologies %}
+              <div class="mb-4">
+                  <strong class="text-mentor-dark">Technologies:</strong> <span class="fst-italic">{{ project.technologies }}</span>
+              </div>
+              {% endif %}
+
+              <h5 class="mt-4 border-bottom pb-2 text-mentor-dark"><i class="bi bi-collection me-2"></i>Ressources associées</h5>
+              {% if project.ressources is not empty %}
+                  <div class="table-responsive rounded-3 overflow-hidden shadow-sm mt-3">
+                    <table class="table table-hover table-mentor mb-0 align-middle">
+                      <thead>
+                        <tr>
+                          <th class="py-3 ps-4">Nom</th>
+                          <th class="py-3">Type</th>
+                          <th class="py-3">Aperçu / Lien</th>
+                          <th class="py-3">Contexte</th>
+                          <th class="py-3 text-end pe-4">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for resource in project.ressources %}
+                          <tr>
+                            <td class="ps-4 fw-medium">{{ resource.nom }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ resource.typeRessource.value }}</span></td>
+                            <td style="min-width: 800px;">
+                                {# Détection des liens YouTube #}
+                                {% set isYouTube = false %}
+                                {% set videoId = '' %}
+                                
+                                {# Format: https://www.youtube.com/watch?v=VIDEO_ID #}
+                                {% if 'youtube.com/watch' in resource.urlRessource and 'v=' in resource.urlRessource %}
+                                    {% set isYouTube = true %}
+                                    {% set parts = resource.urlRessource|split('v=') %}
+                                    {% set videoId = parts[1]|split('&')|first|split('?')|first %}
+                                {% endif %}
+                                
+                                {# Format: https://youtu.be/VIDEO_ID #}
+                                {% if 'youtu.be/' in resource.urlRessource %}
+                                    {% set isYouTube = true %}
+                                    {% set parts = resource.urlRessource|split('youtu.be/') %}
+                                    {% set videoId = parts[1]|split('?')|first|split('&')|first %}
+                                {% endif %}
+                                
+                                {# Format: https://www.youtube.com/embed/VIDEO_ID #}
+                                {% if 'youtube.com/embed/' in resource.urlRessource %}
+                                    {% set isYouTube = true %}
+                                    {% set parts = resource.urlRessource|split('embed/') %}
+                                    {% set videoId = parts[1]|split('?')|first|split('&')|first %}
+                                {% endif %}
+                                
+                                {% if isYouTube and videoId is not empty %}
+                                    <div class="youtube-container">
+                                        <div class="ratio ratio-16x9" style="max-width: 300px;">
+                                            <iframe src="https://www.youtube.com/embed/{{ videoId }}" 
+                                                    title="{{ resource.nom }}"
+                                                    frameborder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                    allowfullscreen
+                                                    class="rounded-3">
+                                            </iframe>
+                                        </div>
+                                        <div class="mt-1">
+                                            <small>
+                                                <a href="{{ resource.urlRessource }}" target="_blank" class="text-decoration-none small">
+                                                    <i class="bi bi-box-arrow-up-right"></i> Ouvrir sur YouTube
+                                                </a>
+                                            </small>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="d-flex flex-column">
+                                        <a href="{{ resource.urlRessource }}" target="_blank" class="text-decoration-none mb-1">
+                                            <i class="bi bi-link-45deg"></i> {{ resource.urlRessource|length > 40 ? resource.urlRessource|slice(0, 40) ~ '...' : resource.urlRessource }}
+                                        </a>
+                                        {% set domain = resource.urlRessource|replace({'https://': '', 'http://': ''})|split('/')|first %}
+                                        <small class="text-muted">
+                                            <i class="bi bi-globe"></i> {{ domain }}
+                                        </small>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small" style="max-width: 200px;">
+                                {{ resource.description ?: 'Aucune description' }}
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{{ path('front_projets', {'id': project.id, 'resource_id': resource.id}) }}" class="btn btn-sm btn-outline-mentor-edit me-1" title="Modifier la ressource">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{{ path('front_delete_ressource', {'id': resource.id}) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette ressource ?')" title="Supprimer la ressource">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+              {% else %}
+                  <div class="alert alert-light border border-dashed text-center my-3" role="alert">
+                    <i class="bi bi-info-circle me-2 text-muted"></i> 
+                    <span class="text-muted fst-italic">Aucune ressource associée pour le moment.</span>
+                  </div>
+              {% endif %}
+
+              <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                  <a href="{{ path('front_projets', {'id': project.id}) }}" class="btn btn-outline-mentor-edit">
+                      <i class="bi bi-pencil-square me-1"></i> Modifier Projet
+                  </a>
+                  <a href="{{ path('front_delete_project', {'id': project.id}) }}" class="btn btn-mentor-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">
+                      <i class="bi bi-trash me-1"></i> Supprimer Projet
+                  </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="empty-state">
+                <i class="bi bi-folder2-open display-1" style="color: var(--mentor-light-blue);"></i>
+                <h3 class="mt-3 text-mentor-dark">Aucun projet pour le moment</h3>
+                <p class="text-muted">Commencez par créer votre premier projet d'apprentissage.</p>
+                <a href="{{ path('front_projets') }}" class="btn btn-mentor-primary rounded-pill mt-3">
+                    Créer un projet
+                </a>
+            </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

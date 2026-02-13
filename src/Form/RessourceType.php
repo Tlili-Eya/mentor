@@ -22,8 +22,29 @@ class RessourceType extends AbstractType
                 'attr' => ['class' => 'form-control']
             ])
             ->add('urlRessource', UrlType::class, [
-                'label' => 'URL de la ressource',
-                'attr' => ['class' => 'form-control']
+                'label' => 'URL de la ressource (ou lien)',
+                'attr' => ['class' => 'form-control'],
+                'required' => false,
+            ])
+            ->add('fichier', \Symfony\Component\Form\Extension\Core\Type\FileType::class, [
+                'label' => 'Ou téléverser un fichier (PDF, Image, Doc)',
+                'mapped' => false,
+                'required' => false,
+                'attr' => ['class' => 'form-control'],
+                'constraints' => [
+                    new \Symfony\Component\Validator\Constraints\File([
+                        'maxSize' => '5M',
+                        'mimeTypes' => [
+                            'application/pdf',
+                            'application/x-pdf',
+                            'image/jpeg',
+                            'image/png',
+                            'application/msword',
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        ],
+                        'mimeTypesMessage' => 'Veuillez uploader un document valide (PDF, JPG, PNG, DOC)',
+                    ])
+                ],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description (optionnel)',

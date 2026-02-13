@@ -79,15 +79,35 @@ class ProjetController extends AbstractController
             $resourceForm->handleRequest($request);
 
             if ($resourceForm->isSubmitted() && $resourceForm->isValid()) {
+                /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $file */
+                $file = $resourceForm->get('fichier')->getData();
+                
+                if ($file) {
+                    $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeFilename = bin2hex(random_bytes(6)) . '-' . $originalFilename;
+                    $newFilename = $safeFilename . '.' . $file->guessExtension();
+
+                    try {
+                        $file->move(
+                            $this->getParameter('kernel.project_dir') . '/public/uploads/ressources',
+                            $newFilename
+                        );
+                        $resource->setUrlRessource('/uploads/ressources/' . $newFilename);
+                    } catch (\Exception $e) {
+                        $this->addFlash('error', 'Erreur lors de l\'upload du fichier.');
+                    }
+                }
+
                 $resource->setProjet($activeProject);
                 if (!$resource->getId()) {
-                     $resource->setDateCreation(new \DateTime());
+                    $resource->setDateCreation(new \DateTime());
                 }
                 $resource->setDateModification(new \DateTime());
                 
                 $entityManager->persist($resource);
                 $entityManager->flush();
 
+                $this->addFlash('success', 'Ressource enregistrée avec succès.');
                 return $this->redirectToRoute('front_projets', ['id' => $activeProject->getId()]);
             }
         }
@@ -110,7 +130,7 @@ class ProjetController extends AbstractController
         $entityManager->remove($projet);
         $entityManager->flush();
         
-        return $this->redirectToRoute('front_projets');
+        return $this->redirectToRoute('front_mes_projets');
     }
 
     #[Route('/projets/ressource/delete/{id}', name: 'front_delete_ressource')]

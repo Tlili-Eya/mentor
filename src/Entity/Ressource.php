@@ -20,9 +20,7 @@ class Ressource
     #[Assert\NotBlank(message: "Le nom de la ressource est obligatoire.")]
     private ?string $nom = null;
 
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "L'URL est obligatoire.")]
-    #[Assert\Url(message: "L'URL fournie n'est pas valide.")]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $urlRessource = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

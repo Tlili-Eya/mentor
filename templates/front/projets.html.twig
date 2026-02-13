@@ -328,7 +328,7 @@
                                 <i class="bi {{ resourceForm.vars.value.id ? 'bi-pencil-fill' : 'bi-plus-circle-fill' }} me-2"></i>
                                 {{ resourceForm.vars.value.id ? 'Modifier la ressource' : 'Ajouter une nouvelle ressource' }}
                             </h6>
-                            {{ form_start(resourceForm) }}
+                            {{ form_start(resourceForm, {'attr': {'enctype': 'multipart/form-data'}}) }}
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     {{ form_widget(resourceForm.nom, {'attr': {'placeholder': 'Nom de la ressource'}}) }}
@@ -337,7 +337,12 @@
                                     {{ form_widget(resourceForm.typeRessource) }}
                                 </div>
                                 <div class="col-12">
+                                    {{ form_label(resourceForm.urlRessource, 'Lien URL (optionnel)') }}
                                     {{ form_widget(resourceForm.urlRessource, {'attr': {'placeholder': 'URL (ex: https://github.com/...)'}}) }}
+                                </div>
+                                <div class="col-12">
+                                    {{ form_label(resourceForm.fichier, 'Ou importer un fichier (PDF, Image, Doc)') }}
+                                    {{ form_widget(resourceForm.fichier) }}
                                 </div>
                                 <div class="col-12">
                                     {{ form_widget(resourceForm.description, {'attr': {'placeholder': 'Courte description', 'rows': 2}}) }}

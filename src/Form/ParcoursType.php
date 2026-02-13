@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Parcours;
 use App\Entity\Projet;
+use App\Repository\ProjetRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -72,6 +73,14 @@ class ParcoursType extends AbstractType
             ->add('projets', EntityType::class, [
                 'class' => Projet::class,
                 'choice_label' => 'titre',
+                'query_builder' => function (ProjetRepository $er) use ($options) {
+                    $qb = $er->createQueryBuilder('p');
+                    if ($options['user']) {
+                        $qb->where('p.utilisateur = :user')
+                           ->setParameter('user', $options['user']);
+                    }
+                    return $qb;
+                },
                 'multiple' => true,
                 'expanded' => false,
                 'by_reference' => false,
@@ -86,6 +95,7 @@ class ParcoursType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Parcours::class,
+            'user' => null,
         ]);
     }
 }

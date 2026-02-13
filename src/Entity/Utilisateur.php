@@ -67,12 +67,6 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $projets;
 
     /**
-     * @var Collection<int, Projet>
-     */
-    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: 'utilisateur')]
-    private Collection $projet;
-
-    /**
      * @var Collection<int, Feedback>
      */
     #[ORM\OneToMany(targetEntity: Feedback::class, mappedBy: 'utilisateur', orphanRemoval: true)]
@@ -84,14 +78,20 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Objectif::class, mappedBy: 'utilisateur', orphanRemoval: true)]
     private Collection $objectifs;
 
+    /**
+     * @var Collection<int, Parcours>
+     */
+    #[ORM\OneToMany(targetEntity: Parcours::class, mappedBy: 'utilisateur')]
+    private Collection $parcours;
+
     public function __construct()
     {
         $this->categorieArticles = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->projets = new ArrayCollection();
-        $this->projet = new ArrayCollection();
         $this->feedback = new ArrayCollection();
         $this->objectifs = new ArrayCollection();
+        $this->parcours = new ArrayCollection();
     }
 
     // ==================== MÉTHODES POUR UserInterface ====================
@@ -394,6 +394,33 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
         if ($this->objectifs->removeElement($objectif)) {
             if ($objectif->getUtilisateur() === $this) {
                 $objectif->setUtilisateur(null);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Parcours>
+     */
+    public function getParcours(): Collection
+    {
+        return $this->parcours;
+    }
+
+    public function addParcours(Parcours $parcours): static
+    {
+        if (!$this->parcours->contains($parcours)) {
+            $this->parcours->add($parcours);
+            $parcours->setUtilisateur($this);
+        }
+        return $this;
+    }
+
+    public function removeParcours(Parcours $parcours): static
+    {
+        if ($this->parcours->removeElement($parcours)) {
+            if ($parcours->getUtilisateur() === $this) {
+                $parcours->setUtilisateur(null);
             }
         }
         return $this;

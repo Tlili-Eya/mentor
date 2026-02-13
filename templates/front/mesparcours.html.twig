@@ -1,1 +1,286 @@
 {% extends 'front/base.html.twig' %}
+
+{% block title %}Mes Parcours - MentorAI{% endblock %}
+
+{% block stylesheets %}
+<style>
+    :root {
+        --primary-color: #102c59;
+        --secondary-color: #9dbbce;
+        --accent-color: #d52e28;
+        --bg-light: #f4f7f9;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #1a458a 100%);
+        padding: 80px 0;
+        color: white;
+        margin-bottom: 50px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 300px;
+        background: rgba(157, 187, 206, 0.1);
+        border-radius: 50%;
+        transform: translate(150px, -150px);
+    }
+
+    .card-parcours {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(16, 44, 89, 0.08);
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        height: 100%;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid rgba(157, 187, 206, 0.2);
+    }
+
+    .card-parcours:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 45px rgba(16, 44, 89, 0.15);
+        border-color: var(--secondary-color);
+    }
+
+    .card-parcours .card-header {
+        background: #fff;
+        border-bottom: 1px solid #f0f4f8;
+        padding: 25px;
+    }
+
+    .card-parcours .badge-type {
+        font-size: 0.75rem;
+        padding: 6px 15px;
+        border-radius: 50px;
+        background: rgba(16, 44, 89, 0.05);
+        color: var(--primary-color);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+
+    .parcours-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin-bottom: 0;
+        line-height: 1.3;
+    }
+
+    .parcours-info {
+        font-size: 0.95rem;
+        color: #5a6b81;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .parcours-info i {
+        color: var(--secondary-color);
+        font-size: 1.1rem;
+    }
+
+    .project-chip {
+        display: inline-block;
+        padding: 5px 12px;
+        background: rgba(157, 187, 206, 0.15);
+        color: var(--primary-color);
+        border-radius: 8px;
+        font-size: 0.8rem;
+        margin: 3px;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+
+    .project-chip:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .action-buttons {
+        padding: 20px 25px;
+        background: #fcfdfe;
+        border-top: 1px solid #f0f4f8;
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-action {
+        flex: 1;
+        border-radius: 12px;
+        padding: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-edit {
+        background-color: var(--secondary-color);
+        color: var(--primary-color);
+        border: none;
+    }
+
+    .btn-edit:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-delete {
+        background-color: white;
+        color: var(--accent-color);
+        border: 1.5px solid var(--accent-color);
+    }
+
+    .btn-delete:hover {
+        background-color: var(--accent-color);
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 120px 0;
+        background: white;
+        border-radius: 30px;
+        border: 2px dashed var(--secondary-color);
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: var(--secondary-color);
+        margin-bottom: 25px;
+        display: block;
+    }
+
+    .empty-state h3 {
+        color: var(--primary-color);
+        font-weight: 800;
+    }
+
+    .btn-new {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        font-weight: 700;
+    }
+
+    .btn-new:hover {
+        background-color: #1a458a;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(16, 44, 89, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <div class="container" data-aos="fade-down">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold">Gestion des Parcours</h1>
+                <p class="lead opacity-75">Visualisez, modifiez et organisez vos expériences vécues et vos formations.</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{{ path('front_parcours') }}" class="btn btn-light btn-new rounded-pill">
+                    <i class="bi bi-plus-circle-fill me-2"></i>Nouveau Parcours
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+            <i class="bi bi-trash-fill me-2"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+
+    {% if parcoursList is empty %}
+        <div class="empty-state" data-aos="zoom-in">
+            <i class="bi bi-stack"></i>
+            <h3>Votre liste est vide</h3>
+            <p class="text-muted mb-4">Commencez par ajouter votre premier parcours académique ou professionnel.</p>
+            <a href="{{ path('front_parcours') }}" class="btn btn-new rounded-pill">Ajouter un premier parcours</a>
+        </div>
+    {% else %}
+        <div class="row g-4">
+            {% for parcours in parcoursList %}
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+                    <div class="card card-parcours">
+                        <div class="card-header">
+                            <span class="badge-type">{{ parcours.typeParcours }}</span>
+                            <h3 class="parcours-title">{{ parcours.titre }}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="parcours-info">
+                                <i class="bi bi-building-fill"></i> 
+                                <strong>{{ parcours.etablissement ?: (parcours.entreprise ?: 'Non renseigné') }}</strong>
+                            </div>
+                            <div class="parcours-info">
+                                <i class="bi bi-calendar3"></i> 
+                                {{ parcours.dateDebut ? parcours.dateDebut|date('d/m/Y') : '?' }} - 
+                                {{ parcours.dateFin ? parcours.dateFin|date('d/m/Y') : 'En cours' }}
+                            </div>
+                            {% if parcours.diplome %}
+                                <div class="parcours-info">
+                                    <i class="bi bi-mortarboard-fill"></i> {{ parcours.diplome }}
+                                </div>
+                            {% endif %}
+                            
+                            <p class="mt-4 text-muted small" style="min-height: 60px;">
+                                {{ parcours.description|length > 140 ? parcours.description|slice(0, 140) ~ '...' : parcours.description }}
+                            </p>
+
+                            {% if parcours.projets|length > 0 %}
+                                <div class="mt-4">
+                                    <h6 class="small fw-bold text-uppercase text-muted mb-2" style="font-size: 0.65rem; letter-spacing: 1px;">Projets Liés</h6>
+                                    <div class="d-flex flex-wrap">
+                                        {% for projet in parcours.projets %}
+                                            <span class="project-chip">{{ projet.titre }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="action-buttons">
+                            <a href="{{ path('front_edit_parcours', {id: parcours.id}) }}" class="btn-action btn-edit">
+                                <i class="bi bi-pencil-fill"></i> Modifier
+                            </a>
+                            <a href="{{ path('front_delete_parcours', {id: parcours.id}) }}" 
+                               class="btn-action btn-delete" 
+                               onclick="return confirm('Voulez-vous vraiment supprimer ce parcours ? Cette action est définitive.')">
+                                <i class="bi bi-trash3-fill"></i> Supprimer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

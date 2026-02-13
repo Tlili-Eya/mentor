@@ -151,4 +151,46 @@ class ParcoursController extends AbstractController
         $this->addFlash('success', 'Parcours supprimé avec succès.');
         return $this->redirectToRoute('back_parcours');
     }
+
+    /**
+     * FRONT OFFICE
+     */
+
+    #[Route('/parcours/edit/{id}', name: 'front_edit_parcours')]
+    public function editParcours(Request $request, Parcours $parcours, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        if (!$user || $parcours->getUtilisateur() !== $user) {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas modifier ce parcours.');
+        }
+
+        $form = $this->createForm(ParcoursType::class, $parcours, ['user' => $user]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $parcours->setDateModification(new \DateTime());
+            $entityManager->flush();
+            $this->addFlash('success', 'Parcours mis à jour avec succès.');
+            return $this->redirectToRoute('front_mesparcours');
+        }
+
+        return $this->render('front/edit_parcours.html.twig', [
+            'parcours' => $parcours,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/parcours/delete/{id}', name: 'front_delete_parcours')]
+    public function deleteParcours(Parcours $parcours, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        if (!$user || $parcours->getUtilisateur() !== $user) {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas supprimer ce parcours.');
+        }
+
+        $entityManager->remove($parcours);
+        $entityManager->flush();
+        $this->addFlash('danger', 'Parcours supprimé avec succès.');
+        return $this->redirectToRoute('front_mesparcours');
+    }
 }

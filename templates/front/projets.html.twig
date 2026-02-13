@@ -1,276 +1,362 @@
 {% extends 'front/base.html.twig' %}
 
-{% block title %}Mes Projets
+{% block title %}Gestion des Projets - MentorAI{% endblock %}
+
+{% block stylesheets %}
+<style>
+    :root {
+        --primary-color: #102c59;
+        --secondary-color: #9dbbce;
+        --accent-color: #d52e28;
+        --bg-light: #f4f7f9;
+    }
+
+    .page-title-banner {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #1a458a 100%);
+        padding: 60px 0;
+        color: white;
+        border-radius: 0 0 30px 30px;
+        margin-bottom: 40px;
+    }
+
+    .sidebar-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(16, 44, 89, 0.08);
+        border: 1px solid rgba(157, 187, 206, 0.2);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+
+    .sidebar-header {
+        background: #f8faff;
+        padding: 20px 25px;
+        border-bottom: 1px solid #e1e8ef;
+        font-weight: 800;
+        color: var(--primary-color);
+    }
+
+    .list-group-item-custom {
+        padding: 15px 25px;
+        border: none;
+        border-left: 4px solid transparent;
+        transition: all 0.3s;
+        color: #5a6b81;
+    }
+
+    .list-group-item-custom:hover {
+        background-color: #f8faff;
+        color: var(--primary-color);
+    }
+
+    .list-group-item-custom.active {
+        background-color: rgba(157, 187, 206, 0.1);
+        color: var(--primary-color);
+        font-weight: 700;
+        border-left-color: var(--accent-color);
+    }
+
+    .form-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(16, 44, 89, 0.08);
+        border: 1px solid rgba(157, 187, 206, 0.2);
+        overflow: hidden;
+    }
+
+    .form-card-header {
+        background: #f8faff;
+        padding: 25px 40px;
+        border-bottom: 2.5px solid var(--accent-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .form-card-header h4 {
+        margin-bottom: 0;
+        font-weight: 800;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .form-card-body {
+        padding: 40px;
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .form-control, .form-select {
+        border-radius: 12px;
+        padding: 12px 15px;
+        border: 1.5px solid #e1e8ef;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 4px rgba(157, 187, 206, 0.15);
+    }
+
+    .btn-submit {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        font-weight: 700;
+        border-radius: 12px;
+        transition: all 0.3s;
+    }
+
+    .btn-submit:hover {
+        background: #1a458a;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(16, 44, 89, 0.2);
+        color: white;
+    }
+
+    .btn-new-project {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 15px;
+        font-weight: 800;
+        border-radius: 15px;
+        transition: all 0.3s;
+        width: 100%;
+        margin-bottom: 20px;
+        display: block;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .btn-new-project:hover {
+        background: #b92b25;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(213, 46, 40, 0.3);
+        color: white;
+    }
+
+    .table-custom {
+        margin-top: 20px;
+    }
+
+    .table-custom thead th {
+        background: #f8faff;
+        border-bottom: 2px solid var(--secondary-color);
+        color: var(--primary-color);
+        font-weight: 800;
+        padding: 15px;
+    }
+
+    .table-custom tbody td {
+        padding: 15px;
+        vertical-align: middle;
+    }
+
+    .resource-section {
+        background: #fcfdfe;
+        border-radius: 15px;
+        border: 1px dashed var(--secondary-color);
+        padding: 25px;
+        margin-top: 30px;
+    }
+
+    .badge-resource {
+        background: var(--primary-color);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+</style>
 {% endblock %}
 
 {% block body %}
-	<style>:root
-	{
-		--color-primary: #102c59;
-		--color-secondary: #9dbbce;
-		--color-danger: #d52e28;
-	}
-
-	.text-primary-custom {
-		color: var(--color-primary) !important;
-	}
-	.bg-primary-custom {
-		background-color: var(--color-primary) !important;
-	}
-	.btn-primary-custom {
-		background-color: var(--color-primary);
-		border-color: var(--color-primary);
-		color: white;
-	}
-	.btn-primary-custom:hover {
-		background-color: #0d244b;
-		border-color: #0d244b;
-		color: white;
-	}
-
-	.btn-danger-custom {
-		background-color: var(--color-danger);
-		border-color: var(--color-danger);
-		color: white;
-	}
-	.btn-danger-custom:hover {
-		background-color: #b92b25;
-		border-color: #b92b25;
-		color: white;
-	}
-
-	.btn-outline-danger-custom {
-		color: var(--color-danger);
-		border-color: var(--color-danger);
-	}
-	.btn-outline-danger-custom:hover {
-		background-color: var(--color-danger);
-		color: white;
-	}
-
-	.list-group-item.active {
-		background-color: var(--color-primary);
-		border-color: var(--color-primary);
-	}
-
-	.card-header-custom {
-		background-color: var(--color-secondary);
-		color: var(--color-primary);
-	}
-
-	.sidebar-custom {
-		border-right: 1px solid var(--color-secondary);
-	}
-</style>
-
-<div class="page-title" data-aos="fade" style="background-color: var(--color-primary); color: white;">
-	<div class="heading">
-		<div class="container">
-			<div class="row d-flex justify-content-center text-center">
-				<div class="col-lg-8">
-					<h1 class="text-white">Gestion des Projets</h1>
-					<p class="mb-0 text-white-50">Gérez vos projets académiques et professionnels, ainsi que les ressources associées.</p>
-				</div>
-			</div>
-		</div>
-	</div>
+<div class="page-title-banner">
+    <div class="container text-center" data-aos="fade-up">
+        <h1 class="display-5 fw-bold mb-3">Gestion des Projets</h1>
+        <p class="lead opacity-75">Gérez vos réalisations académiques et professionnelles ainsi que leurs ressources.</p>
+    </div>
 </div>
 
-<div class="container mt-5 mb-5">
-	<div
-		class="row">
-		<!-- Sidebar: Liste des Projets -->
-		<div class="col-md-3 sidebar-custom pt-3">
-			<div class="d-grid gap-2 mb-3">
-				<a href="{{ path('front_projets', {'id': 0}) }}" class="btn btn-warning text-white fw-bold {{ activeProject is null or activeProject.id is null ? 'active' : '' }}">
-					<i class="bi bi-plus-circle"></i>
-					Nouveau Projet
-				</a>
-			</div>
-			<div class="list-group shadow-sm">
-				{% for project in projects %}
-					<a href="{{ path('front_projets', {'id': project.id}) }}" class="list-group-item list-group-item-action {{ activeProject and activeProject.id == project.id ? 'active' : '' }}">
-						<div class="d-flex w-100 justify-content-between">
-							<h6 class="mb-1 text-truncate">{{ project.titre }}</h6>
-						</div>
-						<small class="{{ activeProject and activeProject.id == project.id ? 'text-white-50' : 'text-muted' }}">{{ project.type }}</small>
-					</a>
-				{% endfor %}
-				{% if projects is empty %}
-					<div class="list-group-item text-muted text-center">
-						<small>Aucun projet enregistré</small>
-					</div>
-				{% endif %}
-			</div>
-		</div>
+<div class="container mb-5">
+    <div class="row g-4">
+        <!-- Sidebar -->
+        <div class="col-lg-3" data-aos="fade-right">
+            <a href="{{ path('front_projets', {'id': 0}) }}" class="btn-new-project">
+                <i class="bi bi-plus-lg me-2"></i> Nouveau Projet
+            </a>
+            
+            <div class="sidebar-card">
+                <div class="sidebar-header">Mes Projets</div>
+                <div class="list-group list-group-flush">
+                    {% for project in projects %}
+                        <a href="{{ path('front_projets', {'id': project.id}) }}" 
+                           class="list-group-item list-group-item-action list-group-item-custom {{ activeProject and activeProject.id == project.id ? 'active' : '' }}">
+                            <div class="fw-bold text-truncate">{{ project.titre }}</div>
+                            <small class="opacity-75">{{ project.type }}</small>
+                        </a>
+                    {% endfor %}
+                    {% if projects is empty %}
+                        <div class="p-4 text-center text-muted italic">
+                            <small>Aucun projet trouvé</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-		<!-- Main Content -->
-		<div
-			class="col-md-9 pt-3">
-			<!-- Formulaire Projet -->
-			<div class="card shadow-sm mb-4 border-0">
-				<div class="card-header card-header-custom d-flex justify-content-between align-items-center">
-					<h5 class="mb-0 fw-bold">
-						<i class="bi bi-folder"></i>
-						{{ activeProject and activeProject.id ? 'Modifier le projet' : 'Créer un nouveau projet' }}</h5>
-					{% if activeProject and activeProject.id %}
-						<a href="{{ path('front_delete_project', {'id': activeProject.id}) }}" class="btn btn-danger-custom btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.');">
-							<i class="bi bi-trash"></i>
-							Supprimer
-						</a>
-					{% endif %}
-				</div>
-				<div class="card-body">
-					{{ form_start(projectForm, {'attr': {'novalidate': 'novalidate'}}) }}
-					<div class="row">
-						<div class="col-md-6 mb-3">
-							{{ form_label(projectForm.titre, null, {'label_attr': {'class': 'fw-bold text-primary-custom'}}) }}
-							{{ form_widget(projectForm.titre) }}
-							{{ form_errors(projectForm.titre) }}
-						</div>
-						<div class="col-md-6 mb-3">
-							{{ form_label(projectForm.type, null, {'label_attr': {'class': 'fw-bold text-primary-custom'}}) }}
-							{{ form_widget(projectForm.type) }}
-							{{ form_errors(projectForm.type) }}
-						</div>
-					</div>
-					<div class="mb-3">
-						{{ form_label(projectForm.description, null, {'label_attr': {'class': 'fw-bold text-primary-custom'}}) }}
-						{{ form_widget(projectForm.description) }}
-						{{ form_errors(projectForm.description) }}
-					</div>
-					<div class="mb-3">
-						{{ form_label(projectForm.technologies, null, {'label_attr': {'class': 'fw-bold text-primary-custom'}}) }}
-						{{ form_widget(projectForm.technologies) }}
-						{{ form_errors(projectForm.technologies) }}
-					</div>
-					<div class="row">
-						<div class="col-md-6 mb-3">
-							{{ form_label(projectForm.dateDebut, null, {'label_attr': {'class': 'fw-bold text-primary-custom'}}) }}
-							{{ form_widget(projectForm.dateDebut) }}
-							{{ form_errors(projectForm.dateDebut) }}
-						</div>
-						<div class="col-md-6 mb-3">
-							{{ form_label(projectForm.dateFin, null, {'label_attr': {'class': 'fw-bold text-primary-custom'}}) }}
-							{{ form_widget(projectForm.dateFin) }}
-							{{ form_errors(projectForm.dateFin) }}
-						</div>
-					</div>
-					<div class="mb-3">
-						{{ form_label(projectForm.parcours, null, {'label_attr': {'class': 'fw-bold text-primary-custom'}}) }}
-						{{ form_widget(projectForm.parcours) }}
-						{{ form_errors(projectForm.parcours) }}
-					</div>
+        <!-- Main Content -->
+        <div class="col-lg-9" data-aos="fade-left">
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4 p-3" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
 
-					<div class="d-flex justify-content-end">
-						<button type="submit" class="btn btn-primary-custom px-4">
-							<i class="bi bi-save"></i>
-							{{ activeProject and activeProject.id ? 'Mettre à jour' : 'Enregistrer' }}
-						</button>
-					</div>
-					{{ form_end(projectForm) }}
-				</div>
-			</div>
+            <!-- Projet Edit/New Card -->
+            <div class="form-card mb-5">
+                <div class="form-card-header">
+                    <h4>
+                        <i class="bi bi-folder2-open"></i>
+                        {{ activeProject and activeProject.id ? 'Modifier le projet' : 'Créer un projet' }}
+                    </h4>
+                    {% if activeProject and activeProject.id %}
+                        <a href="{{ path('front_delete_project', {'id': activeProject.id}) }}" 
+                           class="btn btn-sm btn-outline-danger px-3 rounded-pill fw-bold"
+                           onclick="return confirm('Supprimer ce projet définitivement ?')">
+                            <i class="bi bi-trash3 me-1"></i> Supprimer
+                        </a>
+                    {% endif %}
+                </div>
 
-			<!-- Ressources Section (Seulement si projet existant) -->
-			{% if activeProject and activeProject.id %}
-				<div class="card shadow-sm border-0 mt-5">
-					<div class="card-header bg-light border-bottom border-2" style="border-color: var(--color-secondary) !important;">
-						<h5 class="mb-0 text-primary-custom">
-							<i class="bi bi-files"></i>
-							Ressources du projet</h5>
-					</div>
-					<div class="card-body">
-						{% if activeProject.ressources is empty %}
-							<div class="text-center py-4 text-muted">
-								<i class="bi bi-folder2-open display-4" style="color: var(--color-secondary);"></i>
-								<p class="mt-2">Aucune ressource associée pour le moment.</p>
-							</div>
-						{% else %}
-							<div class="table-responsive">
-								<table class="table table-hover align-middle">
-									<thead style="background-color: var(--color-secondary); color: var(--color-primary);">
-										<tr>
-											<th>Type</th>
-											<th>Nom</th>
-											<th>Description</th>
-											<th class="text-end">Actions</th>
-										</tr>
-									</thead>
-									<tbody>
-										{% for resource in activeProject.ressources %}
-											<tr>
-												<td>
-													<span class="badge" style="background-color: var(--color-primary);">{{ resource.typeRessource.value }}</span>
-												</td>
-												<td>
-													<a href="{{ resource.urlRessource }}" target="_blank" class="text-decoration-none fw-bold" style="color: var(--color-primary);">
-														{{ resource.nom }}
-														<i class="bi bi-box-arrow-up-right small"></i>
-													</a>
-												</td>
-												<td>{{ resource.description|default('-') }}</td>
-												<td class="text-end">
-													<a href="{{ path('front_projets', {'id': activeProject.id, 'resource_id': resource.id}) }}" class="btn btn-sm btn-outline-primary me-1">
-														<i class="bi bi-pencil"></i>
-													</a>
-													<a href="{{ path('front_delete_ressource', {'id': resource.id}) }}" class="btn btn-sm btn-outline-danger-custom" onclick="return confirm('Supprimer cette ressource ?');">
-														<i class="bi bi-trash"></i>
-													</a>
-												</td>
-											</tr>
-										{% endfor %}
-									</tbody>
-								</table>
-							</div>
-						{% endif %}
+                <div class="form-card-body">
+                    {{ form_start(projectForm, {'attr': {'novalidate': 'novalidate'}}) }}
+                    <div class="row g-4">
+                        <div class="col-md-8">
+                            {{ form_label(projectForm.titre, null, {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(projectForm.titre) }}
+                            <div class="text-danger small">{{ form_errors(projectForm.titre) }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_label(projectForm.type, null, {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(projectForm.type) }}
+                        </div>
+                        <div class="col-12">
+                            {{ form_label(projectForm.description, null, {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(projectForm.description, {'attr': {'rows': 4}}) }}
+                        </div>
+                        <div class="col-12">
+                            {{ form_label(projectForm.technologies, null, {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(projectForm.technologies, {'attr': {'placeholder': 'PHP, Symfony, Bootstrap...'}}) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(projectForm.dateDebut, 'Date de début', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(projectForm.dateDebut) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(projectForm.dateFin, 'Date de fin', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(projectForm.dateFin) }}
+                        </div>
+                        <div class="col-12">
+                            {{ form_label(projectForm.parcours, 'Associer à un parcours', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(projectForm.parcours) }}
+                        </div>
+                    </div>
+                    <div class="mt-5 text-end">
+                        <button type="submit" class="btn btn-submit">
+                            <i class="bi bi-save2 me-2"></i>
+                            {{ activeProject and activeProject.id ? 'Mettre à jour le projet' : 'Enregistrer le nouveau projet' }}
+                        </button>
+                    </div>
+                    {{ form_end(projectForm) }}
+                </div>
+            </div>
 
-						<hr class="my-4" style="color: var(--color-secondary);">
+            <!-- Ressources Section (If Project exists) -->
+            {% if activeProject and activeProject.id %}
+                <div class="form-card">
+                    <div class="form-card-header" style="border-bottom-color: var(--secondary-color);">
+                        <h4><i class="bi bi-link-45deg"></i> Ressources & Liens</h4>
+                    </div>
+                    <div class="form-card-body">
+                        {% if activeProject.ressources is empty %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-cloud-upload display-1 text-light"></i>
+                                <p class="text-muted mt-3">Aucune ressource associée à ce projet.</p>
+                            </div>
+                        {% else %}
+                            <div class="table-responsive">
+                                <table class="table table-custom">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Nom du lien</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for resource in activeProject.ressources %}
+                                            <tr>
+                                                <td><span class="badge-resource">{{ resource.typeRessource.value }}</span></td>
+                                                <td>
+                                                    <a href="{{ resource.urlRessource }}" target="_blank" class="fw-bold text-decoration-none" style="color: var(--primary-color);">
+                                                        {{ resource.nom }} <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                                    </a>
+                                                </td>
+                                                <td class="text-end">
+                                                    <a href="{{ path('front_projets', {'id': activeProject.id, 'resource_id': resource.id}) }}" class="btn btn-sm btn-outline-primary me-2 rounded-pill"><i class="bi bi-pencil"></i></a>
+                                                    <a href="{{ path('front_delete_ressource', {'id': resource.id}) }}" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Supprimer cette ressource ?')"><i class="bi bi-trash"></i></a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
 
-						<div class="d-flex justify-content-between align-items-center mb-3">
-							<h6 class="mb-0 text-primary-custom">
-								<i class="bi {{ resourceForm.vars.value.id ? 'bi-pencil-square' : 'bi-plus-lg' }}"></i>
-								{{ resourceForm.vars.value.id ? 'Modifier la ressource' : 'Ajouter une ressource' }}
-							</h6>
-							{% if resourceForm.vars.value.id %}
-								<a href="{{ path('front_projets', {'id': activeProject.id}) }}" class="btn btn-sm btn-outline-secondary">
-									<i class="bi bi-x-circle"></i>
-									Annuler
-								</a>
-							{% endif %}
-						</div>
-
-						<div class="p-4 rounded border" style="background-color: #f8f9fa; border-color: var(--color-secondary) !important;">
-							{{ form_start(resourceForm, {'attr': {'novalidate': 'novalidate'}}) }}
-							<div class="row">
-								<div class="col-md-6 mb-3">
-									{{ form_label(resourceForm.nom, null, {'label_attr': {'class': 'text-primary-custom'}}) }}
-									{{ form_widget(resourceForm.nom) }}
-								</div>
-								<div class="col-md-6 mb-3">
-									{{ form_label(resourceForm.typeRessource, null, {'label_attr': {'class': 'text-primary-custom'}}) }}
-									{{ form_widget(resourceForm.typeRessource) }}
-								</div>
-							</div>
-							<div class="mb-3">
-								{{ form_label(resourceForm.urlRessource, null, {'label_attr': {'class': 'text-primary-custom'}}) }}
-								{{ form_widget(resourceForm.urlRessource) }}
-							</div>
-							<div class="mb-3">
-								{{ form_label(resourceForm.description, null, {'label_attr': {'class': 'text-primary-custom'}}) }}
-								{{ form_widget(resourceForm.description) }}
-								<div class="text-end">
-									<button type="submit" class="btn btn-outline-primary" style="color: var(--color-primary); border-color: var(--color-primary);">
-										<i class="bi {{ resourceForm.vars.value.id ? 'bi-save' : 'bi-plus-circle' }}"></i>
-										{{ resourceForm.vars.value.id ? 'Mettre à jour' : 'Ajouter la ressource' }}
-									</button>
-								</div>
-								{{ form_end(resourceForm) }}
-							</div>
-						</div>
-					</div>
-				{% endif %}
-			</div>
-		</div>
-	</div>
+                        <div class="resource-section">
+                            <h6 class="fw-bold mb-4">
+                                <i class="bi {{ resourceForm.vars.value.id ? 'bi-pencil-fill' : 'bi-plus-circle-fill' }} me-2"></i>
+                                {{ resourceForm.vars.value.id ? 'Modifier la ressource' : 'Ajouter une nouvelle ressource' }}
+                            </h6>
+                            {{ form_start(resourceForm) }}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form_widget(resourceForm.nom, {'attr': {'placeholder': 'Nom de la ressource'}}) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_widget(resourceForm.typeRessource) }}
+                                </div>
+                                <div class="col-12">
+                                    {{ form_widget(resourceForm.urlRessource, {'attr': {'placeholder': 'URL (ex: https://github.com/...)'}}) }}
+                                </div>
+                                <div class="col-12">
+                                    {{ form_widget(resourceForm.description, {'attr': {'placeholder': 'Courte description', 'rows': 2}}) }}
+                                </div>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-end gap-2">
+                                {% if resourceForm.vars.value.id %}
+                                    <a href="{{ path('front_projets', {'id': activeProject.id}) }}" class="btn btn-light rounded-pill px-4">Annuler</a>
+                                {% endif %}
+                                <button type="submit" class="btn btn-submit rounded-pill">
+                                    {{ resourceForm.vars.value.id ? 'Modifier' : 'Ajouter' }}
+                                </button>
+                            </div>
+                            {{ form_end(resourceForm) }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}

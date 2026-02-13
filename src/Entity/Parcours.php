@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Utilisateur;
 use App\Repository\ParcoursRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -68,6 +69,9 @@ class Parcours
      */
     #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: 'parcours')]
     private Collection $projets;
+
+    #[ORM\ManyToOne(inversedBy: 'parcours')]
+    private ?Utilisateur $utilisateur = null;
 
     public function __construct()
     {
@@ -261,6 +265,18 @@ class Parcours
                 $projet->setParcours(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUtilisateur(): ?Utilisateur
+    {
+        return $this->utilisateur;
+    }
+
+    public function setUtilisateur(?Utilisateur $utilisateur): static
+    {
+        $this->utilisateur = $utilisateur;
 
         return $this;
     }

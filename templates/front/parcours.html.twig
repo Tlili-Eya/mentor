@@ -167,11 +167,13 @@
                         <div class="col-md-6">
                             {{ form_label(form.date_debut, 'Date de début', {'label_attr': {'class': 'form-label'}}) }}
                             {{ form_widget(form.date_debut) }}
+                            <div class="text-danger small">{{ form_errors(form.date_debut) }}</div>
                         </div>
 
                         <div class="col-md-6">
                             {{ form_label(form.date_fin, 'Date de fin', {'label_attr': {'class': 'form-label'}}) }}
                             {{ form_widget(form.date_fin) }}
+                            <div class="text-danger small">{{ form_errors(form.date_fin) }}</div>
                         </div>
 
                         <div class="col-12">

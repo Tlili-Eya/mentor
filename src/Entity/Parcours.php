@@ -29,9 +29,11 @@ class Parcours
     private ?string $titre = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Assert\NotBlank(message: "La date de début est obligatoire.")]
     private ?\DateTime $date_debut = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Assert\GreaterThanOrEqual(propertyPath: "date_debut", message: "La date de fin ne peut pas être antérieure à la date de début.")]
     private ?\DateTime $date_fin = null;
 
     #[ORM\Column(type: Types::TEXT)]

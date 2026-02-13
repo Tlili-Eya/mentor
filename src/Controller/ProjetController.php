@@ -37,8 +37,6 @@ class ProjetController extends AbstractController
 
         if ($projectId && $projectId > 0) {
             $activeProject = $projetRepository->findOneBy(['id' => $projectId, 'utilisateur' => $user]);
-        } elseif ($projectId === null && !empty($projects)) {
-            $activeProject = $projects[0];
         }
 
         $projectForm = $this->createForm(ProjetType::class, $activeProject ?? new Projet());
@@ -85,7 +83,8 @@ class ProjetController extends AbstractController
                 if ($file) {
                     $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                     $safeFilename = bin2hex(random_bytes(6)) . '-' . $originalFilename;
-                    $newFilename = $safeFilename . '.' . $file->guessExtension();
+                    $extension = $file->guessExtension() ?: $file->getClientOriginalExtension();
+                    $newFilename = $safeFilename . '.' . $extension;
 
                     try {
                         $file->move(

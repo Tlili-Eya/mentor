@@ -26,46 +26,6 @@ class FrontController extends AbstractController
         return $this->render('front/about.html.twig');
     }
 
-    #[Route('parcours', name: 'parcours')]
-    public function parcours(\Symfony\Component\HttpFoundation\Request $request, \App\Repository\ParcoursRepository $parcoursRepository, \Doctrine\ORM\EntityManagerInterface $entityManager): Response
-    {
-        $newParcours = new \App\Entity\Parcours();
-        $form = $this->createForm(\App\Form\ParcoursType::class, $newParcours, ['user' => $this->getUser()]);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $newParcours->setDateCreation(new \DateTime());
-            $user = $this->getUser();
-            if ($user) {
-                $newParcours->setUtilisateur($user);
-            }
-            $entityManager->persist($newParcours);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Votre parcours a été ajouté avec succès !');
-            return $this->redirectToRoute('front_parcours');
-        }
-
-        return $this->render('front/parcours.html.twig', [
-            'parcoursList' => $parcoursRepository->findBy([], ['id' => 'DESC']),
-            'form' => $form->createView(),
-        ]);
-    }
-
-    #[Route('mesparcours', name: 'mesparcours')]
-    public function mesparcours(\App\Repository\ParcoursRepository $parcoursRepository): Response
-    {
-        $user = $this->getUser();
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-        }
-
-        $parcoursList = $parcoursRepository->findBy(['utilisateur' => $user], ['id' => 'DESC']);
-
-        return $this->render('front/mesparcours.html.twig', [
-            'parcoursList' => $parcoursList,
-        ]);
-    }
 
     #[Route('course-details', name: 'course_details')]
     public function courseDetails(): Response
@@ -137,6 +97,14 @@ class FrontController extends AbstractController
     public function error404(): Response
     {
         return $this->render('front/404.html.twig');
+    
+    }
+
+    #[Route('ai-embauche', name: 'ai_embauche')]
+    public function aiEmbauche(): Response
+    {
+        return $this->render('front/ai-embauche.html.twig');
+    
     }
 
   

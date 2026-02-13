@@ -321,15 +321,15 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, Projet>
      */
-    public function getProjet(): Collection
+    public function getProjets(): Collection
     {
-        return $this->projet;
+        return $this->projets;
     }
 
     public function addProjet(Projet $projet): static
     {
-        if (!$this->projet->contains($projet)) {
-            $this->projet->add($projet);
+        if (!$this->projets->contains($projet)) {
+            $this->projets->add($projet);
             $projet->setUtilisateur($this);
         }
         return $this;
@@ -337,7 +337,7 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeProjet(Projet $projet): static
     {
-        if ($this->projet->removeElement($projet)) {
+        if ($this->projets->removeElement($projet)) {
             if ($projet->getUtilisateur() === $this) {
                 $projet->setUtilisateur(null);
             }

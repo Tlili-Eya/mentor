@@ -30,12 +30,15 @@ class Projet
     private ?string $description = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Veuillez indiquer les technologies utilisées.")]
     private ?string $technologies = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Assert\NotBlank(message: "Veuillez indiquer une date de début.")]
     private ?\DateTime $dateDebut = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Assert\GreaterThanOrEqual(propertyPath: "dateDebut", message: "La date de fin ne peut pas être antérieure à la date de début.")]
     private ?\DateTime $dateFin = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]

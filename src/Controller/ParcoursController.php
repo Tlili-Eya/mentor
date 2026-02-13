@@ -156,6 +156,47 @@ class ParcoursController extends AbstractController
      * FRONT OFFICE
      */
 
+    #[Route('/parcours', name: 'front_parcours')]
+    public function index(Request $request, ParcoursRepository $parcoursRepository, EntityManagerInterface $entityManager): Response
+    {
+        $newParcours = new Parcours();
+        $form = $this->createForm(ParcoursType::class, $newParcours, ['user' => $this->getUser()]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $newParcours->setDateCreation(new \DateTime());
+            $user = $this->getUser();
+            if ($user) {
+                $newParcours->setUtilisateur($user);
+            }
+            $entityManager->persist($newParcours);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Votre parcours a été ajouté avec succès !');
+            return $this->redirectToRoute('front_mesparcours');
+        }
+
+        return $this->render('front/parcours.html.twig', [
+            'parcoursList' => $parcoursRepository->findBy([], ['id' => 'DESC']),
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/mesparcours', name: 'front_mesparcours')]
+    public function mesparcours(ParcoursRepository $parcoursRepository): Response
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $parcoursList = $parcoursRepository->findBy(['utilisateur' => $user], ['id' => 'DESC']);
+
+        return $this->render('front/mesparcours.html.twig', [
+            'parcoursList' => $parcoursList,
+        ]);
+    }
+
     #[Route('/parcours/edit/{id}', name: 'front_edit_parcours')]
     public function editParcours(Request $request, Parcours $parcours, EntityManagerInterface $entityManager): Response
     {

@@ -249,26 +249,32 @@
                         <div class="col-md-4">
                             {{ form_label(projectForm.type, null, {'label_attr': {'class': 'form-label'}}) }}
                             {{ form_widget(projectForm.type) }}
+                            <div class="text-danger small">{{ form_errors(projectForm.type) }}</div>
                         </div>
                         <div class="col-12">
                             {{ form_label(projectForm.description, null, {'label_attr': {'class': 'form-label'}}) }}
                             {{ form_widget(projectForm.description, {'attr': {'rows': 4}}) }}
+                            <div class="text-danger small">{{ form_errors(projectForm.description) }}</div>
                         </div>
                         <div class="col-12">
                             {{ form_label(projectForm.technologies, null, {'label_attr': {'class': 'form-label'}}) }}
                             {{ form_widget(projectForm.technologies, {'attr': {'placeholder': 'PHP, Symfony, Bootstrap...'}}) }}
+                            <div class="text-danger small">{{ form_errors(projectForm.technologies) }}</div>
                         </div>
                         <div class="col-md-6">
                             {{ form_label(projectForm.dateDebut, 'Date de début', {'label_attr': {'class': 'form-label'}}) }}
                             {{ form_widget(projectForm.dateDebut) }}
+                            <div class="text-danger small">{{ form_errors(projectForm.dateDebut) }}</div>
                         </div>
                         <div class="col-md-6">
                             {{ form_label(projectForm.dateFin, 'Date de fin', {'label_attr': {'class': 'form-label'}}) }}
                             {{ form_widget(projectForm.dateFin) }}
+                            <div class="text-danger small">{{ form_errors(projectForm.dateFin) }}</div>
                         </div>
                         <div class="col-12">
                             {{ form_label(projectForm.parcours, 'Associer à un parcours', {'label_attr': {'class': 'form-label'}}) }}
                             {{ form_widget(projectForm.parcours) }}
+                            <div class="text-danger small">{{ form_errors(projectForm.parcours) }}</div>
                         </div>
                     </div>
                     <div class="mt-5 text-end">
@@ -332,20 +338,25 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     {{ form_widget(resourceForm.nom, {'attr': {'placeholder': 'Nom de la ressource'}}) }}
+                                    <div class="text-danger small">{{ form_errors(resourceForm.nom) }}</div>
                                 </div>
                                 <div class="col-md-6">
                                     {{ form_widget(resourceForm.typeRessource) }}
+                                    <div class="text-danger small">{{ form_errors(resourceForm.typeRessource) }}</div>
                                 </div>
                                 <div class="col-12">
                                     {{ form_label(resourceForm.urlRessource, 'Lien URL (optionnel)') }}
                                     {{ form_widget(resourceForm.urlRessource, {'attr': {'placeholder': 'URL (ex: https://github.com/...)'}}) }}
+                                    <div class="text-danger small">{{ form_errors(resourceForm.urlRessource) }}</div>
                                 </div>
                                 <div class="col-12">
-                                    {{ form_label(resourceForm.fichier, 'Ou importer un fichier (PDF, Image, Doc)') }}
+                                    {{ form_label(resourceForm.fichier, 'Ou importer un fichier (Tous types : SQL, ZIP, PDF...)') }}
                                     {{ form_widget(resourceForm.fichier) }}
+                                    <div class="text-danger small">{{ form_errors(resourceForm.fichier) }}</div>
                                 </div>
                                 <div class="col-12">
                                     {{ form_widget(resourceForm.description, {'attr': {'placeholder': 'Courte description', 'rows': 2}}) }}
+                                    <div class="text-danger small">{{ form_errors(resourceForm.description) }}</div>
                                 </div>
                             </div>
                             <div class="mt-3 d-flex justify-content-end gap-2">

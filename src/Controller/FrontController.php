@@ -35,10 +35,10 @@ final class FrontController extends AbstractController
         return $this->render('front/about.html.twig');
     }
 
-    #[Route('courses', name: 'courses')]
-    public function courses(): Response
+    #[Route('parcours', name: 'parcours')]
+    public function parcours(): Response
     {
-        return $this->render('front/courses.html.twig');
+        return $this->render('front/parcours.html.twig');
     }
 
     #[Route('course-details', name: 'course_details')]
@@ -47,10 +47,10 @@ final class FrontController extends AbstractController
         return $this->render('front/course-details.html.twig');
     }
 
-    #[Route('instructors', name: 'instructors')]
-    public function instructors(): Response
+    #[Route('projets', name: 'projets')]
+    public function projets(): Response
     {
-        return $this->render('front/instructors.html.twig');
+        return $this->render('front/projets.html.twig');
     }
 
     #[Route('instructor-profile', name: 'instructor_profile')]

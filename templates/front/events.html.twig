@@ -1,439 +1,473 @@
 {% extends 'front/base.html.twig' %}
 
-{% block title %}Mes Objectifs - {{ parent() }}{% endblock %}
-
-{% block body %}
-<main class="main">
-
-  <!-- Page Title -->
-  <div class="page-title light-background">
-    <div class="container d-lg-flex justify-content-between align-items-center flex-wrap gap-3">
-    
-      <h1 class="mb-2 mb-lg-0">MES OBJECTIFS</h1>
-      
-      <div class="d-flex align-items-center gap-3">
-        {% for flash in app.flashes('success') %}
-          <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-3" role="alert">
-            <i class="bi {{ flash.icon|default('bi-check-circle-fill') }} fs-3"></i>
-            <div>
-              <strong>{{ flash.title|default('Succès') }}</strong><br>
-              {{ flash.message|default('Action réalisée avec succès.') }}
-            </div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
-
-        {% for flash in app.flashes('danger') %}
-          <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-3" role="alert">
-            <i class="bi bi-exclamation-triangle-fill fs-3"></i>
-            <div>
-              <strong>Erreur</strong><br>
-              {{ flash.message|default('Une erreur est survenue.') }}
-            </div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
-
-        <!-- Barre de recherche par titre objectif -->
-        <form method="GET" class="d-flex align-items-center gap-2" style="width: 350px;">
-          <div class="position-relative flex-grow-1">
-            <input type="text" name="titre" 
-                   class="form-control rounded-pill ps-4 pe-5 py-2" 
-                   placeholder="Rechercher par titre objectif..."
-                   value="{{ app.request.query.get('titre')|default('') }}">
-            <button type="submit" class="btn position-absolute top-50 end-0 translate-middle-y me-3">
-              <i class="bi bi-search"></i>
-            </button>
-          </div>
-
-          {% if app.request.query.get('titre') %}
-            <a href="{{ path('front_events_index') }}" class="btn btn-outline-secondary btn-sm rounded-pill">
-              Effacer
-            </a>
-          {% endif %}
-        </form>
-
-        <!-- Formulaire de tri -->
-        <form method="get" action="" class="d-flex align-items-center">
-          <label for="sort" class="me-2">Trier:</label>
-          <select name="sort"
-                  id="sort"
-                  class="form-select form-select-sm rounded-pill"
-                  onchange="this.form.submit()">
-            <option value="datedebut" {{ app.request.get('sort', 'datedebut') == 'datedebut' ? 'selected' : '' }}>
-              Date début
-            </option>
-            <option value="datefin" {{ app.request.get('sort') == 'datefin' ? 'selected' : '' }}>
-              Date fin
-            </option>
-            <option value="statut" {{ app.request.get('sort') == 'statut' ? 'selected' : '' }}>
-              Statut
-            </option>
-            <option value="titre" {{ app.request.get('sort') == 'titre' ? 'selected' : '' }}>
-              Titre
-            </option>
-          </select>
-        </form>
-
-        <!-- Bouton qui ouvre le modal -->
-        <button type="button"
-                class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-2 px-3"
-                data-bs-toggle="modal"
-                data-bs-target="#objectifModal"
-                title="Ajouter un objectif">
-          <i class="bi bi-plus-lg"></i>
-          Ajouter objectif
-        </button>
-
-      </div>
-    </div>
-  </div><!-- End Page Title -->
-
-  <!-- Liste des objectifs -->
-  <section id="mes-objectifs" class="section courses-events">
-    <div class="container" data-aos="fade-up">
-
-      <div class="table-responsive">
-        <div class="mb-4 d-flex flex-wrap gap-3">
-   
-          <!-- Répartition des objectifs (mini) -->
-<div class="container mb-4">
-  <div class="card shadow-sm border-0 rounded-4 p-3">
-
-    <h6 class="mb-3 text-center fw-semibold">Répartition des objectifs</h6>
-
-    <div class="d-flex justify-content-center">
-      <div class="d-flex align-items-center gap-3 flex-column flex-md-row">
-
-        <!-- Cercle mini -->
-        <div class="stat-pie-circle">
-          <div class="pie" style="
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            background: conic-gradient(
-              {% if total is defined and total > 0 %}
-                #198754 0% {{ (atteints / total * 100)|round(2) }}%,
-                #ffc107 {{ (atteints / total * 100)|round(2) }}% {{ ((atteints + enCours) / total * 100)|round(2) }}%,
-                #d52e28 {{ ((atteints + enCours) / total * 100)|round(2) }}% 100%
-              {% else %}
-                #e0e0e0 0% 100%
-              {% endif %}
-            );
-          ">
-            <div class="inner-circle d-flex align-items-center justify-content-center">
-              <div class="text-center">
-                <div class="fw-bold text-primary" style="font-size: 1.2rem;">
-                  {{ total is defined ? total : 0 }}
-                </div>
-                <small class="text-muted">obj.</small>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Légende compacte -->
-        <div class="legend d-flex flex-column justify-content-center gap-1">
-          <div class="d-flex align-items-center">
-            <span class="legend-color me-2" style="background:#198754"></span>
-            <small>Atteints : <strong>{{ atteints is defined ? atteints : 0 }}</strong></small>
-          </div>
-
-          <div class="d-flex align-items-center">
-            <span class="legend-color me-2" style="background:#ffc107"></span>
-            <small>En cours : <strong>{{ enCours is defined ? enCours : 0 }}</strong></small>
-          </div>
-
-          <div class="d-flex align-items-center">
-            <span class="legend-color me-2" style="background:#d52e28"></span>
-            <small>Abandonnés : <strong>{{ abandonnes is defined ? abandonnes : 0 }}</strong></small>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-  </div>
-</div>
-
-        </div>
-
-        <!-- Boutons d'export -->
-        <div class="mb-4 d-flex justify-content-end gap-2">
-          <a href="{{ path('front_events_export_excel') }}" class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-4 py-2 rounded-pill shadow-sm">
-            <i class="bi bi-file-earmark-excel-fill me-2"></i>
-            Exporter Excel
-          </a>
-
-          <a href="{{ path('front_events_export_word') }}" class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-4 py-2 rounded-pill shadow-sm">
-            <i class="bi bi-file-earmark-word-fill me-2"></i>
-            Exporter Word
-          </a>
-        </div>
-
-        <!-- Table des objectifs -->
-        <table class="table table-hover align-middle objectif-table">
-          <thead>
-            <tr>
-              <th class="text-center">N°</th>
-              <th>ID Objectif</th>
-              <th>Titre objectif</th>
-              <th>Date début</th>
-              <th>Date fin</th>
-              <th>Statut</th>
-              <th class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if objectifs is defined and objectifs|length > 0 %}
-              {% for objectif in objectifs %}
-                <tr>
-                  <td class="text-center fw-bold">{{ loop.index }}</td>
-                  <td><strong>{{ objectif.idObjectif ?? ('PPD' ~ objectif.id) }}</strong></td>
-                  <td>{{ objectif.titre ?? 'Sans titre' }}</td>
-                  <td>{{ objectif.datedebut ? objectif.datedebut|date('d/m/Y') : '—' }}</td>
-                  <td>{{ objectif.datefin ? objectif.datefin|date('d/m/Y') : '—' }}</td>
-
-                  <td>
-                    <span class="badge rounded-pill px-4 py-2 fs-6
-                      {% if objectif.statut.value == 'Atteint' %}bg-success text-white
-                      {% elseif objectif.statut.value == 'EnCours' %}bg-warning text-dark
-                      {% elseif objectif.statut.value == 'Abandonner' %}bg-danger text-white
-                      {% else %}bg-secondary text-white{% endif %}">
-                      {{ objectif.statut ? objectif.statut.value|capitalize : 'Inconnu' }}
-                    </span>
-                  </td>
-
-                  <td class="text-end">
-                    <div class="d-flex gap-2 justify-content-end flex-wrap">
-
-                      <!-- 1. Aller au programme -->
-                      <a href="{{ path('front_programme_show', {id: objectif.programme.id}) }}"
-                         class="btn btn-sm btn-outline-primary rounded-circle"
-                         title="Voir le programme">
-                        <i class="bi bi-list-check"></i>
-                      </a>
-
-                      <!-- 2. Voir les détails de l'objectif -->
-                      <a href="{{ path('front_events_show', {id: objectif.id}) }}"
-                         class="btn btn-sm btn-outline-info rounded-circle"
-                         title="Détails de l'objectif">
-                        <i class="bi bi-eye"></i>
-                      </a>
-
-                      <!-- 3. Modifier -->
-                      <a href="{{ path('front_events_edit', {id: objectif.id}) }}"
-                         class="btn btn-sm btn-outline-warning rounded-circle"
-                         title="Modifier l'objectif">
-                        <i class="bi bi-pencil"></i>
-                      </a>
-
-                      <!-- 4. Supprimer -->
-                      <form method="post"
-                            action="{{ path('front_events_delete', {id: objectif.id}) }}"
-                            onsubmit="return confirm('Supprimer cet objectif ? Cette action est irréversible.');"
-                            style="display: inline;">
-                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ objectif.id) }}">
-                        <button type="submit"
-                                class="btn btn-sm btn-outline-danger rounded-circle"
-                                title="Supprimer l'objectif">
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      </form>
-                    
-                    </div>
-                  </td>
-                </tr>
-              {% endfor %}
-            {% else %}
-              <tr>
-                <td colspan="7" class="text-center py-5 text-muted">
-                  <i class="bi bi-journal-x display-4 d-block mb-3"></i>
-                  Aucun objectif enregistré pour le moment.
-                </td>
-              </tr>
-            {% endif %}
-          </tbody>
-        </table>
-
-        <!-- Bouton réinitialiser -->
-        <form method="post" action="{{ path('front_events_reset') }}" onsubmit="return confirm('Attention ! Cela va SUPPRIMER TOUS les objectifs. Continuer ?');" class="d-inline">
-          <button type="submit" class="btn btn-outline-danger btn-sm">
-            <i class="bi bi-trash3"></i> Réinitialiser tous
-          </button>
-        </form>
-       
-      </div>
-
-    </div>
-  </section>
-  
-
-<!-- ==================== MODAL AJOUT OBJECTIF ==================== -->
-<div class="modal fade" id="objectifModal" tabindex="-1" aria-labelledby="objectifModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content rounded-4 shadow">
-
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fs-4 fw-bold" id="objectifModalLabel">
-          <i class="bi bi-bullseye me-2"></i>Nouvel Objectif
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body p-4 pt-2">
-        {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'objectifForm'}}) }}
-
-        {# Affichage des erreurs globales #}
-        {{ form_errors(form) }}
-
-        <!-- Titre -->
-        <div class="mb-3">
-          {{ form_label(form.titre, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-          {{ form_widget(form.titre, {'attr': {'class': 'form-control'}}) }}
-          <div class="invalid-feedback d-block">
-            {{ form_errors(form.titre) }}
-          </div>
-        </div>
-
-        <!-- Description -->
-        <div class="mb-3">
-          {{ form_label(form.description, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-          {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
-          <div class="invalid-feedback d-block">
-            {{ form_errors(form.description) }}
-          </div>
-        </div>
-
-        <!-- Dates -->
-        <div class="row g-3">
-          <div class="col-md-6 mb-3">
-            {{ form_label(form.datedebut, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-            {{ form_widget(form.datedebut, {'attr': {'class': 'form-control'}}) }}
-            <div class="invalid-feedback d-block">
-              {{ form_errors(form.datedebut) }}
-            </div>
-          </div>
-
-          <div class="col-md-6 mb-3">
-            {{ form_label(form.datefin, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-            {{ form_widget(form.datefin, {'attr': {'class': 'form-control'}}) }}
-            <div class="invalid-feedback d-block">
-              {{ form_errors(form.datefin) }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Boutons -->
-        <div class="d-flex gap-3 justify-content-end mt-4">
-          <!-- Bouton Annuler -->
-          <button type="button"
-                  class="btn btn-outline-primary btn-sm rounded-pill px-4 d-flex align-items-center gap-2"
-                  data-bs-dismiss="modal"
-                  onclick="document.getElementById('objectifModal').querySelector('form').reset();">
-            Annuler
-          </button>
-
-          <!-- Bouton Créer -->
-          <button type="submit"
-                  class="btn btn-danger btn-sm rounded-pill px-4 d-flex align-items-center gap-2">
-            Créer
-          </button>
-        </div>
-
-        {{ form_end(form) }}
-      </div>
-
-    </div>
-  </div>
-</div>
-<!-- ==================== FIN MODAL ==================== -->
-
-{# Script pour rouvrir le modal si le formulaire est invalide #}
-{% if showModal %}
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const modal = new bootstrap.Modal(
-      document.getElementById('objectifModal')
-    );
-    modal.show();
-  });
-</script>
-{% endif %}
+{% block title %}Mes Objectifs - MentorAI
 {% endblock %}
 
 {% block stylesheets %}
-  {{ parent() }}
-  <style>
-    .objectif-table thead th {
-      text-transform: uppercase;
-      font-size: 0.85rem;
-      letter-spacing: 0.5px;
-      color: var(--default-color);
-      opacity: 0.8;
-      font-weight: 600;
-      border-bottom: 2px solid color-mix(in srgb, var(--accent-color), transparent 80%);
-    }
-    
-    .objectif-table td { 
-      vertical-align: middle; 
-      font-size: 0.98rem; 
-    }
-    
-    .objectif-table tr:hover { 
-      background-color: color-mix(in srgb, var(--accent-color), transparent 96%); 
-      transition: background-color 0.2s; 
-    }
-    
-    .objectif-table .btn-rounded-circle {
-      width: 32px; 
-      height: 32px; 
-      padding: 0;
-      display: inline-flex; 
-      align-items: center; 
-      justify-content: center;
-      border-radius: 50% !important;
-      transition: all 0.25s;
-    }
-    
-    .invalid-feedback {
-      color: #dc3545 !important;
-      font-size: 0.9rem;
-      margin-top: 6px;
-    }
-    
-    .stat-pie-circle {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+	<style>:root
+	{
+		--primary-color: #102c59;
+		--secondary-color: #9dbbce;
+		--accent-color: #d52e28;
+	}
 
-    .pie {
-      position: relative;
-    }
+	.page-header {
+		background: linear-gradient(135deg, var(--primary-color) 0%, #1a458a 100%);
+		padding: 80px 0;
+		color: white;
+		margin-bottom: 50px;
+		position: relative;
+		overflow: hidden;
+	}
 
-    .inner-circle {
-      position: absolute;
-      inset: 20%;
-      background: #fff;
-      border-radius: 50%;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-    }
+	.page-header::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 300px;
+		height: 300px;
+		background: rgba(157, 187, 206, 0.1);
+		border-radius: 50%;
+		transform: translate(150px, -150px);
+	}
 
-    .legend {
-      font-size: 0.85rem;
-    }
+	.card-objectif {
+		border: none;
+		border-radius: 20px;
+		box-shadow: 0 15px 35px rgba(16, 44, 89, 0.08);
+		transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+		margin-bottom: 40px;
+		overflow: hidden;
+		background: #fff;
+		border: 1px solid rgba(157, 187, 206, 0.2);
+	}
 
-    .legend-color {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      display: inline-block;
-      flex-shrink: 0;
-    }
-    
-    .objectif-table .btn-rounded-circle:hover { 
-      transform: scale(1.15); 
-    }
-  </style>
-{% endblock %}
+	.card-objectif:hover {
+		box-shadow: 0 20px 45px rgba(16, 44, 89, 0.15);
+		border-color: var(--secondary-color);
+	}
+
+	.badge-status {
+		font-size: 0.75rem;
+		padding: 6px 15px;
+		border-radius: 50px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+		display: inline-block;
+		margin-bottom: 15px;
+	}
+
+	.status-atteint {
+		background: rgba(25, 135, 84, 0.1);
+		color: #198754;
+	}
+	.status-encours {
+		background: rgba(255, 193, 7, 0.1);
+		color: #ffc107;
+	}
+	.status-abandonner {
+		background: rgba(213, 46, 40, 0.1);
+		color: #d52e28;
+	}
+
+	.objectif-title {
+		font-size: 1.6rem;
+		font-weight: 800;
+		color: var(--primary-color);
+		margin-bottom: 10px;
+	}
+
+	.stats-card {
+		background: #fff;
+		border-radius: 20px;
+		padding: 30px;
+		border: 1px solid rgba(157, 187, 206, 0.2);
+		box-shadow: 0 10px 25px rgba(16, 44, 89, 0.05);
+		margin-bottom: 40px;
+	}
+
+	.stat-pie-circle {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.pie {
+		position: relative;
+		width: 150px;
+		height: 150px;
+		border-radius: 50%;
+	}
+
+	.inner-circle {
+		position: absolute;
+		inset: 18%;
+		background: #fff;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+	}
+
+	.legend-item {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 8px;
+		font-size: 0.9rem;
+	}
+
+	.legend-color {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+	}
+
+	.action-buttons {
+		padding: 20px 25px;
+		background: #fcfdfe;
+		border-top: 1px solid #f0f4f8;
+		display: flex;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.btn-action {
+		flex: 1;
+		min-width: 140px;
+		border-radius: 12px;
+		padding: 12px;
+		font-weight: 700;
+		font-size: 0.9rem;
+		transition: all 0.3s;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		text-decoration: none;
+	}
+
+	.btn-program {
+		background: #eef2f7;
+		color: var(--primary-color);
+	}
+	.btn-program:hover {
+		background: var(--primary-color);
+		color: white;
+	}
+
+	.btn-view {
+		background: #f0fdf4;
+		color: #198754;
+	}
+	.btn-view:hover {
+		background: #198754;
+		color: white;
+	}
+
+	.btn-edit {
+		background: #fffbeb;
+		color: #d97706;
+	}
+	.btn-edit:hover {
+		background: #fbbf24;
+		color: white;
+	}
+
+	.btn-delete {
+		background: #fef2f2;
+		color: #dc2626;
+		border: 1.5px solid #fee2e2;
+	}
+	.btn-delete:hover {
+		background: #dc2626;
+		color: white;
+		border-color: #dc2626;
+	}
+
+	.btn-new {
+		background-color: var(--primary-color);
+		color: white;
+		padding: 12px 30px;
+		font-weight: 700;
+		border-radius: 50px;
+	}
+
+	.btn-new:hover {
+		background-color: #1a458a;
+		color: white;
+		transform: translateY(-2px);
+	}
+
+	.search-box {
+		background: white;
+		padding: 30px;
+		border-radius: 20px;
+		box-shadow: 0 10px 25px rgba(16, 44, 89, 0.05);
+		margin-top: -50px;
+		position: relative;
+		z-index: 10;
+		border: 1px solid rgba(157, 187, 206, 0.1);
+	}
+
+	.form-control-custom {
+		border-radius: 12px;
+		padding: 12px 20px;
+		border: 1.5px solid #eee;
+	}
+
+	.form-control-custom:focus {
+		border-color: var(--secondary-color);
+		box-shadow: none;
+	}
+</style>{% endblock %}{% block body %}
+<div class="page-header">
+	<div class="container" data-aos="fade-down">
+		<div class="row align-items-center">
+			<div class="col-lg-8">
+				<h1 class="display-4 fw-bold">Mes Objectifs & Progression</h1>
+				<p class="lead opacity-75">Définissez vos buts, suivez vos étapes et visualisez vos réussites.</p>
+			</div>
+			<div class="col-lg-4 text-lg-end">
+				<button type="button" class="btn btn-light btn-new" data-bs-toggle="modal" data-bs-target="#objectifModal">
+					<i class="bi bi-plus-circle-fill me-2"></i>Nouvel Objectif
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div
+	class="container mb-5">
+	<!-- Search & Filters -->
+	<div class="search-box mb-5" data-aos="fade-up">
+		<form method="GET" class="row g-3 align-items-end">
+			<div class="col-md-5">
+				<label class="form-label fw-bold small text-uppercase" style="letter-spacing: 1px;">Rechercher un objectif</label>
+				<div class="input-group">
+					<input type="text" name="titre" class="form-control form-control-custom" placeholder="Titre de l'objectif..." value="{{ app.request.query.get('titre') }}">
+				</div>
+			</div>
+			<div class="col-md-3">
+				<label class="form-label fw-bold small text-uppercase" style="letter-spacing: 1px;">Trier par</label>
+				<select name="sort" class="form-select form-control-custom" onchange="this.form.submit()">
+					<option value="datedebut" {{ app.request.query.get('sort') == 'datedebut' ? 'selected' }}>Date de début</option>
+					<option value="datefin" {{ app.request.query.get('sort') == 'datefin' ? 'selected' }}>Date de fin</option>
+					<option value="titre" {{ app.request.query.get('sort') == 'titre' ? 'selected' }}>Titre</option>
+					<option value="statut" {{ app.request.query.get('sort') == 'statut' ? 'selected' }}>Statut</option>
+				</select>
+			</div>
+			<div class="col-md-4 d-flex gap-2">
+				<button type="submit" class="btn btn-primary flex-grow-1 rounded-pill fw-bold" style="background-color: var(--primary-color);">Filtrer</button>
+				{% if app.request.query.get('titre') %}
+					<a href="{{ path('front_events_index') }}" class="btn btn-outline-secondary rounded-pill fw-bold px-4">Effacer</a>
+				{% endif %}
+			</div>
+		</form>
+	</div>
+
+	<div
+		class="row">
+		<!-- Stats Column -->
+		<div class="col-lg-4">
+			<div class="stats-card" data-aos="fade-right">
+				<h5 class="fw-bold mb-4 text-center">Répartition des Objectifs</h5>
+				<div class="stat-pie-circle mb-4">
+					<div class="pie" style="
+							                        background: conic-gradient(
+							                            {% if total > 0 %}
+							                                #198754 0% {{ (atteints / total * 100)|round(2) }}%,
+							                                #ffc107 {{ (atteints / total * 100)|round(2) }}% {{ ((atteints + enCours) / total * 100)|round(2) }}%,
+							                                #d52e28 {{ ((atteints + enCours) / total * 100)|round(2) }}% 100%
+							                            {% else %}
+							                                #e0e0e0 0% 100%
+							                            {% endif %}
+							                        );
+							                    ">
+						<div class="inner-circle flex-column">
+							<span class="display-6 fw-bold text-primary">{{ total }}</span>
+							<small class="text-muted">Total</small>
+						</div>
+					</div>
+				</div>
+				<div class="legend ps-3">
+					<div class="legend-item">
+						<span class="legend-color" style="background: #198754"></span>
+						<span>Atteints :
+							<strong>{{ atteints }}</strong>
+						</span>
+					</div>
+					<div class="legend-item">
+						<span class="legend-color" style="background: #ffc107"></span>
+						<span>En cours :
+							<strong>{{ enCours }}</strong>
+						</span>
+					</div>
+					<div class="legend-item">
+						<span class="legend-color" style="background: #d52e28"></span>
+						<span>Abandonnés :
+							<strong>{{ abandonnes }}</strong>
+						</span>
+					</div>
+				</div>
+				<hr class="my-4 opacity-50">
+				<div class="d-flex justify-content-center gap-2">
+					<a href="{{ path('front_events_export_excel') }}" class="btn btn-sm btn-success rounded-pill px-3">
+						<i class="bi bi-file-earmark-excel me-1"></i>
+						Excel
+					</a>
+					<a href="{{ path('front_events_export_word') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+						<i class="bi bi-file-earmark-word me-1"></i>
+						Word
+					</a>
+				</div>
+			</div>
+
+			<form method="post" action="{{ path('front_events_reset') }}" onsubmit="return confirm('Attention ! Cela va SUPPRIMER TOUS les objectifs. Continuer ?');" class="d-grid mb-4">
+				<button type="submit" class="btn btn-outline-danger rounded-pill fw-bold">
+					<i class="bi bi-trash3 me-2"></i>Réinitialiser mes données
+				</button>
+			</form>
+		</div>
+
+		<!-- List Column -->
+		<div class="col-lg-8">
+			{% if objectifs is empty %}
+				<div class="text-center py-5 bg-white rounded-4 border border-dashed" data-aos="zoom-in">
+					<i class="bi bi-journal-x display-1 text-muted opacity-25"></i>
+					<h3 class="mt-4 fw-bold">Aucun objectif trouvé</h3>
+					<p class="text-muted">Commencez à définir vos priorités pour les voir s'afficher ici.</p>
+					<button class="btn btn-new mt-3" data-bs-toggle="modal" data-bs-target="#objectifModal">Créer mon premier objectif</button>
+				</div>
+			{% else %}
+				{% for objectif in objectifs %}
+					<div class="card-objectif" data-aos="fade-up">
+						<div class="p-4 p-lg-5">
+							<div class="d-flex justify-content-between align-items-start mb-3">
+								<div>
+									<span class="badge-status status-{{ (objectif.statut.value|default('encours'))|lower }}">
+										{{ objectif.statut.value|default('En cours') }}
+									</span>
+									<h2 class="objectif-title">{{ objectif.titre }}</h2>
+								</div>
+								<div class="text-end">
+									<span class="badge bg-light text-primary border rounded-pill px-3 py-2 small">
+										ID:
+										{{ objectif.idObjectif ?? ('PPD' ~ objectif.id) }}
+									</span>
+								</div>
+							</div>
+
+							<p class="text-muted mb-4 lead" style="font-size: 1.1rem;">{{ objectif.description }}</p>
+
+							<div class="row g-3">
+								<div class="col-md-6">
+									<div class="d-flex align-items-center gap-2 text-muted">
+										<i class="bi bi-calendar-event fs-5"></i>
+										<span>Début :
+											<strong>{{ objectif.datedebut ? objectif.datedebut|date('d/m/Y') : '—' }}</strong>
+										</span>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="d-flex align-items-center gap-2 text-muted">
+										<i class="bi bi-calendar-check fs-5"></i>
+										<span>Échéance :
+											<strong>{{ objectif.datefin ? objectif.datefin|date('d/m/Y') : '—' }}</strong>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="action-buttons">
+							<a href="{{ path('front_programme_show', {id: objectif.programme.id}) }}" class="btn-action btn-program">
+								<i class="bi bi-list-check"></i>
+								Mon Programme
+							</a>
+							<a href="{{ path('front_events_show', {id: objectif.id}) }}" class="btn-action btn-view">
+								<i class="bi bi-eye"></i>
+								Détails
+							</a>
+							<a href="{{ path('front_events_edit', {id: objectif.id}) }}" class="btn-action btn-edit">
+								<i class="bi bi-pencil"></i>
+								Modifier
+							</a>
+							<form method="post" action="{{ path('front_events_delete', {id: objectif.id}) }}" onsubmit="return confirm('Supprimer cet objectif ? Action irréversible.');" class="flex-grow-1" style="min-width: 140px;">
+								<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ objectif.id) }}">
+								<button type="submit" class="btn-action btn-delete w-100">
+									<i class="bi bi-trash"></i>
+									Supprimer
+								</button>
+							</form>
+						</div>
+					</div>
+				{% endfor %}
+			{% endif %}
+		</div>
+	</div>
+</div>
+
+<!-- ==================== MODAL AJOUT OBJECTIF ==================== -->
+<div class="modal fade" id="objectifModal" tabindex="-1" aria-labelledby="objectifModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered">
+		<div class="modal-content border-0 shadow-lg" style="border-radius: 25px; overflow: hidden;">
+
+			<div class="modal-header bg-primary text-white p-4 border-0">
+				<h5 class="modal-title fs-4 fw-bold" id="objectifModalLabel">
+					<i class="bi bi-bullseye me-2"></i>Nouvel Objectif
+				</h5>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+
+			<div class="modal-body p-5">
+				{{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+				<div class="mb-4">
+					<label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">Titre de l'objectif</label>
+					{{ form_widget(form.titre, {'attr': {'class': 'form-control form-control-custom', 'placeholder': 'Ex: Apprendre Symfony en 30 jours'}}) }}
+					<div class="text-danger small mt-1">{{ form_errors(form.titre) }}</div>
+				</div>
+
+				<div class="mb-4">
+					<label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">Description & Étapes</label>
+					{{ form_widget(form.description, {'attr': {'class': 'form-control form-control-custom', 'rows': 4, 'placeholder': 'Détaillez vos intentions...'}}) }}
+					<div class="text-danger small mt-1">{{ form_errors(form.description) }}</div>
+				</div>
+
+				<div class="row g-4">
+					<div class="col-md-6 mb-4">
+						<label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">Date de début</label>
+						{{ form_widget(form.datedebut, {'attr': {'class': 'form-control form-control-custom'}}) }}
+						<div class="text-danger small mt-1">{{ form_errors(form.datedebut) }}</div>
+					</div>
+
+					<div class="col-md-6 mb-4">
+						<label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">Date de fin estimée</label>
+						{{ form_widget(form.datefin, {'attr': {'class': 'form-control form-control-custom'}}) }}
+						<div class="text-danger small mt-1">{{ form_errors(form.datefin) }}</div>
+					</div>
+				</div>
+
+				<div class="d-flex gap-3 mt-4">
+					<button type="button" class="btn btn-outline-secondary rounded-pill px-5 fw-bold flex-grow-1" data-bs-dismiss="modal">Annuler</button>
+					<button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold flex-grow-1" style="background-color: var(--primary-color);">Créer l'Objectif</button>
+				</div>
+
+				{{ form_end(form) }}
+			</div>
+		</div>
+	</div>
+</div>
+
+{% if showModal %}
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+const modal = new bootstrap.Modal(document.getElementById('objectifModal'));
+modal.show();
+});
+	</script>
+{% endif %}{% endblock %}

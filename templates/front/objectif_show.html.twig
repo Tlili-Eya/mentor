@@ -1,0 +1,76 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Détail de l'objectif : {{ objectif.titre }}{% endblock %}
+
+{% block body %}
+<main class="main">
+
+  <div class="page-title light-background">
+    <div class="container">
+      <h1>Détail de l'objectif</h1>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container" data-aos="fade-up">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-5">
+
+              <h2 class="card-title mb-4">{{ objectif.titre }}</h2>
+
+              <div class="mb-4">
+                <strong>Description :</strong>
+                <p class="mt-2">{{ objectif.description|nl2br }}</p>
+              </div>
+
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <strong>Date de début :</strong>
+                  <p>{{ objectif.datedebut ? objectif.datedebut|date('d/m/Y') : 'Non définie' }}</p>
+                </div>
+                <div class="col-md-6">
+                  <strong>Date cible :</strong>
+                  <p>{{ objectif.datefin ? objectif.datefin|date('d/m/Y') : 'Non définie' }}</p>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <strong>Statut :</strong>
+                <span class="badge rounded-pill px-3 py-2 fs-6
+                  {% if objectif.statut.value == 'Atteint' %}bg-success text-white
+                  {% elseif objectif.statut.value == 'EnCours' %}bg-warning text-dark
+                  {% elseif objectif.statut.value == 'Abandonner' %}bg-danger text-white
+                  {% else %}bg-secondary text-white{% endif %}">
+                  {{ objectif.statut ? objectif.statut.value|capitalize : 'Inconnu' }}
+                </span>
+              </div>
+
+              {# Affichage du programme associé #}
+              {% if objectif.programme %}
+              <div class="border-top pt-4 mt-4">
+                <h4 class="mb-3">Programme associé</h4>
+                <p><strong>Titre du programme :</strong> {{ objectif.programme.titre }}</p>
+                <p><strong>Date de génération :</strong> {{ objectif.programme.dategeneration|date('d/m/Y H:i') }}</p>
+              </div>
+              {% endif %}
+
+              <div class="text-center mt-5">
+  <a href="{{ path('front_events_index') }}" class="btn rounded-pill px-4 py-2" style="background-color: var(--accent-color); color: var(--contrast-color); border: none;">
+    <i class="bi bi-arrow-left me-2"></i>Retour à la liste
+  </a>
+</div>
+
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+{% endblock %}

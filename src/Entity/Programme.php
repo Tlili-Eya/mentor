@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\Medaille;
 use App\Repository\ProgrammeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,6 +22,12 @@ class Programme
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTime $dategeneration = null;
+    
+    #[ORM\Column(enumType: Medaille::class, nullable: true)]
+private ?Medaille $meilleureMedaille = null;
+
+#[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
+private int $scorePourcentage = 0;
 
     #[ORM\OneToOne(mappedBy: 'programme', cascade: ['persist', 'remove'], orphanRemoval:true)]
     private ?Objectif $objectif = null;
@@ -59,6 +66,26 @@ class Programme
 
         return $this;
     }
+    public function getMeilleureMedaille(): ?Medaille
+{
+    return $this->meilleureMedaille;
+}
+
+public function setMeilleureMedaille(?Medaille $meilleureMedaille): static
+{
+    $this->meilleureMedaille = $meilleureMedaille;
+    return $this;
+}
+public function getScorePourcentage(): int
+{
+    return $this->scorePourcentage;
+}
+
+public function setScorePourcentage(int $scorePourcentage): static
+{
+    $this->scorePourcentage = $scorePourcentage;
+    return $this;
+}
 
     public function getDategeneration(): ?\DateTime
     {

@@ -1,19 +1,15 @@
-# This file is the entry point to configure your own services.
-# Files in the packages/ subdirectory configure your dependencies.
-
-# Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+# parameters (tu peux garder tes paramètres existants)
 parameters:
     pdp_directory: '%kernel.project_dir%/public/uploads/pdp'
 
+# services (niveau racine)
 services:
-    # default configuration for services in *this* file
+    # Configuration par défaut pour tous les services
     _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        autowire: true      # Injection automatique des dépendances
+        autoconfigure: true # Enregistre automatiquement les contrôleurs, commandes, etc.
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
+    # Rend tous les contrôleurs (y compris HomeController) auto-détectés comme services
     App\:
         resource: '../src/'
         exclude:
@@ -21,15 +17,6 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
-
-security:
-    firewalls:
-        main:
-            form_login:
-                # ... autres configs ...
-                remember_me: false   # optionnel
-
-    # Ajoute cette ligne (attention : réduit la sécurité)
-    hide_user_not_found: false
+    # Déclaration explicite si besoin (optionnel, mais utile pour HomeController)
+    App\Controller\HomeController:
+        tags: ['controller.service_arguments']

@@ -20,13 +20,14 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-            user_checker: App\Security\UserChecker
+           #user_checker: App\Security\UserChecker
 
             form_login:
                 login_path: app_login
                 check_path: app_login
                 enable_csrf: true
-                success_handler: App\Security\LoginSuccessHandler
+                # ← SUPPRIMÉ : success_handler: App\Security\LoginSuccessHandler
+                # Utilise maintenant le handler par défaut de Symfony
 
             logout:
                 path: app_logout
@@ -40,7 +41,7 @@ security:
 
             entry_point: form_login
 
-    # ✅ CORRECTION: Règles d'accès réorganisées
+    # Règles d'accès (déjà bien organisées)
     access_control:
         # Pages publiques (AVANT la règle générale)
         - { path: ^/login$, roles: PUBLIC_ACCESS }
@@ -53,5 +54,3 @@ security:
         
         # Routes utilisateur connecté
         - { path: ^/utilisateur, roles: IS_AUTHENTICATED_FULLY }
-        
-        # ⚠️ IMPORTANT: PAS de règle générale ^/ car elle bloquerait tout

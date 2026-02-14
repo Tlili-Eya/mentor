@@ -34,11 +34,7 @@ final class BackController extends AbstractController
         return $this->render('back/instructor-profile.html.twig');
     }
 
-    #[Route('/events', name: 'events')]
-    public function events(): Response
-    {
-        return $this->render('back/events.html.twig');
-    }
+    
 
     #[Route('/pricing', name: 'pricing')]
     public function pricing(): Response

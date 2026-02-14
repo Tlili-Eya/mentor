@@ -1,0 +1,113 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Détails de la tâche : {{ tache.titre ?? 'Sans titre' }}{% endblock %}
+
+{% block body %}
+<main class="main">
+  <!-- Page Title (identique à programme_show) -->
+  <div class="page-title light-background">
+    <div class="container">
+      <h1>Détails de la tâche</h1>
+      <p class="lead text-muted">
+        {{ tache.titre ?? 'Tâche sans titre' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Contenu principal -->
+  <section class="section">
+    <div class="container" data-aos="fade-up">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <!-- Card principale (même style que programme_show) -->
+          <div class="card shadow-sm mb-5" style="background-color: var(--surface-color); border-color: var(--default-color);">
+            <!-- En-tête card -->
+            <div class="card-header d-flex justify-content-between align-items-center" style="background-color: var(--default-color); color: var(--contrast-color);">
+              <h5 class="mb-0">
+                <i class="bi bi-eye-fill me-2"></i>Détails de la tâche
+              </h5>
+              <a href="{{ path('front_programme_show', {'id': tache.programme.id}) }}"
+                 class="btn btn-light btn-sm">
+                <i class="bi bi-arrow-left me-2"></i>Retour
+              </a>
+            </div>
+
+            <!-- Corps card -->
+            <div class="card-body p-0">
+              <div class="p-5">
+                <!-- Titre -->
+                <h2 class="card-title mb-4 fw-bold" style="color: var(--heading-color);">
+                  {{ tache.titre ?? 'Sans titre' }}
+                </h2>
+
+                <!-- Description -->
+                <div class="mb-4">
+                  <strong>Description :</strong>
+                  <p class="mt-2 text-muted" style="white-space: pre-line;">
+                    {{ tache.description|nl2br|default('Aucune description fournie') }}
+                  </p>
+                </div>
+
+                <!-- Infos en grille -->
+                <div class="row g-4 mb-5">
+                  <div class="col-md-6">
+                    <div class="bg-light p-3 rounded">
+                      <strong>Ordre :</strong> {{ tache.ordre ?? '—' }}
+                    </div>
+                  </div>
+
+                
+
+                  <div class="col-md-6">
+                    <div class="bg-light p-3 rounded d-flex justify-content-between align-items-center">
+                      <strong>État :</strong>
+                      <span class="badge rounded-pill px-4 py-2 fs-6
+                        {% if tache.etat.value == 'realisee' or tache.etat.value == 'validee' %}bg-success text-white
+                        {% elseif tache.etat.value == 'encours' or tache.etat.value == 'en_cours' %}bg-warning text-dark
+                        {% elseif tache.etat.value == 'Abandonner' or tache.etat.value == 'abandonner' %}bg-danger text-white
+                        {% else %}bg-secondary text-white{% endif %}">
+                        {{ tache.etat ? tache.etat.value|capitalize : 'Inconnu' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  
+
+                <!-- Programme associé -->
+                {% if tache.programme %}
+                <div class="border-top pt-4 mt-4">
+                  <h4 class="mb-3 fw-bold" style="color: var(--heading-color);">
+                    Programme associé
+                  </h4>
+                  <div class="bg-light p-4 rounded">
+                    <p class="mb-2">
+                      <strong>Titre :</strong>
+                      <a href="{{ path('front_programme_show', {'id': tache.programme.id}) }}" class="text-primary">
+                        {{ tache.programme.titre ?? 'Programme sans titre' }}
+                      </a>
+                    </p>
+                    <p class="mb-0 text-muted">
+                      <strong>Généré le :</strong> {{ tache.programme.dategeneration|date('d/m/Y à H:i') }}
+                    </p>
+                  </div>
+                </div>
+                {% endif %}
+
+                <!-- Bouton retour -->
+                <div class="text-center mt-5">
+                  <a href="{{ path('front_programme_show', {'id': tache.programme.id}) }}"
+                     class="btn btn-outline-secondary btn-lg px-5 py-3 rounded-pill"style="background-color: var(--accent-color); color: var(--contrast-color); border: none;">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Retour au programme
+                  </a>
+               
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

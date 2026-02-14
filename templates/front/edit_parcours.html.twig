@@ -1,0 +1,211 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Modifier mon Parcours - MentorAI{% endblock %}
+
+{% block stylesheets %}
+<style>
+    :root {
+        --primary-color: #102c59;
+        --secondary-color: #9dbbce;
+        --accent-color: #d52e28;
+    }
+
+    .edit-page-header {
+        background: var(--primary-color);
+        padding: 50px 0;
+        color: white;
+        margin-bottom: 40px;
+        border-radius: 0 0 30px 30px;
+    }
+
+    .form-container {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(16, 44, 89, 0.08);
+        padding: 40px;
+        margin-bottom: 50px;
+        border: 1px solid rgba(157, 187, 206, 0.2);
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 8px;
+    }
+
+    .form-control, .form-select {
+        border-radius: 12px;
+        padding: 12px 15px;
+        border: 1.5px solid #e1e8ef;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 4px rgba(157, 187, 206, 0.15);
+    }
+
+    .section-title {
+        color: var(--primary-color);
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--secondary-color);
+        display: inline-block;
+    }
+
+    .btn-save {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-weight: 700;
+        border-radius: 15px;
+        transition: all 0.3s;
+    }
+
+    .btn-save:hover {
+        background-color: #1a458a;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(16, 44, 89, 0.25);
+        color: white;
+    }
+
+    .btn-cancel {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 700;
+        transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+        color: var(--accent-color);
+    }
+
+    .helper-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="edit-page-header">
+    <div class="container" data-aos="fade-up">
+        <a href="{{ path('front_mesparcours') }}" class="btn-cancel mb-3 d-inline-block text-white">
+            <i class="bi bi-arrow-left"></i> Retour à mes parcours
+        </a>
+        <h1 class="fw-bold">Modifier votre parcours</h1>
+        <p class="opacity-75">Mettez à jour les informations de {{ parcours.titre }}</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10" data-aos="fade-up">
+            <div class="form-container">
+                {{ form_start(form) }}
+                
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <h5 class="section-title">Informations Générales</h5>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        {{ form_label(form.titre, 'Titre du parcours', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.titre) }}
+                        <div class="text-danger small">{{ form_errors(form.titre) }}</div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        {{ form_label(form.type_parcours, 'Type de parcours', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.type_parcours) }}
+                        <div class="text-danger small">{{ form_errors(form.type_parcours) }}</div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        {{ form_label(form.etablissement, 'Établissement / Organisme', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.etablissement) }}
+                        <div class="text-danger small">{{ form_errors(form.etablissement) }}</div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        {{ form_label(form.diplome, 'Diplôme / Certification obtenus', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.diplome) }}
+                        <div class="text-danger small">{{ form_errors(form.diplome) }}</div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12 mb-4">
+                        <h5 class="section-title">Dates et Détails</h5>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        {{ form_label(form.date_debut, 'Date de début', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.date_debut) }}
+                        <div class="text-danger small">{{ form_errors(form.date_debut) }}</div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        {{ form_label(form.date_fin, 'Date de fin', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.date_fin) }}
+                        <div class="text-danger small">{{ form_errors(form.date_fin) }}</div>
+                        <div class="helper-text">Laissez vide si toujours en cours.</div>
+                    </div>
+
+                    <div class="col-md-4 mb-4">
+                        {{ form_label(form.type_contrat, 'Type de contrat (optionnel)', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.type_contrat) }}
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        {{ form_label(form.description, 'Description détaillée', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.description) }}
+                        <div class="text-danger small">{{ form_errors(form.description) }}</div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12 mb-4">
+                        <h5 class="section-title">Expérience Professionnelle (Si applicable)</h5>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        {{ form_label(form.entreprise, 'Entreprise', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.entreprise) }}
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        {{ form_label(form.poste, 'Poste occupé', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.poste) }}
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12 mb-4">
+                        <h5 class="section-title">Projets MentorAI Associés</h5>
+                        <p class="text-muted small">Cochez les projets réalisés durant ce parcours pour les mettre en avant.</p>
+                    </div>
+                    
+                    <div class="col-md-12 mb-4">
+                        {{ form_widget(form.projets) }}
+                        <div class="helper-text">Appuyez sur Ctrl (Cmd sur Mac) pour sélectionner plusieurs projets.</div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-5">
+                    <a href="{{ path('front_mesparcours') }}" class="btn-cancel">Annuler les modifications</a>
+                    <button type="submit" class="btn btn-save">
+                        <i class="bi bi-check-lg me-2"></i>Enregistrer les changements
+                    </button>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

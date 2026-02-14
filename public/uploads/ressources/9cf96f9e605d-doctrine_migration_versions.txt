@@ -1,0 +1,68 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Hôte : 127.0.0.1
+-- Généré le : mer. 11 fév. 2026 à 22:27
+-- Version du serveur : 10.4.32-MariaDB
+-- Version de PHP : 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Base de données : `mentorai`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `doctrine_migration_versions`
+--
+
+CREATE TABLE `doctrine_migration_versions` (
+  `version` varchar(191) NOT NULL,
+  `executed_at` datetime DEFAULT NULL,
+  `execution_time` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `doctrine_migration_versions`
+--
+
+INSERT INTO `doctrine_migration_versions` (`version`, `executed_at`, `execution_time`) VALUES
+('DoctrineMigrations\\Version20260204132745', '2026-02-04 22:23:20', 1523),
+('DoctrineMigrations\\Version20260204133840', '2026-02-04 22:23:21', 50),
+('DoctrineMigrations\\Version20260204134145', '2026-02-04 22:23:21', 53),
+('DoctrineMigrations\\Version20260205133905', '2026-02-09 02:40:41', 112),
+('DoctrineMigrations\\Version20260205152529', '2026-02-05 16:25:48', 163),
+('DoctrineMigrations\\Version20260206135044', '2026-02-08 17:06:17', 137),
+('DoctrineMigrations\\Version20260207224725', '2026-02-08 23:50:02', 124),
+('DoctrineMigrations\\Version20260208160412', '2026-02-08 17:06:18', 68),
+('DoctrineMigrations\\Version20260208225933', '2026-02-08 23:59:53', 140),
+('DoctrineMigrations\\Version20260209020341', '2026-02-09 03:03:59', 264),
+('DoctrineMigrations\\Version20260210143938', '2026-02-10 15:41:22', 49),
+('DoctrineMigrations\\Version20260211175612', '2026-02-11 22:17:06', 51),
+('DoctrineMigrations\\Version20260211181752', '2026-02-11 22:17:06', 13);
+
+--
+-- Index pour les tables déchargées
+--
+
+--
+-- Index pour la table `doctrine_migration_versions`
+--
+ALTER TABLE `doctrine_migration_versions`
+  ADD PRIMARY KEY (`version`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

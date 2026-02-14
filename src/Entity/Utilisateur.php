@@ -7,9 +7,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
-class Utilisateur
+class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -22,7 +24,7 @@ class Utilisateur
     #[ORM\Column(length: 255)]
     private ?string $prenom = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
@@ -33,6 +35,18 @@ class Utilisateur
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTime $date_inscription = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $role = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $resetToken = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $resetTokenExpiresAt = null;
+
+    #[ORM\Column(length: 20, options: ['default' => 'actif'])]
+    private ?string $status = 'actif';
 
     /**
      * @var Collection<int, CategorieArticle>
@@ -46,9 +60,6 @@ class Utilisateur
     #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'auteur')]
     private Collection $referenceArticles;
 
-    #[ORM\Column(length: 255)]
-    private ?string $role = null;
-
     /**
      * @var Collection<int, Projet>
      */
@@ -56,32 +67,69 @@ class Utilisateur
     private Collection $projets;
 
     /**
-     * @var Collection<int, Projet>
-     */
-    #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: 'utilisateur')]
-    private Collection $projet;
-
-    /**
      * @var Collection<int, Feedback>
      */
-    #[ORM\OneToMany(targetEntity: Feedback::class, mappedBy: 'utilisateur', orphanRemoval:true)]
+    #[ORM\OneToMany(targetEntity: Feedback::class, mappedBy: 'utilisateur', orphanRemoval: true)]
     private Collection $feedback;
 
     /**
      * @var Collection<int, Objectif>
      */
-    #[ORM\OneToMany(targetEntity: Objectif::class, mappedBy: 'utilisateur', orphanRemoval:true)]
+    #[ORM\OneToMany(targetEntity: Objectif::class, mappedBy: 'utilisateur', orphanRemoval: true)]
     private Collection $objectifs;
+
+    /**
+     * @var Collection<int, Parcours>
+     */
+    #[ORM\OneToMany(targetEntity: Parcours::class, mappedBy: 'utilisateur')]
+    private Collection $parcours;
 
     public function __construct()
     {
         $this->categorieArticles = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->projets = new ArrayCollection();
-        $this->projet = new ArrayCollection();
         $this->feedback = new ArrayCollection();
         $this->objectifs = new ArrayCollection();
+        $this->parcours = new ArrayCollection();
     }
+
+    // ==================== MÉTHODES POUR UserInterface ====================
+    
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    /**
+     * ✅ MÉTHODE CRITIQUE : Convertit le rôle string en tableau ROLE_XXX
+     */
+    public function getRoles(): array
+    {
+        $roles = [];
+        
+        // Convertir le rôle en format Symfony (ROLE_XXX)
+        if ($this->role) {
+            $roles[] = 'ROLE_' . strtoupper($this->role);
+        }
+        
+        // Garantir que chaque utilisateur a au moins ROLE_USER
+        $roles[] = 'ROLE_USER';
+        
+        return array_unique($roles);
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Effacer les données sensibles temporaires si nécessaire
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->mdp;
+    }
+
+    // ==================== GETTERS/SETTERS ====================
 
     public function getId(): ?int
     {
@@ -96,7 +144,6 @@ class Utilisateur
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
-
         return $this;
     }
 
@@ -108,7 +155,6 @@ class Utilisateur
     public function setPrenom(string $prenom): static
     {
         $this->prenom = $prenom;
-
         return $this;
     }
 
@@ -120,7 +166,6 @@ class Utilisateur
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
         return $this;
     }
 
@@ -132,7 +177,6 @@ class Utilisateur
     public function setMdp(string $mdp): static
     {
         $this->mdp = $mdp;
-
         return $this;
     }
 
@@ -144,7 +188,6 @@ class Utilisateur
     public function setPdpUrl(?string $pdp_url): static
     {
         $this->pdp_url = $pdp_url;
-
         return $this;
     }
 
@@ -156,9 +199,70 @@ class Utilisateur
     public function setDateInscription(?\DateTime $date_inscription): static
     {
         $this->date_inscription = $date_inscription;
+        return $this;
+    }
+
+    public function getRole(): ?string
+    {
+        return $this->role;
+    }
+
+    public function setRole(string $role): static
+    {
+        $this->role = $role;
+        return $this;
+    }
+
+    // ==================== RESET PASSWORD ====================
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function setResetToken(?string $resetToken): static
+    {
+        $this->resetToken = $resetToken;
+        return $this;
+    }
+
+    public function getResetTokenExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->resetTokenExpiresAt;
+    }
+
+    public function setResetTokenExpiresAt(?\DateTimeInterface $resetTokenExpiresAt): static
+    {
+        $this->resetTokenExpiresAt = $resetTokenExpiresAt;
+        return $this;
+    }
+
+    public function isResetTokenValid(): bool
+    {
+        if (!$this->resetToken || !$this->resetTokenExpiresAt) {
+            return false;
+        }
+        return new \DateTime() < $this->resetTokenExpiresAt;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'actif';
+    }
+
+    // ==================== RELATIONS ====================
 
     /**
      * @return Collection<int, CategorieArticle>
@@ -174,19 +278,16 @@ class Utilisateur
             $this->categorieArticles->add($categorieArticle);
             $categorieArticle->setAuteur($this);
         }
-
         return $this;
     }
 
     public function removeCategorieArticle(CategorieArticle $categorieArticle): static
     {
         if ($this->categorieArticles->removeElement($categorieArticle)) {
-            // set the owning side to null (unless already changed)
             if ($categorieArticle->getAuteur() === $this) {
                 $categorieArticle->setAuteur(null);
             }
         }
-
         return $this;
     }
 
@@ -204,61 +305,43 @@ class Utilisateur
             $this->referenceArticles->add($referenceArticle);
             $referenceArticle->setAuteur($this);
         }
-
         return $this;
     }
 
     public function removeReferenceArticle(ReferenceArticle $referenceArticle): static
     {
         if ($this->referenceArticles->removeElement($referenceArticle)) {
-            // set the owning side to null (unless already changed)
             if ($referenceArticle->getAuteur() === $this) {
                 $referenceArticle->setAuteur(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getRole(): ?string
-    {
-        return $this->role;
-    }
-
-    public function setRole(string $role): static
-    {
-        $this->role = $role;
-
         return $this;
     }
 
     /**
      * @return Collection<int, Projet>
      */
-    public function getProjet(): Collection
+    public function getProjets(): Collection
     {
-        return $this->projet;
+        return $this->projets;
     }
 
     public function addProjet(Projet $projet): static
     {
-        if (!$this->projet->contains($projet)) {
-            $this->projet->add($projet);
+        if (!$this->projets->contains($projet)) {
+            $this->projets->add($projet);
             $projet->setUtilisateur($this);
         }
-
         return $this;
     }
 
     public function removeProjet(Projet $projet): static
     {
-        if ($this->projet->removeElement($projet)) {
-            // set the owning side to null (unless already changed)
+        if ($this->projets->removeElement($projet)) {
             if ($projet->getUtilisateur() === $this) {
                 $projet->setUtilisateur(null);
             }
         }
-
         return $this;
     }
 
@@ -276,19 +359,16 @@ class Utilisateur
             $this->feedback->add($feedback);
             $feedback->setUtilisateur($this);
         }
-
         return $this;
     }
 
     public function removeFeedback(Feedback $feedback): static
     {
         if ($this->feedback->removeElement($feedback)) {
-            // set the owning side to null (unless already changed)
             if ($feedback->getUtilisateur() === $this) {
                 $feedback->setUtilisateur(null);
             }
         }
-
         return $this;
     }
 
@@ -306,21 +386,43 @@ class Utilisateur
             $this->objectifs->add($objectif);
             $objectif->setUtilisateur($this);
         }
-
         return $this;
     }
 
     public function removeObjectif(Objectif $objectif): static
     {
         if ($this->objectifs->removeElement($objectif)) {
-            // set the owning side to null (unless already changed)
             if ($objectif->getUtilisateur() === $this) {
                 $objectif->setUtilisateur(null);
             }
         }
-
         return $this;
     }
 
+    /**
+     * @return Collection<int, Parcours>
+     */
+    public function getParcours(): Collection
+    {
+        return $this->parcours;
+    }
 
+    public function addParcours(Parcours $parcours): static
+    {
+        if (!$this->parcours->contains($parcours)) {
+            $this->parcours->add($parcours);
+            $parcours->setUtilisateur($this);
+        }
+        return $this;
+    }
+
+    public function removeParcours(Parcours $parcours): static
+    {
+        if ($this->parcours->removeElement($parcours)) {
+            if ($parcours->getUtilisateur() === $this) {
+                $parcours->setUtilisateur(null);
+            }
+        }
+        return $this;
+    }
 }

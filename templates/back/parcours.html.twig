@@ -1,0 +1,311 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Gestion des Parcours
+{% endblock %}
+
+{% block body %}
+	<div class="page-title light-background">
+		<div class="container d-lg-flex justify-content-between align-items-center">
+			<h1 class="mb-2 mb-lg-0 text-primary">Gestion des Parcours</h1>
+			<nav class="breadcrumbs">
+				<ol>
+					<li>
+						<a href="{{ path('back_home') }}">Home</a>
+					</li>
+					<li class="current">Parcours</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+
+	<section class="section">
+		<div class="container">
+
+			<div class="d-flex justify-content-between align-items-center mb-4">
+				<h2 class="mb-0 text-secondary">Liste des Parcours</h2>
+				<a href="{{ path('back_new_parcours') }}" class="btn btn-primary">
+					<i class="bi bi-plus-circle me-1"></i>
+					Nouveau Parcours
+				</a>
+			</div>
+
+			<form method="get" class="d-flex gap-2">
+				<div class="input-group">
+					<span class="input-group-text bg-white border-end-0">
+						<i class="bi bi-search"></i>
+					</span>
+					<input type="text" name="q" value="{{ search }}" class="form-control border-start-0" placeholder="Rechercher (Titre, Type, Date)...">
+				</div>
+
+				<select name="sort" class="form-select" onchange="this.form.submit()">
+					<option value="">Trier par...</option>
+					<option value="titre" {% if sortBy == 'titre' %} selected {% endif %}>Titre (A-Z)</option>
+					<option value="date_debut" {% if sortBy == 'date_debut' %} selected {% endif %}>Date de début</option>
+					<option value="duree" {% if sortBy == 'duree' %} selected {% endif %}>Durée (Plus long)</option>
+				</select>
+
+				{% if search or sortBy %}
+					<a href="{{ path('back_parcours') }}" class="btn btn-outline-secondary" title="Réinitialiser">
+						<i class="bi bi-arrow-clockwise"></i>
+					</a>
+				{% endif %}
+
+				<button type="submit" class="btn btn-primary">
+					<i class="bi bi-filter"></i>
+				</button>
+			</form>
+
+			{% for message in app.flashes('success') %}
+				<div class="alert alert-success mt-3">
+					{{ message }}
+				</div>
+			{% endfor %}
+
+			<div class="card shadow-sm border-0">
+				<div class="card-body p-0">
+					<div class="table-responsive">
+						<table class="table table-hover align-middle mb-0">
+							<thead style="background-color: #eef3f7;">
+								<tr class="text-secondary">
+									<th>#</th>
+									<th>Titre & Institution</th>
+									<th>Type & Diplôme</th>
+									<th>Période</th>
+									<th>Projets Associés</th>
+									<th class="text-end">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for p in parcours %}
+									<tr>
+										<td>{{ p.id }}</td>
+										<td>
+											<strong class="text-dark">{{ p.titre }}</strong><br>
+											<small class="text-muted">{{ p.etablissement }}</small>
+										</td>
+										<td>
+											<span class="badge bg-primary mb-1">{{ p.typeParcours }}</span><br>
+											<small>{{ p.diplome }}</small>
+										</td>
+										<td>
+											<div class="small">
+												<i class="bi bi-calendar-event me-1"></i>
+												{{ p.dateDebut ? p.dateDebut|date('d/m/Y') : '?' }}
+												-
+												{{ p.dateFin ? p.dateFin|date('d/m/Y') : 'Présent' }}
+											</div>
+										</td>
+										<td>
+											{% if p.projets is not empty %}
+												<div class="dropdown">
+													<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+														{{ p.projets|length }}
+														Projets
+													</button>
+													<ul class="dropdown-menu shadow border-0">
+														{% for projet in p.projets %}
+															<li>
+																<a class="dropdown-item py-2" href="{{ path('back_show_projet', {'id': projet.id}) }}">
+																	<i class="bi bi-check2-circle text-success me-2"></i>
+																	{{ projet.titre }}
+																</a>
+															</li>
+														{% endfor %}
+													</ul>
+												</div>
+											{% else %}
+												<span class="text-muted small">Aucun projet</span>
+											{% endif %}
+										</td>
+										<td class="text-end">
+											<div class="d-flex justify-content-end gap-1">
+												<a href="{{ path('back_show_parcours', {'id': p.id}) }}" class="btn btn-sm btn-outline-info" title="Voir">
+													<i class="bi bi-eye"></i>
+												</a>
+												<a href="{{ path('back_edit_parcours', {'id': p.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifier">
+													<i class="bi bi-pencil"></i>
+												</a>
+												<a href="{{ path('back_delete_parcours', {'id': p.id}) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Supprimer ce parcours ?')" title="Supprimer">
+													<i class="bi bi-trash"></i>
+												</a>
+											</div>
+										</td>
+									</tr>
+								{% else %}
+									<tr>
+										<td colspan="5" class="text-center text-muted py-4">
+											<i class="bi bi-inbox" style="font-size: 3rem;"></i>
+											<p class="mt-2">Aucun parcours trouvé</p>
+										</td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+
+					{% if totalPages > 1 %}
+						<div class="d-flex justify-content-center mt-4">
+							<nav aria-label="Page navigation">
+								<ul class="pagination">
+									<li class="page-item {% if currentPage == 1 %}disabled{% endif %}">
+										<a class="page-link" href="{{ path('back_parcours', {'page': currentPage - 1, 'q': search, 'sort': sortBy}) }}" tabindex="-1">Precedent</a>
+									</li>
+									{% for i in 1..totalPages %}
+										<li class="page-item {% if currentPage == i %}active{% endif %}">
+											<a class="page-link" href="{{ path('back_parcours', {'page': i, 'q': search, 'sort': sortBy}) }}">{{ i }}</a>
+										</li>
+									{% endfor %}
+									<li class="page-item {% if currentPage == totalPages %}disabled{% endif %}">
+										<a class="page-link" href="{{ path('back_parcours', {'page': currentPage + 1, 'q': search, 'sort': sortBy}) }}">Suivant</a>
+									</li>
+								</ul>
+							</nav>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+
+		</div>
+	</section>
+
+	<!-- STATISTICS SECTION -->
+	<section class="section pt-0">
+		<div class="container">
+			<div class="row mb-4">
+				<div class="col-12">
+					<hr class="my-5">
+					<h2 class="text-secondary mb-4">
+						<i class="bi bi-pie-chart me-2"></i>Statistiques des Parcours</h2>
+				</div>
+
+				<div class="col-md-4 mb-4">
+					<div class="card shadow-sm border-0 bg-primary text-white h-100">
+						<div class="card-body d-flex align-items-center">
+							<div class="me-3">
+								<i class="bi bi-diagram-3-fill" style="font-size: 2.5rem;"></i>
+							</div>
+							<div>
+								<h3 class="mb-0 fw-bold">{{ globalStats.total_parcours }}</h3>
+								<span>Total Parcours</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4 mb-4">
+					<div class="card shadow-sm border-0 bg-success text-white h-100">
+						<div class="card-body d-flex align-items-center">
+							<div class="me-3">
+								<i class="bi bi-building" style="font-size: 2.5rem;"></i>
+							</div>
+							<div>
+								<h3 class="mb-0 fw-bold">{{ globalStats.total_institutions }}</h3>
+								<span>Établissements</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4 mb-4">
+					<div class="card shadow-sm border-0 bg-info text-white h-100">
+						<div class="card-body d-flex align-items-center">
+							<div class="me-3">
+								<i class="bi bi-kanban" style="font-size: 2.5rem;"></i>
+							</div>
+							<div>
+								<h3 class="mb-0 fw-bold">{{ globalStats.total_projects }}</h3>
+								<span>Projets Globaux</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-lg-6 mb-4">
+					<div class="card shadow-sm border-0 h-100">
+						<div class="card-header bg-white py-3">
+							<h5 class="mb-0">Répartition par Type de Parcours</h5>
+						</div>
+						<div class="card-body">
+							<canvas id="typesChart"></canvas>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-lg-6 mb-4">
+					<div class="card shadow-sm border-0 h-100">
+						<div class="card-header bg-white py-3">
+							<h5 class="mb-0">Projets par Parcours (Top 5)</h5>
+						</div>
+						<div class="card-body">
+							<canvas id="parcoursProjectsChart"></canvas>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+const primaryColor = '#102c59';
+const secondaryColor = '#9dbbce';
+const accentColor = '#d52e28';
+const successColor = '#198754';
+const infoColor = '#0dcaf0';
+
+// 1. Types distribution chart
+new Chart(document.getElementById('typesChart'), {
+type: 'doughnut',
+data: {
+labels: {{ statsTypes|map(t => t.type)|json_encode|raw }},
+datasets: [
+{
+data: {{ statsTypes|map(t => t.count)|json_encode|raw }},
+backgroundColor: [
+primaryColor,
+secondaryColor,
+accentColor,
+infoColor,
+successColor
+]
+}
+]
+},
+options: {
+responsive: true,
+plugins: {
+legend: {
+position: 'bottom'
+}
+}
+}
+});
+
+// 2. Bar chart - Projects per Parcours
+new Chart(document.getElementById('parcoursProjectsChart'), {
+type: 'bar',
+data: {
+labels: {{ projectsPerParcours|map(p => p.titre)|json_encode|raw }},
+datasets: [
+{
+label: 'Projets Associés',
+data: {{ projectsPerParcours|map(p => p.totalProjects)|json_encode|raw }},
+backgroundColor: primaryColor,
+borderRadius: 5
+}
+]
+},
+options: {
+responsive: true,
+scales: {
+y: {
+beginAtZero: true,
+stepSize: 1
+}
+}
+}
+});
+});
+	</script>
+{% endblock %}

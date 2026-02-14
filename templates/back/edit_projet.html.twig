@@ -1,0 +1,68 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Modifier le Projet
+{% endblock %}
+
+{% block body %}
+	<div class="page-title light-background">
+		<div class="container">
+			<h1 class="mb-0 text-primary">Modifier le Projet</h1>
+			<nav class="breadcrumbs">
+				<ol>
+					<li>
+						<a href="{{ path('back_home') }}">Home</a>
+					</li>
+					<li>
+						<a href="{{ path('back_projets') }}">Projets</a>
+					</li>
+					<li class="current">Modifier</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+
+	<section class="section">
+		<div class="container">
+			<div class="card shadow-sm border-0">
+				<div class="card-header bg-white py-3">
+					<h5 class="mb-0">Modifier:
+						{{ projet.titre }}</h5>
+				</div>
+				<div class="card-body">
+					{{ form_start(form) }}
+
+					<div class="row g-3">
+						<div class="col-md-6">
+							{{ form_row(form.titre) }}
+						</div>
+						<div class="col-md-6">
+							{{ form_row(form.type) }}
+						</div>
+						<div class="col-12">
+							{{ form_row(form.description) }}
+						</div>
+						<div class="col-12">
+							{{ form_row(form.technologies) }}
+						</div>
+						<div class="col-md-6">
+							{{ form_row(form.dateDebut) }}
+						</div>
+						<div class="col-md-6">
+							{{ form_row(form.dateFin) }}
+						</div>
+						<div class="col-md-6">
+							{{ form_row(form.parcours) }}
+						</div>
+					</div>
+
+					<div class="mt-4 text-end">
+						<a href="{{ path('back_projets') }}" class="btn btn-secondary me-2">Annuler</a>
+						<button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+					</div>
+
+					{{ form_end(form) }}
+				</div>
+			</div>
+		</div>
+	</section>
+{% endblock %}

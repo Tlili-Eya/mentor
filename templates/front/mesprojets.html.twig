@@ -1,0 +1,384 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Mes Projets - MentorAI{% endblock %}
+
+{% block stylesheets %}
+<style>
+    :root {
+        --primary-color: #102c59;
+        --secondary-color: #9dbbce;
+        --accent-color: #d52e28;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #1a458a 100%);
+        padding: 80px 0;
+        color: white;
+        margin-bottom: 50px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 300px;
+        background: rgba(157, 187, 206, 0.1);
+        border-radius: 50%;
+        transform: translate(150px, -150px);
+    }
+
+    .card-project {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(16, 44, 89, 0.08);
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        margin-bottom: 40px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid rgba(157, 187, 206, 0.2);
+    }
+
+    .card-project:hover {
+        box-shadow: 0 20px 45px rgba(16, 44, 89, 0.15);
+        border-color: var(--secondary-color);
+    }
+
+    .card-project .card-header {
+        background: #fff;
+        border-bottom: 1px solid #f0f4f8;
+        padding: 25px;
+    }
+
+    .badge-type {
+        font-size: 0.75rem;
+        padding: 6px 15px;
+        border-radius: 50px;
+        background: rgba(16, 44, 89, 0.05);
+        color: var(--primary-color);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+
+    .project-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin-bottom: 0;
+    }
+
+    .resource-card {
+        background: #f8faff;
+        border-radius: 18px;
+        border: 1px solid rgba(157, 187, 206, 0.2);
+        padding: 20px;
+        height: 100%;
+        transition: all 0.3s;
+    }
+
+    .resource-card:hover {
+        background: #fff;
+        border-color: var(--secondary-color);
+        box-shadow: 0 10px 25px rgba(157, 187, 206, 0.2);
+    }
+
+    .resource-preview {
+        width: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-top: 15px;
+        background: #eee;
+        border: 1px solid #e1e8ef;
+    }
+
+    .img-preview {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%;
+        height: 0;
+    }
+
+    .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .pdf-container {
+        height: 350px;
+        width: 100%;
+    }
+
+    .doc-preview {
+        padding: 40px 20px;
+        text-align: center;
+        background: #f1f4f8;
+    }
+
+    .doc-preview i {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 15px;
+    }
+
+    .action-buttons {
+        padding: 20px 25px;
+        background: #fcfdfe;
+        border-top: 1px solid #f0f4f8;
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-action {
+        flex: 1;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-edit {
+        background-color: var(--secondary-color);
+        color: var(--primary-color);
+    }
+
+    .btn-edit:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-delete {
+        background-color: white;
+        color: var(--accent-color);
+        border: 1.5px solid var(--accent-color);
+    }
+
+    .btn-delete:hover {
+        background-color: var(--accent-color);
+        color: white;
+    }
+
+    .btn-new {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 12px 30px;
+        font-weight: 700;
+    }
+
+    .btn-new:hover {
+        background-color: #1a458a;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .tech-tag {
+        font-size: 0.75rem;
+        background: rgba(16, 44, 89, 0.05);
+        color: var(--primary-color);
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <div class="container" data-aos="fade-down">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold">Portfolio de Mes Projets</h1>
+                <p class="lead opacity-75">Visionnez vos documents, images et vidéos directement depuis votre espace personnel.</p>
+            </div>
+            <div class="col-lg-4 text-md-end">
+                <a href="{{ path('front_projets', {'id': 0}) }}" class="btn btn-light btn-new rounded-pill">
+                    <i class="bi bi-plus-circle-fill me-2"></i>Nouveau Projet
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    {% if projects is empty %}
+        <div class="text-center py-5" data-aos="zoom-in">
+            <i class="bi bi-folder2-open display-1 text-muted"></i>
+            <h3 class="mt-4 fw-bold">Votre portfolio est vide</h3>
+            <p class="text-muted">Commencez à ajouter vos réalisations pour les voir s'afficher ici.</p>
+            <a href="{{ path('front_projets', {'id': 0}) }}" class="btn btn-new rounded-pill mt-3">Ajouter un premier projet</a>
+        </div>
+    {% else %}
+        {% for project in projects %}
+            <div id="project-{{ project.id }}" class="card card-project" data-aos="fade-up">
+                <div class="card-header d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="badge-type">{{ project.type }}</span>
+                        <h2 class="project-title">{{ project.titre }}</h2>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted d-block mb-2"><i class="bi bi-calendar3 me-1"></i> {{ project.dateCreation|date('d/m/Y') }}</small>
+                        {% if project.technologies %}
+                            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                                {% for tech in project.technologies|split(',') %}
+                                    <span class="tech-tag">{{ tech|trim }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 p-lg-5">
+                    <p class="lead text-muted mb-5">{{ project.description }}</p>
+                    
+                    <h5 class="fw-bold text-uppercase mb-4" style="color: var(--primary-color); letter-spacing: 1px;">
+                        <i class="bi bi-grid-fill me-2"></i>Ressources & Aperçus
+                    </h5>
+
+                    <div class="row g-4">
+                        {% for resource in project.ressources %}
+                            <div class="col-xl-4 col-md-6">
+                                <div class="resource-card">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0 fw-bold text-truncate pe-3" title="{{ resource.nom }}">{{ resource.nom }}</h6>
+                                        <span class="badge rounded-pill bg-white text-primary border px-3 small">{{ resource.typeRessource.value }}</span>
+                                    </div>
+
+                                    <div class="resource-preview">
+                                        {% if resource.typeRessource.value == 'VIDEO' %}
+                                            {# YouTube logic #}
+                                            {% set videoId = '' %}
+                                            {% if 'youtube.com/watch' in resource.urlRessource %}
+                                                {% set parts = resource.urlRessource|split('v=') %}
+                                                {% if parts|length > 1 %}{% set videoId = parts[1]|split('&')|first %}{% endif %}
+                                            {% elseif 'youtu.be/' in resource.urlRessource %}
+                                                {% set parts = resource.urlRessource|split('youtu.be/') %}
+                                                {% if parts|length > 1 %}{% set videoId = parts[1]|split('?')|first %}{% endif %}
+                                            {% endif %}
+
+                                            {% if videoId %}
+                                                <div class="video-container">
+                                                    <iframe src="https://www.youtube.com/embed/{{ videoId }}" allowfullscreen></iframe>
+                                                </div>
+                                            {% else %}
+                                                <div class="doc-preview">
+                                                    <i class="bi bi-play-circle"></i>
+                                                    <a href="{{ resource.urlRessource }}" target="_blank" class="btn btn-sm btn-primary rounded-pill">Ouvrir Vidéo</a>
+                                                </div>
+                                            {% endif %}
+
+                                        {% elseif resource.typeRessource.value == 'IMAGE' %}
+                                            <a href="{{ resource.urlRessource }}" target="_blank">
+                                                <img src="{{ resource.urlRessource }}" class="img-preview" alt="{{ resource.nom }}">
+                                            </a>
+
+                                        {% elseif resource.typeRessource.value == 'PDF' %}
+                                            <div class="pdf-container">
+                                                <iframe src="{{ resource.urlRessource }}#toolbar=0" width="100%" height="100%"></iframe>
+                                            </div>
+                                            <div class="mt-2 text-center">
+                                                <a href="{{ resource.urlRessource }}" target="_blank" class="small text-decoration-none">
+                                                    <i class="bi bi-arrows-fullscreen"></i> Plein écran
+                                                </a>
+                                            </div>
+
+                                        {% elseif resource.typeRessource.value == 'ARCHIVE' %}
+                                            <div class="doc-preview">
+                                                <i class="bi bi-file-earmark-zip-fill text-warning"></i>
+                                                <p class="small text-muted">Fichier Archive (ZIP/RAR)</p>
+                                                <a href="{{ resource.urlRessource }}" download class="btn btn-sm btn-primary rounded-pill px-4">Télécharger</a>
+                                            </div>
+
+                                        {% else %}
+                                            <div class="doc-preview">
+                                                <i class="bi bi-file-earmark-code text-info"></i>
+                                                <p class="small text-muted">{{ resource.description ?: 'Document / Fichier Source' }}</p>
+                                                <a href="{{ resource.urlRessource }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-4">Consulter</a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if resource.description and resource.typeRessource.value != 'VIDEO' %}
+                                        <p class="small text-muted mt-3 mb-0">{{ resource.description|length > 80 ? resource.description|slice(0, 80) ~ '...' : resource.description }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                        {% if project.ressources is empty %}
+                            <div class="col-12">
+                                <div class="p-5 text-center bg-light rounded-4 border border-dashed">
+                                    <p class="text-muted mb-0">Aucune ressource (PDF, Image, Vidéo) n'est associée à ce projet.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{{ path('front_projets', {id: project.id}) }}" class="btn-action btn-edit">
+                        <i class="bi bi-pencil-square"></i> Modifier le Projet & Ressources
+                    </a>
+                    <a href="javascript:void(0)" 
+                       class="btn-action btn-delete" 
+                       onclick="confirmDelete('{{ path('front_delete_project', {id: project.id}) }}', '{{ project.titre }}')">
+                        <i class="bi bi-trash3-fill"></i> Supprimer
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<!-- Custom Delete Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 25px; overflow: hidden;">
+            <div class="modal-header border-0 bg-light p-4">
+                <h5 class="modal-title fw-bold" style="color: var(--primary-color);">Confirmation de suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-5 text-center">
+                <div class="mb-4">
+                    <i class="bi bi-exclamation-triangle-fill display-2 text-danger"></i>
+                </div>
+                <h4 class="fw-bold mb-3" style="color: var(--primary-color);">Etes-vous sûr ?</h4>
+                <p class="text-muted mb-0">Vous allez supprimer le projet : <br><strong id="deleteProjectName" class="text-dark"></strong></p>
+                <p class="text-danger small mt-2 fw-bold">Attention ! Cette action effacera aussi tous les fichiers et ressources associés.</p>
+            </div>
+            <div class="modal-footer border-0 p-4 bg-light d-flex gap-3">
+                <button type="button" class="btn rounded-pill px-4 flex-grow-1 border fw-bold" data-bs-dismiss="modal" style="color: var(--primary-color);">Annuler</button>
+                <a id="confirmDeleteBtn" href="#" class="btn btn-danger rounded-pill px-4 flex-grow-1 fw-bold shadow-sm">Supprimer définitivement</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmDelete(url, projectName) {
+        const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        document.getElementById('deleteProjectName').textContent = projectName;
+        document.getElementById('confirmDeleteBtn').href = url;
+        modal.show();
+    }
+</script>
+
+{% endblock %}

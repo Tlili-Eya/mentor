@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProjetRepository::class)]
 class Projet
@@ -17,21 +18,27 @@ class Projet
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le titre du projet est obligatoire.")]
+    #[Assert\Length(min: 3, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères.")]
     private ?string $titre = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le type de projet est requis.")]
     private ?string $type = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Veuillez indiquer les technologies utilisées.")]
     private ?string $technologies = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Assert\NotBlank(message: "Veuillez indiquer une date de début.")]
     private ?\DateTime $dateDebut = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Assert\GreaterThanOrEqual(propertyPath: "dateDebut", message: "La date de fin ne peut pas être antérieure à la date de début.")]
     private ?\DateTime $dateFin = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
@@ -46,10 +53,10 @@ class Projet
     /**
      * @var Collection<int, Ressource>
      */
-    #[ORM\OneToMany(targetEntity: Ressource::class, mappedBy: 'projet')]
+    #[ORM\OneToMany(targetEntity: Ressource::class, mappedBy: 'projet', cascade: ['remove'], orphanRemoval: true)]
     private Collection $ressources;
 
-    #[ORM\ManyToOne(inversedBy: 'projet')]
+    #[ORM\ManyToOne(inversedBy: 'projets')]
     private ?Utilisateur $utilisateur = null;
 
     public function __construct()
@@ -67,7 +74,7 @@ class Projet
         return $this->titre;
     }
 
-    public function setTitre(string $titre): static
+    public function setTitre(?string $titre): static
     {
         $this->titre = $titre;
 
@@ -79,7 +86,7 @@ class Projet
         return $this->type;
     }
 
-    public function setType(string $type): static
+    public function setType(?string $type): static
     {
         $this->type = $type;
 
@@ -103,7 +110,7 @@ class Projet
         return $this->technologies;
     }
 
-    public function setTechnologies(string $technologies): static
+    public function setTechnologies(?string $technologies): static
     {
         $this->technologies = $technologies;
 

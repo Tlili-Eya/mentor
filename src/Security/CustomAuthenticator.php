@@ -1,0 +1,99 @@
+<?php
+
+namespace App\Security;
+
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Http\Authenticator\AbstractLoginFormAuthenticator;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\CsrfTokenBadge;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
+use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordCredentials;
+use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
+use Symfony\Component\Security\Http\SecurityRequestAttributes;
+use Symfony\Component\Security\Http\Util\TargetPathTrait;
+use Symfony\Component\HttpFoundation\Response;
+
+class CustomAuthenticator extends AbstractLoginFormAuthenticator
+{
+    use TargetPathTrait;
+
+    public const LOGIN_ROUTE = 'app_login';
+
+    public function __construct(private UrlGeneratorInterface $urlGenerator)
+    {
+    }
+
+    public function authenticate(Request $request): Passport
+    {
+        $email = $request->request->get('_username', '');
+
+        $request->getSession()->set(SecurityRequestAttributes::LAST_USERNAME, $email);
+
+        return new Passport(
+            new UserBadge($email),
+            new PasswordCredentials($request->request->get('_password', '')),
+            [
+                new CsrfTokenBadge('authenticate', $request->request->get('_csrf_token')),
+                new RememberMeBadge(),
+            ]
+        );
+    }
+
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
+    {
+        // Récupérer l'utilisateur connecté
+        $user = $token->getUser();
+        $roles = $user->getRoles();
+
+        // #region agent log
+        $logEntry = json_encode([
+            'id' => 'log_' . uniqid(),
+            'timestamp' => (int) (microtime(true) * 1000),
+            'location' => 'CustomAuthenticator.php:onAuthenticationSuccess',
+            'message' => 'onAuthenticationSuccess roles & firewall',
+            'runId' => 'pre-fix',
+            'hypothesisId' => 'H1-H3',
+            'data' => [
+                'roles' => $roles,
+                'firewallName' => $firewallName,
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        @file_put_contents(
+            __DIR__ . '/../../.cursor/debug.log',
+            $logEntry . PHP_EOL,
+            FILE_APPEND
+        );
+        // #endregion agent log
+
+        // ✅ SI ADMIN → redirection vers back office
+        if (in_array('ROLE_ADMIN', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('back_home'));
+        }
+
+        // ✅ ADMINM → tableau administrateur
+        if (in_array('ROLE_ADMINM', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('back_administrateur'));
+        }
+
+        // ✅ ENSEIGNANT → (à adapter si tu as un dashboard dédié)
+        if (in_array('ROLE_ENSEIGNANT', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('app_home'));
+        }
+
+        // ✅ SI ÉTUDIANT ou défaut → page front normale
+        if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
+            return new RedirectResponse($targetPath);
+        }
+
+        return new RedirectResponse($this->urlGenerator->generate('app_home'));
+    }
+
+    protected function getLoginUrl(Request $request): string
+    {
+        return $this->urlGenerator->generate(self::LOGIN_ROUTE);
+    }
+}

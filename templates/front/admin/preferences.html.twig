@@ -1,0 +1,571 @@
+{% extends 'front/admin/basem.html.twig' %}
+
+{% block title %}Mes Préférences{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <!-- En-tête simplifiée sans dépendance utilisateur -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 style="color: #102c59;">Mes Préférences</h1>
+            <p class="text-muted" style="color: #9dbbce;">Personnalisez votre expérience utilisateur</p>
+        </div>
+    </div>
+    
+    <!-- Messages flash -->
+    <div id="flash-message" class="alert d-none" role="alert"></div>
+    
+    <!-- Formulaire de préférences -->
+    <div class="card border-0 shadow-lg" style="border-radius: 12px; overflow: hidden; border-top: 5px solid #102c59;">
+        <div class="card-header" style="background: linear-gradient(135deg, #102c59 0%, #1a3a73 100%); color: white; border: none;">
+            <h3 class="mb-0"><i class="bi bi-sliders2 me-2"></i>Options d'accessibilité et d'affichage</h3>
+        </div>
+        
+        <div class="card-body p-4">
+            <form id="preferences-form">
+                <div class="row">
+                    <!-- Colonne gauche - TOUTES les fonctionnalités sont là -->
+                    <div class="col-md-6">
+                        <!-- SECTION TEXTE ET POLICE -->
+                        <div class="mb-4 p-3 rounded" style="background-color: #f8fafc; border: 1px solid #9dbbce;">
+                            <h5 class="mb-3" style="color: #102c59;">
+                                <i class="bi bi-fonts me-2" style="color: #d52e28;"></i>Texte et police
+                            </h5>
+                            
+                            <!-- Taille de la police - 4 niveaux -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: #102c59;">Taille de la police</label>
+                                <select id="font-size" class="form-select">
+                                    <option value="small">Petite</option>
+                                    <option value="medium" selected>Normale</option>
+                                    <option value="large">Grande</option>
+                                    <option value="x-large">Très grande</option>
+                                </select>
+                                <div class="form-text text-muted small">Ajustez la taille du texte selon vos besoins</div>
+                            </div>
+                            
+                            <!-- Police d'écriture - Arial, Verdana, OpenDyslexic, Times New Roman -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: #102c59;">Police d'écriture</label>
+                                <select id="font-family" class="form-select">
+                                    <option value="default" selected>Par défaut</option>
+                                    <option value="Arial, sans-serif">Arial</option>
+                                    <option value="Verdana, sans-serif">Verdana</option>
+                                    <option value="'OpenDyslexic', sans-serif">OpenDyslexic</option>
+                                    <option value="'Times New Roman', serif">Times New Roman</option>
+                                </select>
+                                <div class="form-text text-muted small">La police OpenDyslexic aide à la lecture pour les personnes dyslexiques</div>
+                            </div>
+                            
+                            <!-- Espacement des lignes - réglable de 1.0 à 3.0 -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: #102c59;">Espacement des lignes</label>
+                                <input type="range" id="line-height" class="form-range" min="1" max="3" step="0.1" value="1.5">
+                                <div class="d-flex justify-content-between">
+                                    <span>1.0</span>
+                                    <span id="line-height-value">1.5</span>
+                                    <span>3.0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- SECTION COULEURS -->
+                        <div class="mb-4 p-3 rounded" style="background-color: #f8fafc; border: 1px solid #9dbbce;">
+                            <h5 class="mb-3" style="color: #102c59;">
+                                <i class="bi bi-palette me-2" style="color: #d52e28;"></i>Couleurs
+                            </h5>
+                            
+                            <!-- Couleurs personnalisées principales et secondaires -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: #102c59;">Couleur principale</label>
+                                <input type="color" id="primary-color" class="form-control form-control-color" value="#102c59">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: #102c59;">Couleur secondaire</label>
+                                <input type="color" id="secondary-color" class="form-control form-control-color" value="#d52e28">
+                            </div>
+                            
+                            <!-- Contraste élevé -->
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" id="high-contrast" class="form-check-input">
+                                    <label class="form-check-label fw-bold" for="high-contrast" style="color: #102c59;">Contraste élevé</label>
+                                </div>
+                                <div class="form-text text-muted small">Augmente le contraste pour une meilleure lisibilité</div>
+                            </div>
+                            
+                            <!-- Mode sombre -->
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" id="dark-mode" class="form-check-input">
+                                    <label class="form-check-label fw-bold" for="dark-mode" style="color: #102c59;">Mode sombre</label>
+                                </div>
+                                <div class="form-text text-muted small">Active le mode sombre pour réduire la fatigue oculaire</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Colonne droite - TOUTES les fonctionnalités sont là aussi -->
+                    <div class="col-md-6">
+                        <!-- SECTION AFFICHAGE ET ACCESSIBILITÉ -->
+                        <div class="mb-4 p-3 rounded" style="background-color: #f8fafc; border: 1px solid #9dbbce;">
+                            <h5 class="mb-3" style="color: #102c59;">
+                                <i class="bi bi-eye me-2" style="color: #d52e28;"></i>Affichage et accessibilité
+                            </h5>
+                            
+                            <!-- Zoom de 50% à 200% -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: #102c59;">Zoom (%)</label>
+                                <input type="range" id="zoom" class="form-range" min="50" max="200" step="10" value="100">
+                                <div class="d-flex justify-content-between">
+                                    <span>50%</span>
+                                    <span id="zoom-value">100%</span>
+                                    <span>200%</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Largeur du conteneur : Normale, Large, Pleine largeur -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: #102c59;">Largeur du conteneur</label>
+                                <select id="container-width" class="form-select">
+                                    <option value="normal" selected>Normale</option>
+                                    <option value="wide">Large</option>
+                                    <option value="full">Pleine largeur</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Mode dyslexique -->
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" id="dyslexic-mode" class="form-check-input">
+                                    <label class="form-check-label fw-bold" for="dyslexic-mode" style="color: #102c59;">Mode dyslexique</label>
+                                </div>
+                                <div class="form-text text-muted small">Active des optimisations pour les personnes dyslexiques</div>
+                            </div>
+                            
+                            <!-- Mode lecture -->
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" id="reading-mode" class="form-check-input">
+                                    <label class="form-check-label fw-bold" for="reading-mode" style="color: #102c59;">Mode lecture</label>
+                                </div>
+                                <div class="form-text text-muted small">Mode lecture simplifié sans distractions</div>
+                            </div>
+                            
+                            <!-- Réduction des animations -->
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" id="reduced-motion" class="form-check-input">
+                                    <label class="form-check-label fw-bold" for="reduced-motion" style="color: #102c59;">Réduire les animations</label>
+                                </div>
+                                <div class="form-text text-muted small">Réduit ou supprime les animations</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Aperçu en direct -->
+                        <div class="mb-4 p-3 rounded" style="background-color: #f8fafc; border: 2px solid #9dbbce;">
+                            <h5 class="mb-3" style="color: #102c59;">
+                                <i class="bi bi-eye-fill me-2" style="color: #d52e28;"></i>Aperçu en direct
+                            </h5>
+                            
+                            <div id="live-preview" class="p-3" style="border-radius: 8px; background-color: white; border: 1px solid #9dbbce;">
+                                <p class="fw-bold mb-2" style="color: #102c59;">Texte d'exemple</p>
+                                <p class="mb-1">Ceci est un exemple de texte avec vos préférences.</p>
+                                <p class="mb-0">Voici comment s'affichera le contenu sur le site.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Boutons d'action -->
+                <div class="d-flex justify-content-between mt-4 pt-3 border-top" style="border-color: #9dbbce !important;">
+                    <a href="{% if app.user and is_granted('ROLE_ADMIN') %}{{ path('app_admin_dashboard') }}{% else %}{{ path('app_enseignant_dashboard') }}{% endif %}" 
+                       class="btn btn-lg" style="border: 2px solid #9dbbce; color: #102c59; border-radius: 10px; padding: 12px 30px; font-weight: 500;">
+                        <i class="bi bi-arrow-left me-2"></i> Retour
+                    </a>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="button" id="reset-btn" class="btn btn-lg" style="border: 2px solid #d52e28; color: #d52e28; border-radius: 10px; padding: 12px 30px; font-weight: 500;">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i> Réinitialiser
+                        </button>
+                        
+                        <button type="submit" class="btn btn-lg" style="background-color: #102c59; color: white; border: none; border-radius: 10px; padding: 12px 40px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 44, 89, 0.3);">
+                            <i class="bi bi-save me-2"></i> Enregistrer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Styles pour l'aperçu -->
+<style>
+/* Styles pour l'aperçu - version renforcée */
+#live-preview {
+    transition: all 0.3s ease;
+    min-height: 100px;
+    padding: 1rem !important;
+}
+
+/* Style pour le mode dyslexique - avec sélecteur plus fort */
+#live-preview.dyslexic-mode,
+.dyslexic-mode #live-preview {
+    font-family: 'OpenDyslexic', sans-serif !important;
+    letter-spacing: 0.05em !important;
+    word-spacing: 0.1em !important;
+}
+
+/* Style pour le mode contraste élevé */
+#live-preview.high-contrast,
+.high-contrast #live-preview {
+    filter: contrast(1.5) !important;
+    background-color: black !important;
+    color: yellow !important;
+}
+
+#live-preview.high-contrast p,
+.high-contrast #live-preview p {
+    color: yellow !important;
+}
+
+/* Style pour le mode sombre */
+#live-preview.dark-mode,
+.dark-mode #live-preview {
+    background-color: #222 !important;
+    color: #eee !important;
+}
+
+#live-preview.dark-mode p:first-child,
+.dark-mode #live-preview p:first-child {
+    color: #9dbbce !important;
+}
+
+/* Style pour le mode lecture */
+#live-preview.reading-mode,
+.reading-mode #live-preview {
+    max-width: 800px !important;
+    margin: 0 auto !important;
+    font-size: 1.2rem !important;
+    line-height: 1.8 !important;
+}
+
+/* Animation des boutons */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Style pour les range sliders */
+.form-range {
+    width: 100%;
+}
+
+/* Debug visuel - à enlever en production */
+.preview-debug {
+    display: none;
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 5px;
+}
+</style>
+<!-- Script JavaScript avec TOUTES les fonctionnalités -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Script de préférences chargé');
+    
+    // Vérifier que tous les éléments existent
+    const form = document.getElementById('preferences-form');
+    const fontSize = document.getElementById('font-size');
+    const fontFamily = document.getElementById('font-family');
+    const lineHeight = document.getElementById('line-height');
+    const lineHeightValue = document.getElementById('line-height-value');
+    const primaryColor = document.getElementById('primary-color');
+    const secondaryColor = document.getElementById('secondary-color');
+    const highContrast = document.getElementById('high-contrast');
+    const darkMode = document.getElementById('dark-mode');
+    const zoom = document.getElementById('zoom');
+    const zoomValue = document.getElementById('zoom-value');
+    const containerWidth = document.getElementById('container-width');
+    const dyslexicMode = document.getElementById('dyslexic-mode');
+    const readingMode = document.getElementById('reading-mode');
+    const reducedMotion = document.getElementById('reduced-motion');
+    const resetBtn = document.getElementById('reset-btn');
+    const preview = document.getElementById('live-preview');
+    const flashMessage = document.getElementById('flash-message');
+    
+    // Vérifier que tous les éléments critiques existent
+    if (!preview) {
+        console.error('❌ Élément preview non trouvé');
+        return;
+    }
+    
+    console.log('✅ Tous les éléments trouvés');
+    
+    // Fonction pour mettre à jour l'aperçu avec plus de robustesse
+    function updatePreview() {
+        console.log('🔄 Mise à jour de l\'aperçu');
+        
+        try {
+            // 1. Taille de police
+            if (fontSize) {
+                const sizes = {
+                    'small': '0.875rem',
+                    'medium': '1rem',
+                    'large': '1.125rem',
+                    'x-large': '1.25rem'
+                };
+                preview.style.fontSize = sizes[fontSize.value] || '1rem';
+                console.log('  - Taille police:', fontSize.value, preview.style.fontSize);
+            }
+            
+            // 2. Police d'écriture
+            if (fontFamily) {
+                if (fontFamily.value !== 'default') {
+                    preview.style.fontFamily = fontFamily.value;
+                } else {
+                    preview.style.fontFamily = '';
+                }
+                console.log('  - Police:', fontFamily.value);
+            }
+            
+            // 3. Espacement des lignes
+            if (lineHeight) {
+                preview.style.lineHeight = lineHeight.value;
+                console.log('  - Line height:', lineHeight.value);
+            }
+            
+            // 4. Couleurs
+            if (primaryColor) {
+                const firstParagraph = preview.querySelector('p:first-child');
+                if (firstParagraph) {
+                    firstParagraph.style.color = primaryColor.value;
+                }
+                console.log('  - Couleur primaire:', primaryColor.value);
+            }
+            
+            if (secondaryColor) {
+                preview.style.borderLeft = '4px solid ' + secondaryColor.value;
+                console.log('  - Couleur secondaire:', secondaryColor.value);
+            }
+            
+            // 5. Nettoyer les classes de mode précédentes
+            preview.classList.remove('high-contrast', 'dark-mode', 'dyslexic-mode', 'reading-mode');
+            
+            // 6. Appliquer les nouvelles classes de mode
+            if (highContrast && highContrast.checked) {
+                preview.classList.add('high-contrast');
+                console.log('  - Mode contraste élevé activé');
+            }
+            
+            if (darkMode && darkMode.checked) {
+                preview.classList.add('dark-mode');
+                console.log('  - Mode sombre activé');
+            }
+            
+            if (dyslexicMode && dyslexicMode.checked) {
+                preview.classList.add('dyslexic-mode');
+                console.log('  - Mode dyslexique activé');
+            }
+            
+            if (readingMode && readingMode.checked) {
+                preview.classList.add('reading-mode');
+                console.log('  - Mode lecture activé');
+            }
+            
+            // 7. Zoom (avec fallback pour différents navigateurs)
+            if (zoom) {
+                const zoomPercent = zoom.value + '%';
+                // Essayer différentes propriétés de zoom
+                document.body.style.zoom = zoomPercent; // Chrome, Edge
+                document.body.style.transform = 'scale(' + (zoom.value / 100) + ')'; // Fallback
+                document.body.style.transformOrigin = 'top left';
+                console.log('  - Zoom:', zoomPercent);
+            }
+            
+            // 8. Largeur du conteneur
+            if (containerWidth) {
+                const container = document.querySelector('.container');
+                if (container) {
+                    const widths = {
+                        'normal': '1140px',
+                        'wide': '1320px',
+                        'full': '100%'
+                    };
+                    container.style.maxWidth = widths[containerWidth.value];
+                    console.log('  - Largeur conteneur:', containerWidth.value);
+                }
+            }
+            
+            // 9. Animations réduites
+            if (reducedMotion) {
+                if (reducedMotion.checked) {
+                    document.documentElement.style.setProperty('--animation-speed', '0s');
+                    preview.style.transition = 'none';
+                } else {
+                    document.documentElement.style.setProperty('--animation-speed', '0.3s');
+                    preview.style.transition = 'all 0.3s ease';
+                }
+                console.log('  - Animations réduites:', reducedMotion.checked);
+            }
+            
+        } catch (error) {
+            console.error('❌ Erreur dans updatePreview:', error);
+        }
+    }
+    
+    // Mettre à jour l'affichage des valeurs
+    function updateValues() {
+        if (lineHeightValue && lineHeight) {
+            lineHeightValue.textContent = lineHeight.value;
+        }
+        if (zoomValue && zoom) {
+            zoomValue.textContent = zoom.value + '%';
+        }
+    }
+    
+    // Sauvegarder les préférences
+    function savePreferences() {
+        try {
+            const preferences = {
+                fontSize: fontSize ? fontSize.value : 'medium',
+                fontFamily: fontFamily ? fontFamily.value : 'default',
+                lineHeight: lineHeight ? lineHeight.value : '1.5',
+                primaryColor: primaryColor ? primaryColor.value : '#102c59',
+                secondaryColor: secondaryColor ? secondaryColor.value : '#d52e28',
+                highContrast: highContrast ? highContrast.checked : false,
+                darkMode: darkMode ? darkMode.checked : false,
+                zoom: zoom ? zoom.value : '100',
+                containerWidth: containerWidth ? containerWidth.value : 'normal',
+                dyslexicMode: dyslexicMode ? dyslexicMode.checked : false,
+                readingMode: readingMode ? readingMode.checked : false,
+                reducedMotion: reducedMotion ? reducedMotion.checked : false
+            };
+            
+            localStorage.setItem('userPreferences', JSON.stringify(preferences));
+            console.log('💾 Préférences sauvegardées:', preferences);
+            
+            // Afficher message de succès
+            if (flashMessage) {
+                flashMessage.className = 'alert alert-success alert-dismissible fade show';
+                flashMessage.innerHTML = '<i class="bi bi-check-circle me-2"></i>Préférences enregistrées avec succès ! <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                flashMessage.classList.remove('d-none');
+                
+                setTimeout(() => {
+                    flashMessage.classList.add('d-none');
+                }, 3000);
+            }
+        } catch (error) {
+            console.error('❌ Erreur dans savePreferences:', error);
+        }
+    }
+    
+    // Charger les préférences
+    function loadPreferences() {
+        try {
+            const saved = localStorage.getItem('userPreferences');
+            if (saved) {
+                const prefs = JSON.parse(saved);
+                console.log('📂 Préférences chargées:', prefs);
+                
+                if (fontSize) fontSize.value = prefs.fontSize || 'medium';
+                if (fontFamily) fontFamily.value = prefs.fontFamily || 'default';
+                if (lineHeight) lineHeight.value = prefs.lineHeight || '1.5';
+                if (primaryColor) primaryColor.value = prefs.primaryColor || '#102c59';
+                if (secondaryColor) secondaryColor.value = prefs.secondaryColor || '#d52e28';
+                if (highContrast) highContrast.checked = prefs.highContrast || false;
+                if (darkMode) darkMode.checked = prefs.darkMode || false;
+                if (zoom) zoom.value = prefs.zoom || '100';
+                if (containerWidth) containerWidth.value = prefs.containerWidth || 'normal';
+                if (dyslexicMode) dyslexicMode.checked = prefs.dyslexicMode || false;
+                if (readingMode) readingMode.checked = prefs.readingMode || false;
+                if (reducedMotion) reducedMotion.checked = prefs.reducedMotion || false;
+            }
+        } catch (error) {
+            console.error('❌ Erreur dans loadPreferences:', error);
+        }
+        
+        updateValues();
+        updatePreview();
+    }
+    
+    // Réinitialiser les préférences
+    function resetPreferences() {
+        if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes vos préférences ?')) {
+            localStorage.removeItem('userPreferences');
+            
+            // Valeurs par défaut
+            if (fontSize) fontSize.value = 'medium';
+            if (fontFamily) fontFamily.value = 'default';
+            if (lineHeight) lineHeight.value = '1.5';
+            if (primaryColor) primaryColor.value = '#102c59';
+            if (secondaryColor) secondaryColor.value = '#d52e28';
+            if (highContrast) highContrast.checked = false;
+            if (darkMode) darkMode.checked = false;
+            if (zoom) zoom.value = '100';
+            if (containerWidth) containerWidth.value = 'normal';
+            if (dyslexicMode) dyslexicMode.checked = false;
+            if (readingMode) readingMode.checked = false;
+            if (reducedMotion) reducedMotion.checked = false;
+            
+            updateValues();
+            updatePreview();
+            
+            if (flashMessage) {
+                flashMessage.className = 'alert alert-info alert-dismissible fade show';
+                flashMessage.innerHTML = '<i class="bi bi-info-circle me-2"></i>Préférences réinitialisées <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                flashMessage.classList.remove('d-none');
+                
+                setTimeout(() => {
+                    flashMessage.classList.add('d-none');
+                }, 3000);
+            }
+        }
+    }
+    
+    // Attacher les événements avec vérification d'existence
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            savePreferences();
+        });
+    }
+    
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetPreferences);
+    }
+    
+    // Événements pour l'aperçu en direct
+    const inputs = [
+        fontSize, fontFamily, lineHeight, primaryColor, 
+        secondaryColor, highContrast, darkMode, zoom, 
+        containerWidth, dyslexicMode, readingMode, reducedMotion
+    ];
+    
+    inputs.forEach(input => {
+        if (input) {
+            const eventType = input.type === 'range' || input.type === 'color' ? 'input' : 'change';
+            input.addEventListener(eventType, function() {
+                updateValues();
+                updatePreview();
+            });
+        }
+    });
+    
+    // Initialisation
+    console.log('🚀 Initialisation des préférences');
+    loadPreferences();
+    
+    // Forcer une première mise à jour
+    setTimeout(() => {
+        updatePreview();
+        console.log('⏱️ Mise à jour forcée après délai');
+    }, 100);
+});
+</script>
+{% endblock %}

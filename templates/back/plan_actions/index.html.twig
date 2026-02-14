@@ -1,0 +1,451 @@
+{% extends 'back/basem.html.twig' %}
+
+{% block title %}Plans d'Actions{% endblock %}
+
+{% block body %}
+<div class="page-title" style="background-color: #9dbbce; padding: 20px 0;">
+  <div class="container d-lg-flex justify-content-between align-items-center">
+    <h1 class="mb-2 mb-lg-0" style="color: #102c59; font-weight: 700;">Plans d'Actions</h1>
+    <nav class="breadcrumbs">
+      <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 10px;">
+        <li><a href="{{ path('back_home') }}" style="color: #102c59; text-decoration: none;">Accueil</a></li>
+        <li style="color: #d52e28;">› Plans d'Actions</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<section class="section" style="padding: 40px 0;">
+  <div class="container">
+
+    {% for message in app.flashes('success') %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert" style="background-color: #d4edda; border-color: #c3e6cb; color: #155724;">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+
+    <div class="row">
+      <!-- Sidebar des filtres -->
+      <div class="col-lg-3 mb-4">
+        <div class="card" style="border: 1px solid #9dbbce; border-radius: 8px; box-shadow: 0 2px 8px rgba(16, 44, 89, 0.1);">
+          <div class="card-body">
+            <h5 class="card-title mb-3" style="color: #102c59; font-weight: 600;">
+              <i class="bi bi-funnel me-2"></i>Filtrer les plans
+            </h5>
+            
+            <form method="get" action="{{ path('app_plan_actions_index') }}" id="filter-form">
+              <div class="mb-4">
+                <h6 class="fw-bold mb-2" style="color: #102c59;">Statut</h6>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="statut" value="" id="statut-all" 
+                    {% if statut == '' %}checked{% endif %}>
+                  <label class="form-check-label" for="statut-all">Tous les statuts</label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="statut" value="EN_ATTENTE" id="statut-en-attente"
+                    {% if statut == 'EN_ATTENTE' %}checked{% endif %}>
+                  <label class="form-check-label" for="statut-en-attente">
+                    En Attente
+                  </label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="statut" value="EN_COURS" id="statut-en-cours"
+                    {% if statut == 'EN_COURS' %}checked{% endif %}>
+                  <label class="form-check-label" for="statut-en-cours">
+                    En Cours
+                  </label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="statut" value="FINI" id="statut-fini"
+                    {% if statut == 'FINI' %}checked{% endif %}>
+                  <label class="form-check-label" for="statut-fini">
+                    Fini
+                  </label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="statut" value="REJETE" id="statut-rejete"
+                    {% if statut == 'REJETE' %}checked{% endif %}>
+                  <label class="form-check-label" for="statut-rejete">
+                    Rejeté
+                  </label>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <h6 class="fw-bold mb-2" style="color: #102c59;">Catégorie</h6>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="categorie" value="" id="categorie-all" 
+                    {% if categorie == '' %}checked{% endif %}>
+                  <label class="form-check-label" for="categorie-all">Toutes les catégories</label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="categorie" value="PEDAGOGIQUE" id="categorie-pedagogique"
+                    {% if categorie == 'PEDAGOGIQUE' %}checked{% endif %}>
+                  <label class="form-check-label" for="categorie-pedagogique">
+                    Pédagogique
+                  </label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="categorie" value="STRATEGIQUE" id="categorie-strategique"
+                    {% if categorie == 'STRATEGIQUE' %}checked{% endif %}>
+                  <label class="form-check-label" for="categorie-strategique">
+                    Stratégique
+                  </label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="categorie" value="ADMINISTRATIVE" id="categorie-administrative"
+                    {% if categorie == 'ADMINISTRATIVE' %}checked{% endif %}>
+                  <label class="form-check-label" for="categorie-administrative">
+                    Administrative
+                  </label>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <h6 class="fw-bold mb-2" style="color: #102c59;">Période</h6>
+                <div class="mb-2">
+                  <label class="form-label small" style="color: #102c59;">Date début</label>
+                  <input type="date" name="date_debut" class="form-control form-control-sm" 
+                    value="{{ date_debut }}" style="border-color: #9dbbce;">
+                </div>
+                <div>
+                  <label class="form-label small" style="color: #102c59;">Date fin</label>
+                  <input type="date" name="date_fin" class="form-control form-control-sm"
+                    value="{{ date_fin }}" style="border-color: #9dbbce;">
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <h6 class="fw-bold mb-2" style="color: #102c59;">Tri par</h6>
+                <select name="sort" class="form-select form-select-sm" style="border-color: #9dbbce;">
+                  <option value="date" {% if sortBy == 'date' %}selected{% endif %}>Date</option>
+                  <option value="decision" {% if sortBy == 'decision' %}selected{% endif %}>Décision</option>
+                  <option value="statut" {% if sortBy == 'statut' %}selected{% endif %}>Statut</option>
+                </select>
+                <select name="order" class="form-select form-select-sm mt-1" style="border-color: #9dbbce;">
+                  <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>Décroissant</option>
+                  <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>Croissant</option>
+                </select>
+              </div>
+
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-sm" style="background-color: #102c59; color: white; border: none;">
+                  <i class="bi bi-filter me-1"></i> Appliquer
+                </button>
+                <a href="{{ path('app_plan_actions_index') }}" class="btn btn-outline-secondary btn-sm" style="border-color: #9dbbce; color: #102c59;">
+                  <i class="bi bi-x-circle me-1"></i> Réinitialiser
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenu principal -->
+      <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="mb-0" style="color: #102c59;">Gestion des Plans d'actions ({{ total }})</h2>
+          <div>
+            {% if plans|length > 0 %}
+              <a href="{{ path('app_plan_actions_export_pdf', app.request.query.all) }}" class="btn me-2" style="background-color: #d52e28; color: white; border: none;">
+                <i class="bi bi-file-pdf me-1"></i> Exporter PDF
+              </a>
+            {% endif %}
+            <a href="{{ path('app_plan_actions_new') }}" class="btn" style="background-color: #102c59; color: white; border: none;">
+              <i class="bi bi-plus-circle me-1"></i> Nouveau Plan
+            </a>
+          </div>
+        </div>
+
+        <!-- Barre de recherche -->
+        <form method="get" class="mb-4">
+          <div class="input-group">
+            <span class="input-group-text" style="background-color: #f8f9fa; border-color: #9dbbce;">
+              <i class="bi bi-search" style="color: #102c59;"></i>
+            </span>
+            <input type="text" name="search" class="form-control" 
+              placeholder="Rechercher par décision ou description..." 
+              value="{{ search }}" style="border-color: #9dbbce;">
+            
+            <!-- Champs cachés pour conserver les filtres -->
+            {% if statut %}
+              <input type="hidden" name="statut" value="{{ statut }}">
+            {% endif %}
+            {% if categorie %}
+              <input type="hidden" name="categorie" value="{{ categorie }}">
+            {% endif %}
+            {% if date_debut %}
+              <input type="hidden" name="date_debut" value="{{ date_debut }}">
+            {% endif %}
+            {% if date_fin %}
+              <input type="hidden" name="date_fin" value="{{ date_fin }}">
+            {% endif %}
+            {% if sortBy %}
+              <input type="hidden" name="sort" value="{{ sortBy }}">
+            {% endif %}
+            {% if order %}
+              <input type="hidden" name="order" value="{{ order }}">
+            {% endif %}
+            
+            <button class="btn" type="submit" style="background-color: #9dbbce; color: #102c59; border-color: #9dbbce;">
+              <i class="bi bi-search"></i> Rechercher
+            </button>
+          </div>
+        </form>
+
+        <!-- Tableau des plans -->
+        <div class="card" style="border: 1px solid #9dbbce; border-radius: 8px; box-shadow: 0 2px 8px rgba(16, 44, 89, 0.1);">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead style="background-color: #9dbbce;">
+                  <tr>
+                    <th scope="col" style="color: #102c59; border-bottom: none;">#</th>
+                    <th scope="col" style="color: #102c59; border-bottom: none;">Décision</th>
+                    <th scope="col" style="color: #102c59; border-bottom: none;">Description</th>
+                    <th scope="col" style="color: #102c59; border-bottom: none;">Catégorie</th>
+                    <th scope="col" style="color: #102c59; border-bottom: none;">Statut</th>
+                    <th scope="col" style="color: #102c59; border-bottom: none;">Articles</th> 
+
+                    <th scope="col" style="color: #102c59; border-bottom: none;">Date</th>
+                    <th scope="col" class="text-center" style="color: #102c59; border-bottom: none;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for plan in plans %}
+                    <tr style="border-color: #e9ecef;">
+                      <th scope="row">{{ plan.id }}</th>
+                      <td class="fw-medium" style="color: #102c59;">{{ plan.decision }}</td>
+                      <td>
+                        {% if plan.description %}
+                          {{ plan.description|slice(0, 50) }}{% if plan.description|length > 50 %}...{% endif %}
+                        {% else %}
+                          <span class="text-muted">Aucune description</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if plan.categorie %}
+                          <span class="badge" style="background-color: #9dbbce; color: #102c59;">
+                            {% if plan.categorie.value == 'PEDAGOGIQUE' %}
+                              Pédagogique
+                            {% elseif plan.categorie.value == 'STRATEGIQUE' %}
+                              Stratégique
+                            {% elseif plan.categorie.value == 'ADMINISTRATIVE' %}
+                              Administrative
+                            {% else %}
+                              {{ plan.categorie.value }}
+                            {% endif %}
+                          </span>
+                        {% else %}
+                          <span class="text-muted">-</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% set statut_value = plan.statut.value %}
+                        {% set statut_class = {
+                          'EN_ATTENTE': 'warning',
+                          'EN_COURS': 'info',
+                          'FINI': 'success',
+                          'REJETE': 'danger'
+                        } %}
+                        
+                        {% set statut_colors = {
+                          'EN_ATTENTE': '#ffc107',
+                          'EN_COURS': '#9dbbce',
+                          'FINI': '#28a745',
+                          'REJETE': '#d52e28'
+                        } %}
+                        
+                        <span class="badge" style="background-color: {{ statut_colors[statut_value]|default('#6c757d') }}; color: white;">
+                          {% if statut_value == 'EN_ATTENTE' %}
+                            En Attente
+                          {% elseif statut_value == 'EN_COURS' %}
+                            En Cours
+                          {% elseif statut_value == 'FINI' %}
+                            Fini
+                          {% elseif statut_value == 'REJETE' %}
+                            Rejeté
+                          {% else %}
+                            {{ statut_value }}
+                          {% endif %}
+                        </span>
+                      </td>
+                                            <td>
+                        {% if plan.articles is defined and plan.articles|length > 0 %}
+                          <span class="badge" style="background-color: #102c59; color: white; cursor: pointer;" 
+                                title="Voir les articles"
+                                onclick="alert('Articles liés :\n{% for article in plan.articles %}- {{ article.titre }}\n{% endfor %}')">
+                            {{ plan.articles|length }} article(s)
+                          </span>
+                        {% else %}
+                          <span class="text-muted">-</span>
+                        {% endif %}
+                      </td>
+                      <td>{{ plan.date ? plan.date|date('d/m/Y') : 'N/A' }}</td>
+                      <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                          <a href="{{ path('app_plan_actions_show', {id: plan.id}) }}" 
+                             class="btn btn-outline-info" title="Voir" style="border-color: #9dbbce; color: #102c59;">
+                            <i class="bi bi-eye"></i>
+                          </a>
+                          <a href="{{ path('app_plan_actions_edit', {id: plan.id}) }}" 
+                             class="btn btn-outline-primary" title="Éditer" style="border-color: #102c59; color: #102c59;">
+                            <i class="bi bi-pencil"></i>
+                          </a>
+                          <!-- Remplacer les lignes 155-161 (le formulaire de suppression) -->
+<form method="post" action="{{ path('app_plan_actions_delete', {id: plan.id}) }}" 
+      style="display:inline;">
+  <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ plan.id) }}">
+  <button type="submit" class="btn btn-outline-danger" title="Supprimer" style="border-color: #d52e28; color: #d52e28;">
+    <i class="bi bi-trash"></i>
+  </button>
+</form>
+                        </div>
+                      </td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="7" class="text-center py-5">
+                        <i class="bi bi-clipboard-check display-1 mb-3 d-block" style="color: #9dbbce;"></i>
+                        <h5 style="color: #102c59;">Aucun plan d'action trouvé</h5>
+                        <p class="text-muted">Commencez par créer votre premier plan d'action</p>
+                        <a href="{{ path('app_plan_actions_new') }}" class="btn" style="background-color: #102c59; color: white; border: none;">
+                          <i class="bi bi-plus-circle me-1"></i> Créer un plan
+                        </a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if totalPages > 1 %}
+          <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+              {% for i in 1..totalPages %}
+                <li class="page-item {% if i == currentPage %}active{% endif %}">
+                  {% set queryParams = {
+                    'page': i,
+                    'search': search,
+                    'statut': statut,
+                    'categorie': categorie,
+                    'date_debut': date_debut,
+                    'date_fin': date_fin,
+                    'sort': sortBy,
+                    'order': order
+                  } %}
+                  
+                  <a class="page-link" 
+                     href="{{ path('app_plan_actions_index', queryParams) }}"
+                     style="{% if i == currentPage %}background-color: #102c59; color: white; border-color: #102c59;{% else %}color: #102c59; border-color: #9dbbce;{% endif %}">
+                    {{ i }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </nav>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+.card {
+  border-radius: 10px;
+}
+
+.table th {
+  border-top: none;
+  font-weight: 600;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(157, 187, 206, 0.1);
+}
+
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+  font-size: 0.85em;
+  border-radius: 4px;
+}
+
+.btn-group .btn {
+  border-radius: 4px !important;
+  margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+.form-check-input:checked {
+  background-color: #102c59;
+  border-color: #102c59;
+}
+
+.input-group .form-control {
+  border-left: 1px solid #9dbbce;
+}
+
+.input-group .input-group-text {
+  border-right: 1px solid #9dbbce;
+}
+
+.page-item.active .page-link {
+  background-color: #102c59;
+  border-color: #102c59;
+}
+
+.page-link {
+  color: #102c59;
+}
+
+.page-link:hover {
+  color: #d52e28;
+  background-color: rgba(157, 187, 206, 0.1);
+  border-color: #9dbbce;
+}
+
+.form-check-input:focus, 
+.form-select:focus,
+.form-control:focus {
+  border-color: #9dbbce;
+  box-shadow: 0 0 0 0.2rem rgba(157, 187, 206, 0.25);
+}
+
+.btn:focus {
+  box-shadow: 0 0 0 0.2rem rgba(16, 44, 89, 0.25);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Gestion des dates
+  const dateDebutInput = document.querySelector('input[name="date_debut"]');
+  const dateFinInput = document.querySelector('input[name="date_fin"]');
+  
+  if (dateDebutInput && dateFinInput) {
+    dateDebutInput.addEventListener('change', function() {
+      if (this.value && dateFinInput.value && this.value > dateFinInput.value) {
+        dateFinInput.value = this.value;
+      }
+    });
+    
+    dateFinInput.addEventListener('change', function() {
+      if (this.value && dateDebutInput.value && this.value < dateDebutInput.value) {
+        dateDebutInput.value = this.value;
+      }
+    });
+  }
+});
+</script>
+
+{% endblock %}

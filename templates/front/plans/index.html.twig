@@ -1,0 +1,100 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Plans d'Actions | MentorAI{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Plans d'Actions Pédagogiques</h1>
+            
+            <!-- Filtres -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="Rechercher..." value="{{ search }}">
+                        </div>
+                        <div class="col-md-4">
+                            <select name="type" class="form-select">
+                                <option value="">Tous les types</option>
+                                <option value="PEDAGOGIQUE" {% if type == 'PEDAGOGIQUE' %}selected{% endif %}>
+                                    Pédagogique
+                                </option>
+                                <option value="ADMINISTRATIF" {% if type == 'ADMINISTRATIF' %}selected{% endif %}>
+                                    Administratif
+                                </option>
+                                <option value="STRATEGIQUE" {% if type == 'STRATEGIQUE' %}selected{% endif %}>
+                                    Stratégique
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-filter"></i> Filtrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Liste des plans -->
+            {% if plans|length > 0 %}
+                <div class="row">
+                    {% for plan in plans %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="badge 
+                                    {% if plan.typeDecision.value == 'PEDAGOGIQUE' %}bg-primary
+                                    {% elseif plan.typeDecision.value == 'ADMINISTRATIF' %}bg-secondary
+                                    {% else %}bg-info{% endif %}">
+                                    {{ plan.typeDecision.getLabel() }}
+                                </span>
+                                <span class="badge 
+                                    {% if plan.statut.value == 'EN_ATTENTE' %}bg-warning
+                                    {% elseif plan.statut.value == 'EN_COURS' %}bg-primary
+                                    {% elseif plan.statut.value == 'FINI' %}bg-success
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ plan.statut.value|replace({'_': ' '})|title }}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ plan.decision }}</h5>
+                                <p class="card-text text-muted">
+                                    {{ plan.description|slice(0, 150) }}{% if plan.description|length > 150 %}...{% endif %}
+                                </p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        Créé le {{ plan.createdAt|date('d/m/Y') }}
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="card-footer bg-white">
+                                <a href="{{ path('front_plan_show', {'id': plan.id}) }}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i> Voir détails
+                                </a>
+                                {% if is_granted('ROLE_ENSEIGNANT') %}
+                                    <a href="{{ path('app_plan_actions_reclamation', {'id': plan.id}) }}" 
+                                       class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-exclamation-triangle"></i> Réclamation
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-clipboard-x display-1 text-muted"></i>
+                    <h3 class="mt-3">Aucun plan trouvé</h3>
+                    <p class="text-muted">Aucun plan d'action ne correspond à votre recherche.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

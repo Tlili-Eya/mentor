@@ -1,0 +1,555 @@
+{% extends 'back/basem.html.twig' %}
+
+{% block title %}Modifier le Plan d'Action - {{ plan_actions.decision }}{% endblock %}
+
+{% block body %}
+<div class="page-title" style="background-color: #9dbbce; padding: 20px 0;">
+  <div class="container d-lg-flex justify-content-between align-items-center">
+    <h1 class="mb-2 mb-lg-0" style="color: #102c59; font-weight: 700;">Modifier Plan d'Action</h1>
+    <nav class="breadcrumbs">
+      <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 10px;">
+        <li><a href="{{ path('back_home') }}" style="color: #102c59; text-decoration: none;">Accueil</a></li>
+        <li><a href="{{ path('app_plan_actions_index') }}" style="color: #102c59; text-decoration: none;">Plans d'Actions</a></li>
+        <li style="color: #d52e28;">› Modifier</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<section class="section" style="padding: 40px 0;">
+  <div class="container">
+    
+    {% for message in app.flashes('success') %}
+      <div class="alert alert-success alert-dismissible fade show mb-4" style="background-color: rgba(40, 167, 69, 0.1); border-color: #28a745; color: #28a745; border-left: 4px solid #28a745; border-radius: 6px;">
+        <i class="bi bi-check-circle me-2"></i>{{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+      <div class="alert alert-danger alert-dismissible fade show mb-4" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #d52e28; border-left: 4px solid #d52e28; border-radius: 6px;">
+        <i class="bi bi-exclamation-triangle me-2"></i>{{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        
+        <!-- Header avec titre principal -->
+        <div class="text-center mb-5">
+          <h2 class="mb-3" style="color: #102c59;">Modifier le Plan d'Action</h2>
+          <p class="text-muted">Modifiez les informations de votre plan d'action</p>
+        </div>
+
+        <div class="card shadow-sm" style="border-radius: 12px; border: 1px solid #9dbbce; box-shadow: 0 8px 24px rgba(16, 44, 89, 0.12);">
+          <div class="card-body p-5">
+            
+            <!-- Formulaire avec désactivation validation HTML5 -->
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            
+            <!-- Décision -->
+            <div class="mb-4">
+              <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                <i class="bi bi-chat-quote me-2" style="color: #d52e28;"></i>Décision <span style="color: #d52e28;">*</span>
+              </label>
+              {{ form_widget(form.decision, {
+                'attr': {
+                  'class': 'form-control form-control-lg',
+                  'placeholder': 'Ex: Mettre en place une nouvelle stratégie pédagogique',
+                  'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;'
+                }
+              }) }}
+              {% if form.decision.vars.errors|length > 0 %}
+                <div class="text-danger mt-2">
+                  {% for error in form.decision.vars.errors %}
+                    <div class="d-flex align-items-center"><i class="bi bi-exclamation-circle me-2"></i>{{ error.message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <!-- Description détaillée -->
+            <div class="mb-4">
+              <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                <i class="bi bi-file-text me-2" style="color: #d52e28;"></i>Description détaillée <span style="color: #d52e28;">*</span>
+              </label>
+              {{ form_widget(form.description, {
+                'attr': {
+                  'class': 'form-control',
+                  'rows': 5,
+                  'placeholder': 'Rédigez le contenu complet du plan d\'action...',
+                  'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;'
+                }
+              }) }}
+              {% if form.description.vars.errors|length > 0 %}
+                <div class="text-danger mt-2">
+                  {% for error in form.description.vars.errors %}
+                    <div class="d-flex align-items-center"><i class="bi bi-exclamation-circle me-2"></i>{{ error.message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <!-- Deux colonnes pour Statut et Catégorie -->
+<div class="row mb-4">
+  <div class="col-md-6">
+    <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+      <i class="bi bi-flag me-2" style="color: #d52e28;"></i>Statut <span style="color: #d52e28;">*</span>
+    </label>
+    {{ form_widget(form.statut, {
+      'attr': {
+        'class': 'form-select form-select-lg' ~ (form.statut.vars.errors|length ? ' is-invalid' : ''),
+        'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;' ~ (form.statut.vars.errors|length ? ' border-color: #d52e28;' : '')
+      }
+    }) }}
+    {% if form.statut.vars.errors|length > 0 %}
+      <div class="text-danger mt-2">
+        {% for error in form.statut.vars.errors %}
+          <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-circle me-2"></i>
+            {{ error.message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  
+  <div class="col-md-6">
+    <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+      <i class="bi bi-tag me-2" style="color: #d52e28;"></i>Catégorie <span style="color: #d52e28;">*</span>
+    </label>
+    {{ form_widget(form.categorie, {
+      'attr': {
+        'class': 'form-select form-select-lg' ~ (form.categorie.vars.errors|length ? ' is-invalid' : ''),
+        'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;' ~ (form.categorie.vars.errors|length ? ' border-color: #d52e28;' : '')
+      }
+    }) }}
+    {% if form.categorie.vars.errors|length > 0 %}
+      <div class="text-danger mt-2">
+        {% for error in form.categorie.vars.errors %}
+          <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-circle me-2"></i>
+            {{ error.message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div> 
+            <!-- Date - Non modifiable -->
+            <div class="mb-4">
+              <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                <i class="bi bi-calendar me-2" style="color: #d52e28;"></i>Date de création
+              </label>
+              {{ form_widget(form.date, {
+                'attr': {
+                  'class': 'form-control form-control-lg',
+                  'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px; background-color: #f8f9fa; cursor: not-allowed;',
+                  'readonly': true,
+                  'disabled': true
+                }
+              }) }}
+              <div class="form-text mt-1" style="color: #102c59; opacity: 0.7;">
+                <i class="bi bi-info-circle me-1"></i>La date de création ne peut pas être modifiée
+              </div>
+            </div>
+            
+            <!-- SECTION ARTICLES LIÉS - MÊME QUE NEW.HTML.TWIG -->
+            <div class="mb-5">
+              <div class="d-flex align-items-center mb-3">
+                <div style="width: 40px; height: 40px; background-color: #102c59; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                  <i class="bi bi-journal-text" style="color: white; font-size: 1.2rem;"></i>
+                </div>
+                <h4 class="mb-0" style="color: #102c59; font-weight: 700;">Articles liés</h4>
+                <span class="badge ms-3" id="total-badge" style="background-color: #9dbbce; color: #102c59; font-size: 0.9rem; padding: 6px 12px; border-radius: 20px;">Chargement...</span>
+              </div>
+              
+              <div class="card" style="border: 2px solid #9dbbce; border-radius: 12px; background-color: #f8fafc;">
+                <div class="card-body p-4">
+                  
+                  <!-- Barre de recherche -->
+                  <div class="mb-3">
+                    <div class="input-group">
+                      <span class="input-group-text" style="background-color: white; border: 2px solid #9dbbce; border-right: none; border-radius: 8px 0 0 8px;">
+                        <i class="bi bi-search" style="color: #102c59;"></i>
+                      </span>
+                      <input type="text" id="article-search" class="form-control" 
+                             placeholder="Rechercher un article par titre ou catégorie..." 
+                             style="border: 2px solid #9dbbce; border-left: none; border-right: none; padding: 12px 16px;">
+                      <span class="input-group-text" style="background-color: white; border: 2px solid #9dbbce; border-left: none; border-radius: 0 8px 8px 0;">
+                        <i class="bi bi-funnel" style="color: #102c59;"></i>
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Zone des checkboxes -->
+                  <div class="articles-container" style="max-height: 400px; overflow-y: auto; border: 2px solid #9dbbce; border-radius: 8px; padding: 15px; background-color: white;">
+                    <div class="articles-list">
+                      {% for child in form.articles %}
+                        <div class="article-item">
+                          <div class="form-check">
+                            {{ form_widget(child, {
+                              'attr': {
+                                'class': 'form-check-input article-checkbox',
+                                'data-statut': child.vars.attr['data-statut'] ?? ''
+                              }
+                            }) }}
+                            {{ form_label(child, null, {
+                              'label_attr': {
+                                'class': 'form-check-label'
+                              }
+                            }) }}
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  
+                  <!-- Barre d'outils -->
+                  <div class="d-flex flex-wrap align-items-center justify-content-between mt-3">
+                    <div class="d-flex gap-2">
+                      <button type="button" id="select-all-btn" class="btn btn-sm" 
+                              style="background-color: #102c59; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 500;">
+                        <i class="bi bi-check-all me-1"></i>Tout sélectionner
+                      </button>
+                      <button type="button" id="deselect-all-btn" class="btn btn-sm" 
+                              style="background-color: #9dbbce; color: #102c59; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 500;">
+                        <i class="bi bi-x me-1"></i>Tout désélectionner
+                      </button>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                      <span class="badge" id="selected-count" 
+                            style="background-color: #d52e28; color: white; font-size: 0.9rem; padding: 8px 16px; border-radius: 20px; font-weight: 500;">
+                        <i class="bi bi-check-circle me-1"></i><span id="selected-number">0</span> article(s) sélectionné(s)
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Légende des statuts -->
+                  <div class="mt-3 d-flex gap-3 flex-wrap">
+                    <span class="badge-status publie">
+                      <span class="dot" style="background-color: #28a745;"></span> Publié
+                    </span>
+                    <span class="badge-status brouillon">
+                      <span class="dot" style="background-color: #ffc107;"></span> Brouillon
+                    </span>
+                  </div>
+                  
+                </div>
+              </div>
+              
+              <div class="form-text mt-2" style="color: #102c59; opacity: 0.7;">
+                <i class="bi bi-info-circle me-1"></i>
+                Cliquez sur les cases pour sélectionner plusieurs articles (pas besoin de Ctrl)
+              </div>
+            </div>
+
+            <!-- Information note -->
+            <div class="alert alert-info mt-4 mb-4" style="background-color: rgba(157, 187, 206, 0.15); border: 2px solid #9dbbce; color: #102c59; border-radius: 10px; border-left: 6px solid #102c59; padding: 16px 20px;">
+              <div class="d-flex">
+                <div class="me-3">
+                  <i class="bi bi-info-circle" style="color: #102c59; font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                  <strong>Information :</strong> Les modifications seront appliquées immédiatement.
+                </div>
+              </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="d-flex justify-content-between mt-5 pt-4 border-top" style="border-color: #9dbbce !important; border-top-width: 2px;">
+              <div class="d-flex gap-2">
+                <a href="{{ path('app_plan_actions_index') }}" class="btn btn-lg" style="border: 2px solid #9dbbce; color: #102c59; border-radius: 10px; padding: 12px 30px; font-weight: 500;">
+                  <i class="bi bi-arrow-left me-2"></i> Retour
+                </a>
+                <a href="{{ path('app_plan_actions_show', {'id': plan_actions.id}) }}" 
+                   class="btn btn-lg" style="border: 2px solid #9dbbce; color: #102c59; border-radius: 10px; padding: 12px 30px; font-weight: 500;">
+                  <i class="bi bi-eye me-2"></i> Voir
+                </a>
+              </div>
+              
+              <button type="submit" class="btn btn-lg" style="background-color: #d52e28; color: white; border: none; border-radius: 10px; padding: 12px 40px; font-weight: 600; box-shadow: 0 4px 12px rgba(213, 46, 40, 0.3);">
+                <i class="bi bi-save me-2"></i> Mettre à jour
+              </button>
+            </div>
+            
+            {{ form_end(form) }}
+            
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+/* Mêmes styles que new.html.twig */
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(16, 44, 89, 0.15) !important;
+}
+.form-control:focus, .form-select:focus {
+  border-color: #102c59 !important;
+  box-shadow: 0 0 0 0.2rem rgba(16, 44, 89, 0.25) !important;
+}
+input:disabled, input[readonly] {
+  background-color: #f8f9fa !important;
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+.articles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.article-item {
+  background-color: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+.article-item:hover {
+  border-color: #9dbbce;
+  background-color: rgba(157, 187, 206, 0.05);
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.article-item .form-check {
+  padding: 12px 15px;
+  margin: 0;
+  min-height: auto;
+  display: flex;
+  align-items: center;
+}
+.article-item .form-check-input {
+  width: 20px;
+  height: 20px;
+  margin-top: 0;
+  margin-right: 12px;
+  cursor: pointer;
+  border: 2px solid #9dbbce;
+  flex-shrink: 0;
+}
+.article-item .form-check-input:checked {
+  background-color: #d52e28;
+  border-color: #d52e28;
+}
+.article-item .form-check-label {
+  color: #102c59;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.badge-status.publie {
+  background-color: rgba(40, 167, 69, 0.15);
+  color: #28a745;
+  border: 1px solid #28a745;
+}
+.badge-status.brouillon {
+  background-color: rgba(255, 193, 7, 0.15);
+  color: #856404;
+  border: 1px solid #ffc107;
+}
+.badge-status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 8px;
+}
+.status-badge.publie {
+  background-color: #28a745;
+  color: white;
+}
+.status-badge.brouillon {
+  background-color: #ffc107;
+  color: #000;
+}
+.article-item[data-filter="hide"] {
+  display: none;
+}
+.articles-container::-webkit-scrollbar {
+  width: 10px;
+}
+.articles-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.articles-container::-webkit-scrollbar-thumb {
+  background: #9dbbce;
+  border-radius: 4px;
+}
+.articles-container::-webkit-scrollbar-thumb:hover {
+  background: #102c59;
+}
+.btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+}
+.alert {
+  animation: slideIn 0.5s ease-out;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.is-invalid {
+  border-color: #d52e28 !important;
+}
+.text-danger {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+</style>
+
+<script>
+// Même script que new.html.twig
+document.addEventListener('DOMContentLoaded', function() {
+  const card = document.querySelector('.card');
+  if (card) {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, 100);
+  }
+  
+  const errorFields = document.querySelectorAll('.text-danger');
+  errorFields.forEach(errorField => {
+    const input = errorField.previousElementSibling;
+    if (input && (input.classList.contains('form-control') || input.classList.contains('form-select'))) {
+      input.classList.add('is-invalid');
+      input.style.borderColor = '#d52e28';
+    }
+  });
+
+  // Gestion des checkboxes
+  setTimeout(function() {
+    const checkboxes = document.querySelectorAll('.article-checkbox');
+    const totalBadge = document.getElementById('total-badge');
+    const selectedSpan = document.getElementById('selected-number');
+    const searchInput = document.getElementById('article-search');
+    const selectAllBtn = document.getElementById('select-all-btn');
+    const deselectAllBtn = document.getElementById('deselect-all-btn');
+    
+    if (checkboxes.length > 0) {
+      const totalOptions = checkboxes.length;
+      totalBadge.innerHTML = `<i class="bi bi-journal-text me-1"></i>${totalOptions} article(s)`;
+      
+      checkboxes.forEach(checkbox => {
+        const statut = checkbox.getAttribute('data-statut');
+        const label = checkbox.closest('.form-check').querySelector('.form-check-label');
+        
+        if (statut && label && !label.querySelector('.status-badge')) {
+          const badge = document.createElement('span');
+          badge.className = 'status-badge ' + (statut === 'Publié' ? 'publie' : 'brouillon');
+          badge.textContent = statut;
+          label.appendChild(badge);
+        }
+      });
+      
+      function updateSelectedCount() {
+        const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        selectedSpan.textContent = selectedCount;
+        
+        const selectedBadge = document.getElementById('selected-count');
+        selectedBadge.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          selectedBadge.style.transform = 'scale(1)';
+        }, 200);
+      }
+      
+      function filterArticles() {
+        const searchTerm = searchInput.value.toLowerCase();
+        let visibleCount = 0;
+        
+        checkboxes.forEach(checkbox => {
+          const articleItem = checkbox.closest('.article-item');
+          const label = checkbox.closest('.form-check').querySelector('.form-check-label');
+          const text = label ? label.textContent.toLowerCase() : '';
+          
+          if (text.includes(searchTerm)) {
+            articleItem.style.display = '';
+            articleItem.removeAttribute('data-filter');
+            visibleCount++;
+          } else {
+            articleItem.style.display = 'none';
+            articleItem.setAttribute('data-filter', 'hide');
+            checkbox.checked = false;
+          }
+        });
+        
+        totalBadge.innerHTML = `<i class="bi bi-journal-text me-1"></i>${visibleCount}/${totalOptions} article(s)`;
+        updateSelectedCount();
+      }
+      
+      let searchTimeout;
+      searchInput.addEventListener('keyup', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(filterArticles, 300);
+      });
+      
+      selectAllBtn.addEventListener('click', function() {
+        checkboxes.forEach(checkbox => {
+          const articleItem = checkbox.closest('.article-item');
+          if (articleItem.style.display !== 'none') {
+            checkbox.checked = true;
+          }
+        });
+        updateSelectedCount();
+      });
+      
+      deselectAllBtn.addEventListener('click', function() {
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        updateSelectedCount();
+      });
+      
+      checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+      });
+      
+      updateSelectedCount();
+    }
+  }, 200);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Plans d'Actions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            line-height: 1.3;
+            color: #333;
+            margin: 15px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #102c59;
+            padding-bottom: 8px;
+        }
+        .header h1 {
+            color: #102c59;
+            font-size: 18px;
+            margin: 0 0 3px 0;
+        }
+        .header p {
+            color: #666;
+            margin: 0;
+            font-size: 9px;
+        }
+        .summary {
+            background-color: #f5f5f5;
+            padding: 6px 10px;
+            margin-bottom: 12px;
+            border-left: 4px solid #d52e28;
+            font-size: 9px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .filters {
+            background-color: #f0f6fa;
+            padding: 6px 10px;
+            margin-bottom: 12px;
+            border-left: 4px solid #9dbbce;
+            font-size: 8px;
+        }
+        .filters strong {
+            color: #102c59;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 8px;
+        }
+        th {
+            background-color: #102c59;
+            color: white;
+            padding: 6px 3px;
+            font-weight: bold;
+            text-align: left;
+            border: 1px solid #102c59;
+        }
+        td {
+            padding: 5px 3px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .statut-badge {
+            display: inline-block;
+            padding: 2px 5px;
+            border-radius: 8px;
+            font-size: 7px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .statut-en-attente {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .statut-en-cours {
+            background-color: #9dbbce;
+            color: #102c59;
+        }
+        .statut-fini {
+            background-color: #28a745;
+            color: white;
+        }
+        .statut-rejete {
+            background-color: #d52e28;
+            color: white;
+        }
+        .categorie-badge {
+            display: inline-block;
+            padding: 2px 4px;
+            background-color: #9dbbce;
+            color: #102c59;
+            border-radius: 3px;
+            font-size: 7px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .articles-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .articles-list li {
+            margin-bottom: 3px;
+            padding-left: 8px;
+            position: relative;
+            font-size: 7px;
+            border-bottom: 1px dotted #eee;
+            padding-bottom: 2px;
+        }
+        .articles-list li:last-child {
+            border-bottom: none;
+        }
+        .articles-list li:before {
+            content: "•";
+            color: #d52e28;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        .article-publie {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .article-brouillon {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .article-count {
+            display: inline-block;
+            background-color: #102c59;
+            color: white;
+            padding: 1px 4px;
+            border-radius: 8px;
+            font-size: 6px;
+            margin-left: 3px;
+        }
+        .footer {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 7px;
+            color: #999;
+            border-top: 1px solid #ddd;
+            padding-top: 5px;
+        }
+        .small-text {
+            font-size: 7px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Liste des Plans d'Actions</h1>
+        <p>Généré le {{ date|date('d/m/Y à H:i') }}</p>
+    </div>
+
+    <div class="summary">
+        <span><strong>Total plans :</strong> {{ total_plans|default(plans|length) }}</span>
+        <span><strong>Total articles liés :</strong> {{ total_articles|default(0) }}</span>
+    </div>
+
+    {% if filters is defined and (filters.search or filters.statut or filters.categorie or filters.date_debut or filters.date_fin) %}
+    <div class="filters">
+        <strong>Filtres appliqués :</strong><br>
+        {% if filters.search %}🔍 Recherche: "{{ filters.search }}"<br>{% endif %}
+        {% if filters.statut %}📊 Statut: {{ filters.statut|replace({'_': ' '})|title }}<br>{% endif %}
+        {% if filters.categorie %}🏷️ Catégorie: {{ filters.categorie|replace({'_': ' '})|title }}<br>{% endif %}
+        {% if filters.date_debut %}📅 Du: {{ filters.date_debut }}<br>{% endif %}
+        {% if filters.date_fin %}📅 Au: {{ filters.date_fin }}{% endif %}
+    </div>
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">ID</th>
+                <th style="width: 15%;">Décision</th>
+                <th style="width: 20%;">Description</th>
+                <th style="width: 10%;">Catégorie</th>
+                <th style="width: 10%;">Statut</th>
+                <th style="width: 25%;">Articles liés</th> <!-- NOUVELLE COLONNE -->
+                <th style="width: 15%;">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for plan in plans %}
+            <tr>
+                <td style="text-align: center; font-weight: bold;">{{ plan.id }}</td>
+                <td><strong>{{ plan.decision }}</strong></td>
+                <td>
+                    {% if plan.description %}
+                        {{ plan.description|length > 100 ? plan.description|slice(0, 100) ~ '...' : plan.description }}
+                    {% else %}
+                        <span class="small-text">-</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: center;">
+                    {% if plan.categorie %}
+                        <span class="categorie-badge">
+                            {{ plan.categorie.value|replace({'_': ' '})|title }}
+                        </span>
+                    {% else %}
+                        <span class="small-text">-</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: center;">
+                    {% set statut_value = plan.statut.value %}
+                    <span class="statut-badge 
+                        {% if statut_value == 'EN_ATTENTE' %}statut-en-attente
+                        {% elseif statut_value == 'EN_COURS' %}statut-en-cours
+                        {% elseif statut_value == 'FINI' %}statut-fini
+                        {% elseif statut_value == 'REJETE' %}statut-rejete
+                        {% endif %}">
+                        {{ statut_value|replace({'_': ' '})|title }}
+                    </span>
+                </td>
+                <td>
+                    {% if plan.articles|length > 0 %}
+                        <ul class="articles-list">
+                            {% for article in plan.articles %}
+                                <li>
+                                    {{ article.titre }}
+                                    <span class="{% if article.published %}article-publie{% else %}article-brouillon{% endif %}">
+                                        [{{ article.published ? 'Publié' : 'Brouillon' }}]
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <span class="article-count">{{ plan.articles|length }} article(s)</span>
+                    {% else %}
+                        <span class="small-text">Aucun article lié</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: center;">{{ plan.date ? plan.date|date('d/m/Y') : '-' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 20px;">
+                    <em>Aucun plan d'action trouvé</em>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Mentoria - Assistant Intelligent | Document généré le {{ date|date('d/m/Y à H:i:s') }} | Page 1/1</p>
+    </div>
+</body>
+</html>

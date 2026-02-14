@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ article.titre }}</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            color: #102c59; 
+            margin: 0;
+            padding: 40px;
+            background-color: #ffffff;
+        }
+        
+        .header { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            padding-bottom: 20px; 
+            position: relative;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 3px;
+            background: linear-gradient(90deg, #9dbbce, #102c59);
+            border-radius: 2px;
+        }
+        
+        .title { 
+            color: #102c59; 
+            font-size: 28px; 
+            margin-bottom: 15px; 
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        .meta { 
+            color: #5a6c82; 
+            font-size: 14px; 
+            margin-bottom: 25px; 
+            padding: 0 20px;
+        }
+        
+        .content { 
+            margin-top: 40px; 
+            font-size: 14px;
+            text-align: justify;
+        }
+        
+        .badge { 
+            background-color: #9dbbce; 
+            color: #102c59; 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 12px; 
+            display: inline-block;
+            margin-right: 8px;
+            margin-bottom: 5px;
+            font-weight: 600;
+            border: 1px solid rgba(16, 44, 89, 0.1);
+        }
+        
+        .footer { 
+            margin-top: 60px; 
+            padding-top: 20px; 
+            border-top: 2px solid #9dbbce; 
+            font-size: 12px; 
+            color: #5a6c82; 
+            text-align: center;
+            position: relative;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background-color: #d52e28;
+            border-radius: 2px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        
+        .status-published {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .status-draft {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
+        .author-info {
+            display: inline-flex;
+            align-items: center;
+            margin: 5px 15px 5px 0;
+            padding: 6px 12px;
+            background-color: rgba(157, 187, 206, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid #102c59;
+        }
+        
+        .author-label {
+            font-weight: 600;
+            color: #102c59;
+            margin-right: 5px;
+        }
+        
+        .author-name {
+            color: #5a6c82;
+        }
+        
+        .date-info {
+            display: inline-flex;
+            align-items: center;
+            margin: 5px 15px 5px 0;
+            padding: 6px 12px;
+            background-color: rgba(157, 187, 206, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid #9dbbce;
+        }
+        
+        .date-label {
+            font-weight: 600;
+            color: #102c59;
+            margin-right: 5px;
+        }
+        
+        .date-value {
+            color: #5a6c82;
+        }
+        
+        .meta-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: #102c59;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        h2 {
+            border-bottom: 2px solid #9dbbce;
+            padding-bottom: 5px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        strong {
+            color: #102c59;
+        }
+        
+        a {
+            color: #d52e28;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        blockquote {
+            border-left: 4px solid #9dbbce;
+            padding-left: 15px;
+            margin-left: 0;
+            color: #5a6c82;
+            font-style: italic;
+            background-color: rgba(157, 187, 206, 0.05);
+            padding: 15px;
+            border-radius: 0 6px 6px 0;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 5px;
+        }
+        
+        code {
+            background-color: rgba(157, 187, 206, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #d52e28;
+        }
+        
+        pre {
+            background-color: rgba(157, 187, 206, 0.1);
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #102c59;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th {
+            background-color: #9dbbce;
+            color: #102c59;
+            font-weight: 600;
+            padding: 10px;
+            text-align: left;
+            border: 1px solid rgba(16, 44, 89, 0.1);
+        }
+        
+        td {
+            padding: 10px;
+            border: 1px solid rgba(157, 187, 206, 0.3);
+        }
+        
+        tr:nth-child(even) {
+            background-color: rgba(157, 187, 206, 0.05);
+        }
+        
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            opacity: 0.1;
+            font-size: 48px;
+            color: #102c59;
+            font-weight: bold;
+            pointer-events: none;
+            transform: rotate(-45deg);
+        }
+    </style>
+</head>
+<body>
+    <!-- Filigrane discret -->
+    <div class="watermark">MentorAI</div>
+    
+    <div class="header">
+        <h1 class="title">{{ article.titre }}</h1>
+        
+        <div class="meta-container">
+            {% if article.categorie %}
+                <span class="badge">{{ article.categorie.nomCategorie }}</span>
+            {% endif %}
+            
+            <div class="author-info">
+                <span class="author-label">Auteur :</span>
+                <span class="author-name">{{ article.auteur ? article.auteur.nom ~ ' ' ~ article.auteur.prenom : 'Auteur inconnu' }}</span>
+            </div>
+            
+            <div class="date-info">
+                <span class="date-label">Date :</span>
+                <span class="date-value">{{ article.createdAt|date('d/m/Y H:i') }}</span>
+            </div>
+            
+            <span class="status-badge {{ article.published ? 'status-published' : 'status-draft' }}">
+                {{ article.published ? 'PUBLIÉ' : 'BROUILLON' }}
+            </span>
+        </div>
+        
+        {% if article.updatedAt and article.updatedAt != article.createdAt %}
+        <div style="margin-top: 15px; font-size: 12px; color: #5a6c82;">
+            <i>Dernière modification : {{ article.updatedAt|date('d/m/Y H:i') }}</i>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="content">
+        {{ article.contenu|raw }}
+    </div>
+    
+    <div class="footer">
+        <p>
+            <strong>MentorAI</strong> - Plateforme d'apprentissage et de développement<br>
+            Document généré le {{ "now"|date('d/m/Y H:i') }}
+        </p>
+        <p style="font-size: 10px; margin-top: 5px; color: #9dbbce;">
+            ID de l'article : {{ article.id }} | Catégorie : {{ article.categorie ? article.categorie.nomCategorie : 'Non catégorisé' }}
+        </p>
+    </div>
+    
+    <script>
+    // Script pour les numéros de page (fonctionne avec certains générateurs PDF)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ajouter un numéro de page si nécessaire
+        const totalPages = Math.ceil(document.body.scrollHeight / window.innerHeight);
+        
+        // Mettre à jour le filigrane avec le numéro de page
+        const watermark = document.querySelector('.watermark');
+        if (watermark && totalPages > 1) {
+            // Pour les générateurs PDF qui supportent les compteurs de page
+            watermark.innerHTML = 'MentorAI<br><small>Page <span class="pageNumber"></span> sur <span class="totalPages"></span></small>';
+        }
+        
+        // Améliorer les liens pour l'impression PDF
+        const links = document.querySelectorAll('a');
+        links.forEach(link => {
+            // Ajouter l'URL complète après le texte du lien pour l'impression
+            if (link.href && !link.href.startsWith('#')) {
+                const urlSpan = document.createElement('span');
+                urlSpan.className = 'print-url';
+                urlSpan.textContent = ' (' + link.href + ')';
+                urlSpan.style.color = '#9dbbce';
+                urlSpan.style.fontSize = '10px';
+                link.appendChild(urlSpan);
+            }
+        });
+    });
+    </script>
+</body>
+</html>

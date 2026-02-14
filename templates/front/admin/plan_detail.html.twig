@@ -1,0 +1,381 @@
+{% extends 'front/admin/basem.html.twig' %}
+
+{% block title %}{{ plan.decision }}{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <!-- Fil d'Ariane -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb" style="background-color: #f8fafc; border-radius: 8px; padding: 1rem;">
+            <li class="breadcrumb-item">
+                <a href="{{ path('app_home') }}" style="color: #102c59; text-decoration: none;">
+                    <i class="bi bi-house-door me-1"></i>Accueil
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ path('app_admin_plans') }}" style="color: #102c59; text-decoration: none;">
+                    <i class="bi bi-clipboard-check me-1"></i>Plans
+                </a>
+            </li>
+            <li class="breadcrumb-item active" style="color: #d52e28; font-weight: 600;">
+                <i class="bi bi-file-text me-1"></i>{{ plan.decision|slice(0, 30) }}{% if plan.decision|length > 30 %}...{% endif %}
+            </li>
+        </ol>
+    </nav>
+    
+    <!-- Carte principale -->
+    <div class="card border-0 shadow-lg" style="border-radius: 12px; overflow: hidden; border-top: 5px solid #102c59;">
+        <div class="card-header" style="background: linear-gradient(135deg, #102c59 0%, #1a3a73 100%); color: white; border: none;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-file-earmark-text me-2"></i>{{ plan.decision }}
+                </h1>
+                <span class="badge" style="background-color: rgba(255,255,255,0.2); font-size: 0.9rem;">
+                    <i class="bi bi-hash me-1"></i>{{ plan.id }}
+                </span>
+            </div>
+        </div>
+        
+        <div class="card-body p-4">
+            <!-- En-tête avec badges et dates -->
+            <div class="mb-5 p-4 rounded" style="background-color: #f8fafc; border-left: 4px solid #9dbbce;">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        {% if plan.sortieAI and plan.sortieAI.categorieSortie %}
+                            <span class="badge me-2 mb-2" style="
+                                {% if plan.sortieAI.categorieSortie == 'PEDAGOGIQUE' %} 
+                                    background-color: #102c59; 
+                                {% elseif plan.sortieAI.categorieSortie == 'ADMINISTRATIVE' %} 
+                                    background-color: #9dbbce; color: #102c59;
+                                {% else %} 
+                                    background-color: #d52e28; 
+                                {% endif %}
+                                color: white; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 20px;">
+                                <i class="bi bi-tag me-1"></i>{{ plan.sortieAI.categorieSortie }}
+                            </span>
+                        {% endif %}
+                        
+                        <!-- Badge de statut si disponible -->
+                        {% if plan.statut %}
+                            <span class="badge me-2 mb-2" style="
+                                {% if plan.statut == 'FINI' %} 
+                                    background-color: #28a745; 
+                                {% elseif plan.statut == 'EN_COURS' %} 
+                                    background-color: #ffc107; color: #102c59;
+                                {% else %} 
+                                    background-color: #6c757d; 
+                                {% endif %}
+                                color: white; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 20px;">
+                                <i class="bi bi-{% if plan.statut == 'FINI' %}check-circle{% elseif plan.statut == 'EN_COURS' %}clock{% else %}circle{% endif %} me-1"></i>
+                                {{ plan.statut }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4 text-md-end">
+                        <div style="color: #5a6c7d;">
+                            <div class="mb-1">
+                                <i class="bi bi-calendar-plus me-1" style="color: #9dbbce;"></i>
+                                <small style="font-weight: 500; color: #102c59;">Créé le</small>
+                                <span style="color: #d52e28;">{{ plan.date|date('d/m/Y à H:i') }}</span>
+                            </div>
+                            {% if plan.updatedAt and plan.updatedAt != plan.date %}
+                                <div>
+                                    <i class="bi bi-arrow-clockwise me-1" style="color: #9dbbce;"></i>
+                                    <small style="font-weight: 500; color: #102c59;">Mis à jour le</small>
+                                    <span style="color: #102c59;">{{ plan.updatedAt|date('d/m/Y à H:i') }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <div class="mb-5">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width: 40px; height: 40px; background-color: #9dbbce; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                        <i class="bi bi-text-paragraph" style="color: #102c59; font-size: 1.2rem;"></i>
+                    </div>
+                    <h3 style="color: #102c59; margin: 0; border-bottom: 2px solid #9dbbce; padding-bottom: 0.5rem; flex-grow: 1;">
+                        Description
+                    </h3>
+                </div>
+                <div class="p-4 rounded" style="background-color: #f8fafc; border: 1px solid rgba(157, 187, 206, 0.3);">
+                    <p class="mb-0" style="color: #5a6c7d; line-height: 1.8; font-size: 1.05rem;">
+                        {{ plan.description|nl2br }}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Section Articles liés -->
+{% if plan.articles|length > 0 %}
+<div class="mb-5">
+    <div class="d-flex align-items-center mb-3">
+        <div style="width: 40px; height: 40px; background-color: #102c59; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+            <i class="bi bi-journal-text" style="color: white; font-size: 1.2rem;"></i>
+        </div>
+        <h3 style="color: #102c59; margin: 0; border-bottom: 2px solid #102c59; padding-bottom: 0.5rem; flex-grow: 1;">
+            Articles liés ({{ plan.articles|length }})
+        </h3>
+    </div>
+    
+    <div class="row">
+        {% for article in plan.articles %}
+            <div class="col-md-6 mb-3">
+                <div class="card h-100" style="border: 1px solid rgba(157, 187, 206, 0.5); border-radius: 10px;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title" style="color: #102c59; font-size: 1rem;">
+                                <i class="bi bi-dot" style="color: #d52e28;"></i>
+                                {{ article.titre }}
+                            </h5>
+                            <span class="badge" style="background-color: {{ article.published ? '#28a745' : '#ffc107' }}; color: white;">
+                                {{ article.published ? 'Publié' : 'Brouillon' }}
+                            </span>
+                        </div>
+                        
+                        {% if article.categorie_nom %}
+                            <p class="card-text">
+                                <small style="color: #9dbbce;">
+                                    <i class="bi bi-tag me-1"></i> {{ article.categorie_nom }}
+                                </small>
+                            </p>
+                        {% endif %}
+                        
+                        <a href="{{ path('app_article_detail', {'id': article.id}) }}" 
+                           class="btn btn-sm mt-2"
+                           style="background-color: #9dbbce; color: #102c59;">
+                            <i class="bi bi-eye me-1"></i> Lire l'article
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+            <!-- Sortie AI -->
+            {% if plan.sortieAI %}
+                <div class="mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div style="width: 40px; height: 40px; background-color: #d52e28; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                            <i class="bi bi-arrow-right-circle" style="color: white; font-size: 1.2rem;"></i>
+                        </div>
+                        <h3 style="color: #102c59; margin: 0; border-bottom: 2px solid #d52e28; padding-bottom: 0.5rem; flex-grow: 1;">
+                            Sortie AI
+                        </h3>
+                    </div>
+                    <div class="p-4 rounded" style="background-color: rgba(213, 46, 40, 0.05); border: 1px solid rgba(213, 46, 40, 0.2);">
+                        <div class="d-flex mb-3">
+                            {% if plan.sortieAI.categorieSortie %}
+                                <span class="badge me-2" style="background-color: #d52e28; color: white;">
+                                    <i class="bi bi-funnel me-1"></i>{{ plan.sortieAI.categorieSortie }}
+                                </span>
+                            {% endif %}
+                            <span class="badge" style="background-color: #9dbbce; color: #102c59;">
+                                <i class="bi bi-ai me-1"></i>Généré par IA
+                            </span>
+                        </div>
+                        <p class="mb-0" style="color: #5a6c7d; line-height: 1.8; font-size: 1.05rem;">
+                            {{ plan.sortieAI.contenu|nl2br }}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Informations supplémentaires -->
+            <div class="row mt-5">
+                <div class="col-md-6 mb-3">
+                    <div class="p-3 rounded" style="background-color: #f8fafc; border: 1px solid rgba(157, 187, 206, 0.3);">
+                        <h6 style="color: #102c59; font-weight: 600; margin-bottom: 1rem;">
+                            <i class="bi bi-info-circle me-2" style="color: #9dbbce;"></i>Informations
+                        </h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <small style="color: #9dbbce; font-weight: 500;">ID du plan</small>
+                                <p style="color: #102c59; font-weight: 600; margin: 0;">#{{ plan.id }}</p>
+                            </div>
+                            <div class="col-6">
+                                <small style="color: #9dbbce; font-weight: 500;">Dernière mise à jour</small>
+                                <p style="color: #102c59; font-weight: 600; margin: 0;">
+                                    {{ plan.updatedAt ? plan.updatedAt|date('d/m/Y') : plan.date|date('d/m/Y') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <div class="p-3 rounded" style="background-color: #f8fafc; border: 1px solid rgba(157, 187, 206, 0.3);">
+                        <h6 style="color: #102c59; font-weight: 600; margin-bottom: 1rem;">
+                            <i class="bi bi-activity me-2" style="color: #9dbbce;"></i>Statistiques
+                        </h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <small style="color: #9dbbce; font-weight: 500;">Date de création</small>
+                                <p style="color: #102c59; font-weight: 600; margin: 0;">
+                                    {{ plan.date|date('d/m/Y') }}
+                                </p>
+                            </div>
+                            <div class="col-6">
+                                <small style="color: #9dbbce; font-weight: 500;">Heure de création</small>
+                                <p style="color: #102c59; font-weight: 600; margin: 0;">
+                                    {{ plan.date|date('H:i') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="card-footer" style="background-color: #f8fafc; border-top: 1px solid rgba(157, 187, 206, 0.3);">
+            <div class="d-flex justify-content-between">
+                <a href="{{ path('app_admin_plans') }}" class="btn" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59; font-weight: 600;">
+                    <i class="bi bi-arrow-left me-2"></i>Retour aux plans
+                </a>
+                
+                {% if is_granted('ROLE_ADMIN') %}
+                    <div>
+                        <a href="#" class="btn me-2" style="background-color: #102c59; border-color: #102c59; color: white; font-weight: 600;">
+                            <i class="bi bi-pencil me-2"></i>Modifier
+                        </a>
+                        <a href="#" class="btn" style="background-color: #d52e28; border-color: #d52e28; color: white; font-weight: 600;">
+                            <i class="bi bi-trash me-2"></i>Supprimer
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Animations */
+.card {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Styles pour les badges */
+.badge {
+    transition: all 0.3s ease;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Styles pour les boutons */
+.btn {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* Styles pour le fil d'Ariane */
+.breadcrumb-item + .breadcrumb-item::before {
+    color: #9dbbce;
+    content: "›";
+}
+
+.breadcrumb {
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #f8fafc;
+}
+
+/* Styles pour les sections */
+h3 {
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .card-footer .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .card-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .card-body .row {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation des badges
+    const badges = document.querySelectorAll('.badge');
+    badges.forEach(badge => {
+        badge.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        });
+        
+        badge.addEventListener('mouseleave', function() {
+            this.style.transform = '';
+            this.style.boxShadow = '';
+        });
+    });
+    
+    // Animation des boutons
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px)';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.style.transform = '';
+        });
+    });
+    
+    // Effet de surbrillance pour le contenu
+    const contentBlocks = document.querySelectorAll('.p-4.rounded');
+    contentBlocks.forEach(block => {
+        block.addEventListener('mouseenter', function() {
+            this.style.boxShadow = '0 8px 25px rgba(157, 187, 206, 0.15)';
+        });
+        
+        block.addEventListener('mouseleave', function() {
+            this.style.boxShadow = '';
+        });
+    });
+});
+</script>
+{% endblock %}

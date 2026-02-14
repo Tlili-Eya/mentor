@@ -1,0 +1,475 @@
+{% extends 'back/basem.html.twig' %}
+
+{% block title %}Détails Article - {{ reference_article.titre }}{% endblock %}
+
+{% block body %}
+<div class="page-title" style="background-color: #9dbbce; padding: 20px 0;">
+  <div class="container d-lg-flex justify-content-between align-items-center">
+    <h1 class="mb-2 mb-lg-0" style="color: #102c59; font-weight: 700;">Détails Article</h1>
+    <nav class="breadcrumbs">
+      <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 10px;">
+        <li><a href="{{ path('back_home') }}" style="color: #102c59; text-decoration: none;">Accueil</a></li>
+        <li><a href="{{ path('app_reference_article_index') }}" style="color: #102c59; text-decoration: none;">Articles</a></li>
+        <li style="color: #d52e28;">› Détails</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<section class="section" style="padding: 40px 0;">
+  <div class="container">
+    
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card" style="border: 1px solid #9dbbce; border-radius: 8px; box-shadow: 0 4px 12px rgba(16, 44, 89, 0.1);">
+          <div class="card-body p-4">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h2 class="mb-0" style="color: #102c59;">{{ reference_article.titre }}</h2>
+              <div>
+                <a href="{{ path('app_reference_article_edit', {'id': reference_article.id}) }}" 
+                   class="btn btn-sm" 
+                   style="border: 1px solid #9dbbce; color: #102c59; border-radius: 6px;">
+                  <i class="bi bi-pencil"></i> Modifier
+                </a>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <h5 class="fw-bold" style="color: #102c59; margin-bottom: 15px;">Contenu</h5>
+              <div class="p-3 rounded" style="background-color: rgba(157, 187, 206, 0.1); border: 1px solid #9dbbce; color: #102c59;">
+                {{ reference_article.contenu|raw }}
+              </div>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <h5 class="fw-bold" style="color: #102c59; margin-bottom: 10px;">Catégorie</h5>
+                <p class="mb-0">
+                  {% if reference_article.categorie %}
+                    <span class="badge" style="background-color: #9dbbce; color: #102c59; padding: 6px 12px; font-weight: 500;">
+                      {{ reference_article.categorie.nomCategorie }}
+                    </span>
+                  {% else %}
+                    <span style="color: #102c59; opacity: 0.7;">Non catégorisé</span>
+                  {% endif %}
+                </p>
+              </div>
+              <div class="col-md-6">
+                <h5 class="fw-bold" style="color: #102c59; margin-bottom: 10px;">Statut</h5>
+                <p class="mb-0">
+                  <span class="badge" style="
+                    background-color: {{ reference_article.published ? '#28a745' : '#ffc107' }}; 
+                    color: {{ reference_article.published ? 'white' : '#000' }};
+                    padding: 6px 12px; font-weight: 500;
+                  ">
+                    {{ reference_article.published ? 'Publié' : 'Brouillon' }}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <h5 class="fw-bold" style="color: #102c59; margin-bottom: 10px;">Auteur</h5>
+                <p class="mb-0" style="color: #102c59;">
+                  {% if reference_article.auteur %}
+                    {{ reference_article.auteur.nom }} {{ reference_article.auteur.prenom }}
+                  {% else %}
+                    <span style="opacity: 0.7;">Non spécifié</span>
+                  {% endif %}
+                </p>
+              </div>
+              <div class="col-md-6">
+                <h5 class="fw-bold" style="color: #102c59; margin-bottom: 10px;">Date de création</h5>
+                <p class="mb-0" style="color: #102c59;">
+                  {{ reference_article.createdAt ? reference_article.createdAt|date('d/m/Y H:i') : 'Non spécifié' }}
+                </p>
+              </div>
+            </div>
+
+            {% if reference_article.updatedAt %}
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <h5 class="fw-bold" style="color: #102c59; margin-bottom: 10px;">Dernière modification</h5>
+                <p class="mb-0" style="color: #102c59;">
+                  <i class="bi bi-clock-history me-1" style="color: #102c59;"></i>
+                  {{ reference_article.updatedAt|date('d/m/Y H:i') }}
+                </p>
+              </div>
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+
+        <!-- SECTION DES BOUTONS - UN SEUL PDF ICI -->
+        <div class="d-flex justify-content-between mt-4 pt-3 border-top" style="border-color: #9dbbce !important;">
+          <a href="{{ path('app_reference_article_index') }}" class="btn" style="border: 1px solid #9dbbce; color: #102c59; border-radius: 6px; padding: 10px 25px;">
+            <i class="bi bi-arrow-left me-1"></i> Retour à la liste
+          </a>
+          
+          <div>
+            <!-- BOUTON PDF -->
+            <a href="{{ path('app_reference_article_pdf', {'id': reference_article.id}) }}" 
+               class="btn me-2" 
+               target="_blank"
+               style="background-color: #d52e28; color: white; border: none; border-radius: 6px; padding: 10px 25px;">
+              <i class="bi bi-file-pdf me-1"></i> Exporter en PDF
+            </a>
+            
+            <!-- BOUTON SUPPRIMER -->
+            <!-- Remplacer la ligne 101-107 (le formulaire de suppression) -->
+<form method="post" action="{{ path('app_reference_article_delete', {'id': reference_article.id}) }}" style="display:inline;">
+  <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reference_article.id) }}">
+  <button type="submit" class="btn" style="background-color: #102c59; color: white; border: none; border-radius: 6px; padding: 10px 25px;">
+    <i class="bi bi-trash me-1"></i> Supprimer
+  </button>
+</form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+.card {
+  border-radius: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 44, 89, 0.15);
+}
+
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+  font-size: 0.85em;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn[style*="background-color: #102c59"]:hover {
+  background-color: #0a1f3f !important;
+}
+
+.btn[style*="background-color: #d52e28"]:hover {
+  background-color: #b32520 !important;
+}
+
+.btn[style*="border: 1px solid #9dbbce"]:hover {
+  background-color: rgba(157, 187, 206, 0.1);
+  color: #102c59;
+}
+
+h5.fw-bold {
+  position: relative;
+  padding-bottom: 8px;
+}
+
+h5.fw-bold::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background-color: #9dbbce;
+  border-radius: 2px;
+}
+
+.bi {
+  vertical-align: middle;
+}
+
+.rounded {
+  border-radius: 8px;
+}
+
+.border-top {
+  border-top-width: 2px !important;
+}
+
+form {
+  display: inline;
+}
+
+/* Style pour le contenu de l'article */
+.p-3.rounded {
+  line-height: 1.6;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 20px !important;
+}
+
+.p-3.rounded::-webkit-scrollbar {
+  width: 8px;
+}
+
+.p-3.rounded::-webkit-scrollbar-track {
+  background: rgba(157, 187, 206, 0.1);
+  border-radius: 4px;
+}
+
+.p-3.rounded::-webkit-scrollbar-thumb {
+  background: #9dbbce;
+  border-radius: 4px;
+}
+
+.p-3.rounded::-webkit-scrollbar-thumb:hover {
+  background: #102c59;
+}
+
+/* Style pour les métadonnées */
+.row.mb-4 {
+  padding: 15px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.row.mb-4:hover {
+  background-color: rgba(157, 187, 206, 0.05);
+}
+
+/* Animation pour les badges */
+.badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Style pour le bouton de suppression */
+button[type="submit"] {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button[type="submit"]:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .d-flex.justify-content-between > div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .btn.me-2 {
+    margin-right: 0 !important;
+    margin-bottom: 10px;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Animation d'entrée pour la carte
+  const card = document.querySelector('.card');
+  if (card) {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+      card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, 100);
+  }
+  
+  // Effet de zoom sur le titre
+  const title = document.querySelector('h2.mb-0');
+  if (title) {
+    title.style.cursor = 'pointer';
+    title.style.transition = 'transform 0.3s ease';
+    
+    title.addEventListener('mouseenter', function() {
+      this.style.transform = 'scale(1.02)';
+    });
+    
+    title.addEventListener('mouseleave', function() {
+      this.style.transform = 'scale(1)';
+    });
+    
+    // Copier le titre au clic
+    title.addEventListener('click', function() {
+      const textToCopy = this.textContent;
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const originalText = this.textContent;
+        const originalColor = this.style.color;
+        
+        // Feedback visuel
+        this.innerHTML = '<i class="bi bi-check2 me-2"></i> Titre copié !';
+        this.style.color = '#28a745';
+        
+        setTimeout(() => {
+          this.innerHTML = originalText;
+          this.style.color = originalColor;
+        }, 2000);
+      });
+    });
+  }
+  
+  // Gestion des badges interactifs
+  const badges = document.querySelectorAll('.badge');
+  badges.forEach(badge => {
+    badge.style.cursor = 'pointer';
+    badge.title = 'Cliquer pour plus d\'infos';
+    
+    badge.addEventListener('click', function() {
+      const badgeType = this.textContent.trim().toLowerCase();
+      let message = '';
+      
+      if (badgeType === 'publié') {
+        message = 'Cet article est visible par tous les utilisateurs.';
+      } else if (badgeType === 'brouillon') {
+        message = 'Cet article n\'est visible que par les administrateurs.';
+      } else {
+        message = `Catégorie: ${badgeType}`;
+      }
+      
+      // Afficher une tooltip personnalisée
+      const tooltip = document.createElement('div');
+      tooltip.style.position = 'fixed';
+      tooltip.style.backgroundColor = '#102c59';
+      tooltip.style.color = 'white';
+      tooltip.style.padding = '10px 15px';
+      tooltip.style.borderRadius = '6px';
+      tooltip.style.zIndex = '1000';
+      tooltip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+      tooltip.style.maxWidth = '300px';
+      tooltip.textContent = message;
+      
+      // Positionner la tooltip
+      const rect = this.getBoundingClientRect();
+      tooltip.style.left = (rect.left + rect.width/2 - 150) + 'px';
+      tooltip.style.top = (rect.top - 50) + 'px';
+      
+      document.body.appendChild(tooltip);
+      
+      // Supprimer la tooltip après 3 secondes
+      setTimeout(() => {
+        tooltip.style.opacity = '0';
+        tooltip.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => tooltip.remove(), 300);
+      }, 3000);
+    });
+  });
+  
+  // Confirmation améliorée pour la suppression
+  const deleteForm = document.querySelector('form[onsubmit]');
+  if (deleteForm) {
+    const deleteButton = deleteForm.querySelector('button[type="submit"]');
+    
+    deleteButton.addEventListener('click', function(e) {
+      if (!confirm('Êtes-vous sûr de vouloir supprimer cet article ? Cette action est irréversible.')) {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Animation de confirmation
+      this.innerHTML = '<i class="bi bi-trash me-1"></i> Suppression...';
+      this.style.backgroundColor = '#d52e28';
+      
+      setTimeout(() => {
+        this.innerHTML = '<i class="bi bi-check-circle me-1"></i> Supprimé !';
+        this.style.backgroundColor = '#28a745';
+      }, 1000);
+    });
+  }
+  
+  // Effet pour le bouton PDF
+  const pdfButton = document.querySelector('a[href*="pdf"]');
+  if (pdfButton) {
+    pdfButton.addEventListener('mouseover', function() {
+      this.style.boxShadow = '0 4px 8px rgba(213, 46, 40, 0.3)';
+    });
+    
+    pdfButton.addEventListener('mouseout', function() {
+      this.style.boxShadow = 'none';
+    });
+    
+    // Animation au clic
+    pdfButton.addEventListener('click', function() {
+      this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Génération PDF...';
+      this.style.backgroundColor = '#9dbbce';
+      this.style.color = '#102c59';
+      
+      setTimeout(() => {
+        this.innerHTML = '<i class="bi bi-file-pdf me-1"></i> PDF prêt !';
+        this.style.backgroundColor = '#28a745';
+        this.style.color = 'white';
+      }, 1500);
+      
+      // Réinitialiser après 3 secondes
+      setTimeout(() => {
+        this.innerHTML = '<i class="bi bi-file-pdf me-1"></i> Exporter en PDF';
+        this.style.backgroundColor = '#d52e28';
+        this.style.color = 'white';
+      }, 3000);
+    });
+  }
+  
+  // Effet pour le bouton de retour
+  const backButton = document.querySelector('a[href*="index"]');
+  if (backButton) {
+    backButton.addEventListener('mouseenter', function() {
+      this.style.borderColor = '#102c59';
+      this.style.backgroundColor = 'rgba(16, 44, 89, 0.05)';
+    });
+    
+    backButton.addEventListener('mouseleave', function() {
+      this.style.borderColor = '#9dbbce';
+      this.style.backgroundColor = 'transparent';
+    });
+  }
+  
+  // Mise en évidence des sections au survol
+  const sections = document.querySelectorAll('.row.mb-4');
+  sections.forEach(section => {
+    const originalBorderColor = section.style.borderColor;
+    
+    section.addEventListener('mouseenter', function() {
+      this.style.borderLeft = '4px solid #9dbbce';
+      this.style.paddingLeft = '20px';
+      this.style.transition = 'all 0.3s ease';
+    });
+    
+    section.addEventListener('mouseleave', function() {
+      this.style.borderLeft = 'none';
+      this.style.paddingLeft = '15px';
+    });
+  });
+});
+</script>
+{% endblock %}

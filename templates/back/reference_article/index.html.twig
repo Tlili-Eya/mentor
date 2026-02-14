@@ -1,0 +1,478 @@
+{% extends 'back/basem.html.twig' %}
+
+{% block title %}Articles de Référence{% endblock %}
+
+{% block body %}
+<div class="page-title" style="background-color: #f0f6fa;">
+  <div class="container d-lg-flex justify-content-between align-items-center">
+    <h1 class="mb-2 mb-lg-0" style="color: #102c59;">Articles de Référence</h1>
+    <nav class="breadcrumbs">
+      <ol>
+        <li><a href="{{ path('back_home') }}" style="color: #102c59;">Accueil</a></li>
+        <li class="current" style="color: #d52e28;">Articles</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    {% for message in app.flashes('success') %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-left: 4px solid #28a745;">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+
+    <div class="row">
+      <!-- Sidebar des filtres -->
+      <div class="col-lg-3 mb-4">
+        <div class="card shadow-sm border-0" style="border: 1px solid #9dbbce; border-radius: 10px;">
+          <div class="card-body">
+            <h5 class="card-title mb-3" style="color: #102c59;">
+              <i class="bi bi-funnel me-2"></i>Filtrer les articles
+            </h5>
+            
+            <!-- FORMULAIRE DE FILTRES -->
+            <form method="get" action="{{ path('app_reference_article_index') }}" id="filter-form">
+              <div class="mb-4">
+                <h6 class="fw-bold mb-2" style="color: #102c59;">Catégorie</h6>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="checkbox" id="cat-all" 
+                    {% if app.request.query.get('categorie') == '' or app.request.query.get('categorie') is null %}checked{% endif %}>
+                  <label class="form-check-label" for="cat-all">Toutes les catégories</label>
+                </div>
+                
+                {% if categories is defined and categories is not empty %}
+                  {% for categorie in categories %}
+                    {% set categorieIdString = categorie.id ~ '' %}
+                    <div class="form-check mb-1">
+                      <input class="form-check-input category-checkbox" type="checkbox" 
+                        value="{{ categorie.id }}" id="cat-{{ categorie.id }}"
+                        {% if app.request.query.get('categorie') == categorieIdString %}checked{% endif %}>
+                      <label class="form-check-label" for="cat-{{ categorie.id }}">
+                        {{ categorie.nomCategorie }}
+                      </label>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <p class="text-muted small">Aucune catégorie disponible</p>
+                {% endif %}
+                <input type="hidden" name="categorie" id="selected-categorie" value="{{ app.request.query.get('categorie', '') }}">
+              </div>
+
+              <div class="mb-4">
+                <h6 class="fw-bold mb-2" style="color: #102c59;">Statut</h6>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="published" value="" id="status-all" 
+                    {% if published == '' %}checked{% endif %}>
+                  <label class="form-check-label" for="status-all">Tous les statuts</label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="published" value="1" id="status-published"
+                    {% if published == '1' %}checked{% endif %}>
+                  <label class="form-check-label" for="status-published">Publié</label>
+                </div>
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="published" value="0" id="status-draft"
+                    {% if published == '0' %}checked{% endif %}>
+                  <label class="form-check-label" for="status-draft">Brouillon</label>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <h6 class="fw-bold mb-2" style="color: #102c59;">Tri par</h6>
+                <select name="sort" class="form-select form-select-sm" style="border: 2px solid #9dbbce; border-radius: 6px;">
+                  <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Date création</option>
+                  <option value="titre" {% if sortBy == 'titre' %}selected{% endif %}>Titre</option>
+                </select>
+              </div>
+
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-sm" style="background-color: #102c59; color: white; border-radius: 6px;">
+                  <i class="bi bi-filter me-1"></i> Appliquer les filtres
+                </button>
+                <a href="{{ path('app_reference_article_index') }}" class="btn btn-outline-secondary btn-sm" style="border-color: #9dbbce; color: #102c59; border-radius: 6px;">
+                  <i class="bi bi-x-circle me-1"></i> Réinitialiser
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenu principal -->
+      <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="mb-0" style="color: #102c59;">Gestion des Articles ({{ total }})</h2>
+          <div>
+            {% if articles|length > 0 %}
+            {% endif %}
+            <a href="{{ path('app_reference_article_new') }}" class="btn" style="background-color: #d52e28; color: white; border-radius: 8px;">
+              <i class="bi bi-plus-circle me-1"></i> Nouvel Article
+            </a>
+          </div>
+        </div>
+
+        <!-- Barre de recherche -->
+        <form method="get" class="mb-4">
+          <div class="input-group">
+            <span class="input-group-text" style="background-color: #f0f6fa; border: 2px solid #9dbbce; border-right: none;">
+              <i class="bi bi-search" style="color: #102c59;"></i>
+            </span>
+            <input type="text" name="search" class="form-control" 
+              style="border: 2px solid #9dbbce; border-left: none; border-right: none;"
+              placeholder="Rechercher un article par titre, auteur ou contenu..." 
+              value="{{ search }}">
+            
+            <!-- Champs cachés pour conserver les filtres -->
+            {% if app.request.query.get('categorie') %}
+              <input type="hidden" name="categorie" value="{{ app.request.query.get('categorie') }}">
+            {% endif %}
+            {% if published %}
+              <input type="hidden" name="published" value="{{ published }}">
+            {% endif %}
+            {% if sortBy %}
+              <input type="hidden" name="sort" value="{{ sortBy }}">
+            {% endif %}
+            
+            <button class="btn" type="submit" style="background-color: #102c59; color: white; border: 2px solid #102c59;">
+              <i class="bi bi-search"></i> Rechercher
+            </button>
+          </div>
+        </form>
+
+        <!-- Cartes d'articles -->
+        {% for article in articles %}
+          <div class="card shadow-sm border-0 mb-3" style="border: 1px solid #9dbbce; border-radius: 10px;">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="d-flex align-items-start mb-2">
+                    {% if article.categorie %}
+                      <span class="badge me-2" style="background-color: #102c59; color: white;">
+                        {{ article.categorie.nomCategorie }}
+                      </span>
+                    {% endif %}
+                    <small style="color: #666;">
+                      <i class="bi bi-person me-1"></i>
+                      {{ article.auteur ? article.auteur.nom ~ ' ' ~ article.auteur.prenom : 'Auteur inconnu' }}
+                    </small>
+                  </div>
+                  
+                  <h5 class="card-title mb-2" style="color: #102c59;">{{ article.titre }}</h5>
+                  
+                  <p class="card-text mb-3" style="color: #666;">
+                    {# Vérifier les propriétés possibles de l'article #}
+                    {% if article.contenu is defined and article.contenu %}
+                      {{ article.contenu|striptags|slice(0, 150) }}{% if article.contenu|length > 150 %}...{% endif %}
+                    {% elseif article.content is defined and article.content %}
+                      {{ article.content|striptags|slice(0, 150) }}{% if article.content|length > 150 %}...{% endif %}
+                    {% elseif article.body is defined and article.body %}
+                      {{ article.body|striptags|slice(0, 150) }}{% if article.body|length > 150 %}...{% endif %}
+                    {% elseif article.texte is defined and article.texte %}
+                      {{ article.texte|striptags|slice(0, 150) }}{% if article.texte|length > 150 %}...{% endif %}
+                    {% else %}
+                      Aucun contenu disponible
+                    {% endif %}
+                  </p>
+                  
+                  <div class="d-flex align-items-center">
+                    <small style="color: #666; margin-right: 1rem;">
+                      <i class="bi bi-calendar me-1"></i>
+                      {% if article.published %}
+                        Publié le {{ article.createdAt|date('d/m/Y') }}
+                      {% else %}
+                        Modifié le {{ article.createdAt|date('d/m/Y') }}
+                      {% endif %}
+                    </small>
+                    <span class="badge" style="background-color: {{ article.published ? '#28a745' : '#ffc107' }}; color: {{ article.published ? 'white' : '#212529' }};">
+                      {{ article.published ? 'Publié' : 'Brouillon' }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="col-md-4 d-flex align-items-center justify-content-end">
+                  <div class="btn-group" role="group">
+                    <a href="{{ path('app_reference_article_show', {id: article.id}) }}" class="btn btn-sm" 
+                       style="border: 1px solid #9dbbce; color: #102c59; margin-right: 5px;" title="Voir">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ path('app_reference_article_edit', {id: article.id}) }}" class="btn btn-sm" 
+                       style="border: 1px solid #9dbbce; color: #102c59; margin-right: 5px;" title="Éditer">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{{ path('app_reference_article_pdf', {id: article.id}) }}" 
+                       class="btn btn-sm" 
+                       style="border: 1px solid #d52e28; color: #d52e28; margin-right: 5px;"
+                       title="Exporter en PDF"
+                       target="_blank">
+                      <i class="bi bi-file-pdf"></i>
+                    </a>
+                    <!-- Remplacer la ligne 124-130 (le formulaire de suppression) -->
+<form method="post" action="{{ path('app_reference_article_delete', {id: article.id}) }}" style="display:inline;">
+  <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ article.id) }}">
+  <button type="submit" class="btn btn-sm" 
+          style="border: 1px solid #d52e28; color: #d52e28;"
+          title="Supprimer">
+    <i class="bi bi-trash"></i>
+  </button>
+</form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div class="card shadow-sm border-0" style="border: 1px solid #9dbbce; border-radius: 10px;">
+            <div class="card-body text-center py-5">
+              <i class="bi bi-journal-text display-1 mb-3" style="color: #9dbbce;"></i>
+              <h5 style="color: #102c59;">Aucun article trouvé</h5>
+              <p style="color: #666;">Commencez par créer votre premier article</p>
+              <a href="{{ path('app_reference_article_new') }}" class="btn" style="background-color: #d52e28; color: white; border-radius: 8px;">
+                <i class="bi bi-plus-circle me-1"></i> Créer un article
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+
+        <!-- Pagination simplifiée -->
+        {% if totalPages > 1 %}
+          <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+              {% for i in 1..totalPages %}
+                <li class="page-item {% if i == currentPage %}active{% endif %}">
+                  {% set queryParams = {
+                    'page': i,
+                    'search': search,
+                    'published': published,
+                    'sort': sortBy
+                  } %}
+                  
+                  {% if app.request.query.get('categorie') %}
+                    {% set queryParams = queryParams|merge({'categorie': app.request.query.get('categorie')}) %}
+                  {% endif %}
+                  
+                  <a class="page-link" 
+                     href="{{ path('app_reference_article_index', queryParams) }}"
+                     style="{% if i == currentPage %}background-color: #102c59; border-color: #102c59; color: white;{% else %}color: #102c59; border-color: #9dbbce;{% endif %}">
+                    {{ i }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </nav>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+.card {
+  border-radius: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(157, 187, 206, 0.2) !important;
+}
+
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+  border-radius: 6px;
+}
+
+.btn-group .btn {
+  border-radius: 6px !important;
+  transition: all 0.3s ease;
+}
+
+.btn-group .btn:hover {
+  transform: translateY(-2px);
+}
+
+.form-check-input:checked {
+  background-color: #102c59;
+  border-color: #102c59;
+}
+
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.25rem rgba(16, 44, 89, 0.25);
+}
+
+.form-select:focus {
+  border-color: #102c59;
+  box-shadow: 0 0 0 0.25rem rgba(16, 44, 89, 0.25);
+}
+
+/* Styles pour les boutons d'action */
+.btn[style*="border: 1px solid #9dbbce;"]:hover {
+  background-color: #9dbbce;
+  color: white !important;
+}
+
+.btn[style*="border: 1px solid #d52e28;"]:hover {
+  background-color: #d52e28;
+  color: white !important;
+}
+
+/* Styles pour les boutons principaux */
+.btn[style*="background-color: #102c59"]:hover {
+  background-color: #0a1e40 !important;
+  border-color: #0a1e40 !important;
+}
+
+.btn[style*="background-color: #d52e28"]:hover {
+  background-color: #b32520 !important;
+  border-color: #b32520 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(213, 46, 40, 0.3);
+}
+
+/* Animation pour le bouton Nouvel Article */
+.btn[style*="background-color: #d52e28"] {
+  transition: all 0.3s ease;
+}
+
+/* Styles pour la pagination */
+.page-link:hover {
+  background-color: #9dbbce;
+  border-color: #9dbbce;
+  color: #102c59;
+}
+
+.page-item.active .page-link {
+  background-color: #102c59;
+  border-color: #102c59;
+}
+
+/* Styles pour la barre de recherche */
+.input-group-text {
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #102c59;
+  box-shadow: 0 0 0 0.25rem rgba(16, 44, 89, 0.25);
+}
+
+/* Styles pour les cartes vides */
+.bi-journal-text {
+  opacity: 0.7;
+}
+
+/* Styles pour les badges de statut */
+.badge[style*="background-color: #ffc107"] {
+  background-color: #ffc107 !important;
+  color: #212529 !important;
+}
+
+.badge[style*="background-color: #28a745"] {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+</style>
+
+<script>
+// Gestion des filtres de catégorie (sélection unique)
+document.addEventListener('DOMContentLoaded', function() {
+  const allCategoriesCheckbox = document.getElementById('cat-all');
+  const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+  const selectedCategorieInput = document.getElementById('selected-categorie');
+  const filterForm = document.getElementById('filter-form');
+  
+  // Gestion de la checkbox "Toutes les catégories"
+  if (allCategoriesCheckbox) {
+    allCategoriesCheckbox.addEventListener('change', function() {
+      if (this.checked) {
+        categoryCheckboxes.forEach(cb => {
+          cb.checked = false;
+        });
+        selectedCategorieInput.value = '';
+      }
+    });
+  }
+  
+  // Gestion des checkboxes de catégories individuelles
+  if (categoryCheckboxes.length > 0) {
+    categoryCheckboxes.forEach(cb => {
+      cb.addEventListener('change', function() {
+        if (this.checked) {
+          // Décocher toutes les autres catégories
+          categoryCheckboxes.forEach(otherCb => {
+            if (otherCb !== this) {
+              otherCb.checked = false;
+            }
+          });
+          // Décocher "Toutes les catégories"
+          if (allCategoriesCheckbox) {
+            allCategoriesCheckbox.checked = false;
+          }
+          // Mettre à jour la valeur cachée
+          selectedCategorieInput.value = this.value;
+        } else {
+          // Si on décoche la dernière catégorie sélectionnée
+          const anyChecked = Array.from(categoryCheckboxes).some(c => c.checked);
+          if (!anyChecked && allCategoriesCheckbox) {
+            allCategoriesCheckbox.checked = true;
+            selectedCategorieInput.value = '';
+          }
+        }
+      });
+    });
+  }
+  
+  // Initialiser l'état
+  function initializeCheckboxes() {
+    const selectedValue = selectedCategorieInput.value;
+    if (!selectedValue) {
+      if (allCategoriesCheckbox) {
+        allCategoriesCheckbox.checked = true;
+      }
+    } else {
+      const selectedCheckbox = document.querySelector(`.category-checkbox[value="${selectedValue}"]`);
+      if (selectedCheckbox) {
+        selectedCheckbox.checked = true;
+        if (allCategoriesCheckbox) {
+          allCategoriesCheckbox.checked = false;
+        }
+      }
+    }
+  }
+  
+  initializeCheckboxes();
+  
+  // Empêcher la soumission si aucune catégorie n'est sélectionnée
+  if (filterForm) {
+    filterForm.addEventListener('submit', function(e) {
+      // S'assurer que le champ caché est à jour
+      const anyChecked = Array.from(categoryCheckboxes).some(c => c.checked);
+      if (!anyChecked && allCategoriesCheckbox && !allCategoriesCheckbox.checked) {
+        allCategoriesCheckbox.checked = true;
+        selectedCategorieInput.value = '';
+      }
+    });
+  }
+  
+  // Ajouter des animations aux cartes
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card => {
+    card.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-3px)';
+      this.style.boxShadow = '0 5px 15px rgba(157, 187, 206, 0.3)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = '';
+    });
+  });
+});
+</script>
+
+{% endblock %}

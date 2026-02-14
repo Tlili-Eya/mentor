@@ -6,6 +6,7 @@ use App\Enum\TypeRessource;
 use App\Repository\RessourceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: RessourceRepository::class)]
 class Ressource
@@ -16,9 +17,10 @@ class Ressource
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le nom de la ressource est obligatoire.")]
     private ?string $nom = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $urlRessource = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -43,7 +45,7 @@ class Ressource
         return $this->nom;
     }
 
-    public function setNom(string $nom): static
+    public function setNom(?string $nom): static
     {
         $this->nom = $nom;
 
@@ -55,7 +57,7 @@ class Ressource
         return $this->urlRessource;
     }
 
-    public function setUrlRessource(string $urlRessource): static
+    public function setUrlRessource(?string $urlRessource): static
     {
         $this->urlRessource = $urlRessource;
 

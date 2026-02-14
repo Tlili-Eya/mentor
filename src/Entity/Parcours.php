@@ -2,11 +2,14 @@
 
 namespace App\Entity;
 
+use App\Entity\Utilisateur;
 use App\Repository\ParcoursRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ParcoursRepository::class)]
 class Parcours
@@ -17,24 +20,32 @@ class Parcours
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le type de parcours est obligatoire.")]
     private ?string $type_parcours = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le titre est obligatoire.")]
+    #[Assert\Length(min: 3, max: 255, minMessage: "Le titre doit faire au moins {{ limit }} caractères.")]
     private ?string $titre = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Assert\NotBlank(message: "La date de début est obligatoire.")]
     private ?\DateTime $date_debut = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Assert\GreaterThanOrEqual(propertyPath: "date_debut", message: "La date de fin ne peut pas être antérieure à la date de début.")]
     private ?\DateTime $date_fin = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: "La description est obligatoire.")]
     private ?string $description = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "L'établissement est obligatoire.")]
     private ?string $etablissement = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le diplôme est obligatoire.")]
     private ?string $diplome = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -60,6 +71,9 @@ class Parcours
      */
     #[ORM\OneToMany(targetEntity: Projet::class, mappedBy: 'parcours')]
     private Collection $projets;
+
+    #[ORM\ManyToOne(inversedBy: 'parcours')]
+    private ?Utilisateur $utilisateur = null;
 
     public function __construct()
     {
@@ -253,6 +267,18 @@ class Parcours
                 $projet->setParcours(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUtilisateur(): ?Utilisateur
+    {
+        return $this->utilisateur;
+    }
+
+    public function setUtilisateur(?Utilisateur $utilisateur): static
+    {
+        $this->utilisateur = $utilisateur;
 
         return $this;
     }

@@ -1,2 +1,216 @@
 {% extends 'front/base.html.twig' %}
 
+{% block title %}Ajouter un Parcours - MentorAI{% endblock %}
+
+{% block stylesheets %}
+<style>
+    :root {
+        --primary-color: #102c59;
+        --secondary-color: #9dbbce;
+        --accent-color: #d52e28;
+    }
+
+    .page-title-banner {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #1a458a 100%);
+        padding: 60px 0;
+        color: white;
+        border-radius: 0 0 30px 30px;
+        margin-bottom: 40px;
+    }
+
+    .form-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(16, 44, 89, 0.08);
+        border: 1px solid rgba(157, 187, 206, 0.2);
+        overflow: hidden;
+    }
+
+    .form-card-header {
+        background: #f8faff;
+        padding: 30px 40px;
+        border-bottom: 2.5px solid var(--accent-color);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .form-card-header i {
+        font-size: 2rem;
+        color: var(--primary-color);
+        background: rgba(157, 187, 206, 0.2);
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+    }
+
+    .form-card-body {
+        padding: 40px;
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .form-control, .form-select {
+        border-radius: 12px;
+        padding: 12px 15px;
+        border: 1.5px solid #e1e8ef;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 4px rgba(157, 187, 206, 0.15);
+    }
+
+    .btn-submit {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-weight: 700;
+        border-radius: 15px;
+        transition: all 0.3s;
+    }
+
+    .btn-submit:hover {
+        background: #1a458a;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 44, 89, 0.2);
+        color: white;
+    }
+
+    .btn-back {
+        background: white;
+        color: #6c757d;
+        border: 1.5px solid #e1e8ef;
+        padding: 15px 30px;
+        font-weight: 700;
+        border-radius: 15px;
+        transition: all 0.3s;
+    }
+
+    .btn-back:hover {
+        background: #f8faff;
+        color: var(--primary-color);
+    }
+
+    .section-divider {
+        height: 1px;
+        background: #e1e8ef;
+        margin: 40px 0;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-title-banner">
+    <div class="container text-center" data-aos="fade-up">
+        <h1 class="display-5 fw-bold mb-3">Nouveau Parcours</h1>
+        <p class="lead opacity-75">Enregistrez vos formations et expériences pour valoriser votre profil.</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9" data-aos="fade-up">
+            
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4 p-3" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+
+            <div class="form-card">
+                <div class="form-card-header">
+                    <i class="bi bi-mortarboard-fill"></i>
+                    <div>
+                        <h4 class="mb-0 fw-bold" style="color: var(--primary-color);">Détails du parcours</h4>
+                        <p class="text-muted mb-0 small">Remplissez les champs ci-dessous pour ajouter une étape à votre carrière.</p>
+                    </div>
+                </div>
+
+                <div class="form-card-body">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="row g-4">
+                        <div class="col-12">
+                            {{ form_label(form.titre, 'Titre du parcours', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.titre, {'attr': {'placeholder': 'Ex: Licence en Informatique, Développeur Web PHP...'}}) }}
+                            <div class="text-danger small">{{ form_errors(form.titre) }}</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_label(form.type_parcours, 'Type de parcours', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.type_parcours, {'attr': {'placeholder': 'Ex: Formation, Expérience, Stage...'}}) }}
+                            <div class="text-danger small">{{ form_errors(form.type_parcours) }}</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_label(form.diplome, 'Diplôme / Certification', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.diplome, {'attr': {'placeholder': 'Ex: Bac +3, Certificat d\'aptitude...'}}) }}
+                            <div class="text-danger small">{{ form_errors(form.diplome) }}</div>
+                        </div>
+
+                        <div class="col-12">
+                            {{ form_label(form.etablissement, 'Établissement ou Organisme', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.etablissement, {'attr': {'placeholder': 'Le nom de votre école ou de l\'entreprise'}}) }}
+                            <div class="text-danger small">{{ form_errors(form.etablissement) }}</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_label(form.date_debut, 'Date de début', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.date_debut) }}
+                            <div class="text-danger small">{{ form_errors(form.date_debut) }}</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_label(form.date_fin, 'Date de fin', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.date_fin) }}
+                            <div class="text-danger small">{{ form_errors(form.date_fin) }}</div>
+                        </div>
+
+                        <div class="col-12">
+                            {{ form_label(form.description, 'Description de vos missions et acquis', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.description, {'attr': {'rows': 5, 'placeholder': 'Détaillez vos responsabilités, technologies utilisées...'}}) }}
+                            <div class="text-danger small">{{ form_errors(form.description) }}</div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="p-3 rounded-4" style="background-color: #f8faff; border: 1px dashed var(--secondary-color);">
+                                {{ form_label(form.projets, 'Associer des projets MentorAI', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.projets) }}
+                                <p class="helper-text mt-2 small text-muted"><i class="bi bi-info-circle me-1"></i> Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs projets.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-none">
+                        {% if form.specialite is defined %}{{ form_row(form.specialite) }}{% endif %}
+                        {% if form.entreprise is defined %}{{ form_row(form.entreprise) }}{% endif %}
+                        {% if form.poste is defined %}{{ form_row(form.poste) }}{% endif %}
+                        {% if form.type_contrat is defined %}{{ form_row(form.type_contrat) }}{% endif %}
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-5">
+                        <a href="{{ path('front_mesparcours') }}" class="btn btn-back">
+                            <i class="bi bi-x-lg me-2"></i>Annuler
+                        </a>
+                        <button type="submit" class="btn btn-submit">
+                            <i class="bi bi-check2-circle me-2"></i>Enregistrer le parcours
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

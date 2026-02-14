@@ -1,0 +1,161 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Détails du Parcours
+{% endblock %}
+
+{% block body %}
+	<div class="page-title light-background">
+		<div class="container">
+			<h1 class="mb-0 text-primary">Détails du Parcours</h1>
+			<nav class="breadcrumbs">
+				<ol>
+					<li>
+						<a href="{{ path('back_home') }}">Home</a>
+					</li>
+					<li>
+						<a href="{{ path('back_parcours') }}">Parcours</a>
+					</li>
+					<li class="current">Détails</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+
+	<section class="section">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-8">
+					<div class="card shadow-sm border-0 mb-4">
+						<div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+							<h5 class="mb-0 text-primary">{{ parcours.titre }}</h5>
+							<span class="badge bg-primary">{{ parcours.typeParcours }}</span>
+						</div>
+						<div class="card-body">
+							<div class="row mb-4">
+								<div class="col-md-6 mb-3">
+									<h6 class="text-secondary small text-uppercase">Établissement / Organisme</h6>
+									<p class="mb-0 fw-bold">{{ parcours.etablissement }}</p>
+								</div>
+								<div class="col-md-6 mb-3">
+									<h6 class="text-secondary small text-uppercase">Diplôme / Certification</h6>
+									<p class="mb-0 fw-bold">{{ parcours.diplome }}</p>
+								</div>
+								{% if parcours.specialite %}
+									<div class="col-md-6 mb-3">
+										<h6 class="text-secondary small text-uppercase">Spécialité</h6>
+										<p class="mb-0">{{ parcours.specialite }}</p>
+									</div>
+								{% endif %}
+								<div class="col-md-6 mb-3">
+									<h6 class="text-secondary small text-uppercase">Période</h6>
+									<p class="mb-0">
+										<i class="bi bi-calendar-check me-1"></i>
+										{{ parcours.dateDebut ? parcours.dateDebut|date('d/m/Y') : '?' }}
+										-
+										{{ parcours.dateFin ? parcours.dateFin|date('d/m/Y') : 'Présent' }}
+									</p>
+								</div>
+							</div>
+
+							<h6 class="text-secondary small text-uppercase">Description</h6>
+							<p class="text-muted">{{ parcours.description|nl2br }}</p>
+
+							<hr class="my-4">
+
+							<div class="row">
+								{% if parcours.entreprise %}
+									<div class="col-md-4 mb-3">
+										<h6 class="text-secondary small text-uppercase">Entreprise</h6>
+										<p class="mb-0">{{ parcours.entreprise }}</p>
+									</div>
+								{% endif %}
+								{% if parcours.poste %}
+									<div class="col-md-4 mb-3">
+										<h6 class="text-secondary small text-uppercase">Poste</h6>
+										<p class="mb-0">{{ parcours.poste }}</p>
+									</div>
+								{% endif %}
+								{% if parcours.typeContrat %}
+									<div class="col-md-4 mb-3">
+										<h6 class="text-secondary small text-uppercase">Contrat</h6>
+										<p class="mb-0">{{ parcours.typeContrat }}</p>
+									</div>
+								{% endif %}
+							</div>
+						</div>
+					</div>
+
+					<div class="card shadow-sm border-0">
+						<div class="card-header bg-white py-3">
+							<h5 class="mb-0 text-secondary">Projets associés ({{ parcours.projets|length }})</h5>
+						</div>
+						<div class="card-body p-0">
+							{% if parcours.projets is not empty %}
+								<div class="table-responsive">
+									<table class="table table-hover align-middle mb-0">
+										<thead class="table-light">
+											<tr>
+												<th>Projet</th>
+												<th>Type</th>
+												<th class="text-end">Action</th>
+											</tr>
+										</thead>
+										<tbody>
+											{% for projet in parcours.projets %}
+												<tr>
+													<td>{{ projet.titre }}</td>
+													<td>
+														<span class="badge bg-info text-dark">{{ projet.type }}</span>
+													</td>
+													<td class="text-end">
+														<a href="{{ path('back_show_projet', {'id': projet.id}) }}" class="btn btn-sm btn-outline-secondary">Voir</a>
+													</td>
+												</tr>
+											{% endfor %}
+										</tbody>
+									</table>
+								</div>
+							{% else %}
+								<div class="p-4 text-center text-muted">Aun projet n'est encore lié à ce parcours.</div>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+
+				<div class="col-lg-4">
+					<div class="card shadow-sm border-0 mb-4">
+						<div class="card-header bg-white py-3">
+							<h5 class="mb-0">Actions</h5>
+						</div>
+						<div class="card-body p-3">
+							<div class="d-grid gap-2">
+								<a href="{{ path('back_edit_parcours', {'id': parcours.id}) }}" class="btn btn-primary">
+									<i class="bi bi-pencil me-2"></i>Modifier
+								</a>
+								<a href="{{ path('back_parcours') }}" class="btn btn-outline-secondary">
+									<i class="bi bi-arrow-left me-2"></i>Retour
+								</a>
+								<hr>
+								<a href="{{ path('back_delete_parcours', {'id': parcours.id}) }}" class="btn btn-outline-danger" onclick="return confirm('Supprimer ce parcours ?')">
+									<i class="bi bi-trash me-2"></i>Supprimer
+								</a>
+							</div>
+						</div>
+					</div>
+
+					<div class="card shadow-sm border-0">
+						<div class="card-body">
+							<h6 class="text-secondary small text-uppercase mb-3">Informations Système</h6>
+							<div class="small">
+								<strong>Créé le :</strong>
+								{{ parcours.dateCreation|date('d/m/Y H:i') }}<br>
+								<strong>Dernière modif :</strong>
+								{{ parcours.dateModification ? parcours.dateModification|date('d/m/Y H:i') : 'Jamais' }}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Modifier l'objectif : {{ objectif.titre }}{% endblock %}
+
+{% block body %}
+<main class="main">
+
+  <div class="page-title light-background">
+    <div class="container">
+      <h1>Modifier l'objectif</h1>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container" data-aos="fade-up">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-5">
+
+              <h2 class="card-title mb-4">
+                {{ objectif.titre }}
+              </h2>
+
+              {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+              {{ form_errors(form) }}
+
+              <!-- Titre -->
+              <div class="mb-4">
+                <strong>{{ form_label(form.titre) }}</strong>
+                {{ form_widget(form.titre, {'attr': {'class': 'form-control mt-2'}}) }}
+                {{ form_errors(form.titre) }}
+              </div>
+
+              <!-- Description -->
+              <div class="mb-4">
+                <strong>{{ form_label(form.description) }}</strong>
+                {{ form_widget(form.description, {'attr': {'class': 'form-control mt-2', 'rows': 4}}) }}
+                {{ form_errors(form.description) }}
+              </div>
+
+              <!-- Dates -->
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <strong>{{ form_label(form.datedebut) }}</strong>
+                  {{ form_widget(form.datedebut, {'attr': {'class': 'form-control mt-2'}}) }}
+                  {{ form_errors(form.datedebut) }}
+                </div>
+                <div class="col-md-6">
+                  <strong>{{ form_label(form.datefin) }}</strong>
+                  {{ form_widget(form.datefin, {'attr': {'class': 'form-control mt-2'}}) }}
+                  {{ form_errors(form.datefin) }}
+                </div>
+              </div>
+
+              <!-- Boutons -->
+              <div class="text-center mt-5">
+                <a href="{{ path('front_events_index') }}"
+                   class="btn rounded-pill px-4 py-2 me-3"
+                   style="background-color: var(--accent-color); color: var(--contrast-color); border: none;">
+                  <i class="bi bi-arrow-left me-2"></i>Annuler
+                </a>
+
+                <button type="submit"
+                        class="btn btn-outline-primary rounded-pill px-4 py-2">
+                  <i class="bi bi-save me-2"></i>Enregistrer
+                </button>
+              </div>
+
+              {{ form_end(form) }}
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+{% endblock %}

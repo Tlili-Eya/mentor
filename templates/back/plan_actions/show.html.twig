@@ -113,6 +113,36 @@
             </div>
             {% endif %}
             
+            {% if plan_actions.articles is defined and plan_actions.articles|length > 0 %}
+            <div class="row mb-4">
+              <div class="col-md-12">
+                <h5 class="fw-bold" style="color: #102c59; margin-bottom: 15px;">
+                  <i class="bi bi-journal-text me-2"></i>Articles liés ({{ plan_actions.articles|length }})
+                </h5>
+                <div class="list-group">
+                  {% for article in plan_actions.articles %}
+                    <a href="{{ path('app_reference_article_show', {'id': article.id}) }}" 
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                       style="border-color: #9dbbce; color: #102c59; transition: all 0.3s ease;">
+                      <div>
+                        <h6 class="mb-1" style="color: #102c59;">{{ article.titre }}</h6>
+                        <small style="color: #102c59; opacity: 0.7;">
+                          <i class="bi bi-calendar me-1"></i>{{ article.createdAt|date('d/m/Y') }}
+                          {% if article.categorie %}
+                            • <span class="badge" style="background-color: #9dbbce; color: #102c59;">{{ article.categorie.nomCategorie }}</span>
+                          {% endif %}
+                        </small>
+                      </div>
+                      <span class="badge" style="background-color: {{ article.published ? '#28a745' : '#ffc107' }}; color: {{ article.published ? 'white' : '#000' }};">
+                        {{ article.published ? 'Publié' : 'Brouillon' }}
+                      </span>
+                    </a>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            
             <div class="d-flex justify-content-between mt-4 pt-3 border-top" style="border-color: #9dbbce !important;">
               <a href="{{ path('app_plan_actions_index') }}" class="btn" style="border: 1px solid #9dbbce; color: #102c59; border-radius: 6px; padding: 10px 25px;">
                 <i class="bi bi-arrow-left me-1"></i> Retour à la liste
@@ -124,14 +154,14 @@
                   <i class="bi bi-pencil me-1"></i> Modifier
                 </a>
                 
-                <form method="post" action="{{ path('app_plan_actions_delete', {'id': plan_actions.id}) }}" 
-                      style="display:inline;" 
-                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce plan d\'action ?');">
-                  <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ plan_actions.id) }}">
-                  <button type="submit" class="btn" style="background-color: #d52e28; color: white; border: none; border-radius: 6px; padding: 10px 25px;">
-                    <i class="bi bi-trash me-1"></i> Supprimer
-                  </button>
-                </form>
+                <!-- Remplacer les lignes 103-110 (le formulaire de suppression) -->
+<form method="post" action="{{ path('app_plan_actions_delete', {'id': plan_actions.id}) }}" 
+      style="display:inline;">
+  <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ plan_actions.id) }}">
+  <button type="submit" class="btn" style="background-color: #d52e28; color: white; border: none; border-radius: 6px; padding: 10px 25px;">
+    <i class="bi bi-trash me-1"></i> Supprimer
+  </button>
+</form>
               </div>
             </div>
             

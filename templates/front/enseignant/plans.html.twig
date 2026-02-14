@@ -28,37 +28,127 @@
         {% if plans|length > 0 %}
             {% for plan in plans %}
                 <div class="col-md-4 mb-4">
-                    <div class="card h-100 border-0 shadow-sm hover-lift" style="border-top: 4px solid {% if plan.sortieAI and plan.sortieAI.categorieSortie %}{% if plan.sortieAI.categorieSortie.value == 'PEDAGOGIQUE' %}#102c59{% elseif plan.sortieAI.categorieSortie.value == 'ADMINISTRATIVE' %}#9dbbce{% else %}#d52e28{% endif %}{% else %}#cccccc{% endif %};">
+                    <div class="card h-100 border-0 shadow-sm hover-lift" 
+                         style="border-top: 4px solid 
+                         {% if plan.sortieAI and plan.sortieAI.categorieSortie %}
+                            {% if plan.sortieAI.categorieSortie == 'PEDAGOGIQUE' or plan.sortieAI.categorieSortie.value == 'PEDAGOGIQUE' %}
+                                #102c59
+                            {% elseif plan.sortieAI.categorieSortie == 'ADMINISTRATIVE' or plan.sortieAI.categorieSortie.value == 'ADMINISTRATIVE' %}
+                                #9dbbce
+                            {% else %}
+                                #d52e28
+                            {% endif %}
+                         {% else %}
+                            #cccccc
+                         {% endif %};">
                         <div class="card-body">
-                           
                             <!-- Titre -->
                             <h5 class="card-title mb-3" style="color: #102c59; line-height: 1.4;">
                                 {{ plan.decision }}
                             </h5>
+                            
+                            <!-- Badges -->
+                            <div class="mb-3">
+                                {% if plan.sortieAI and plan.sortieAI.categorieSortie %}
+                                    <span class="badge" style="
+                                        {% if plan.sortieAI.categorieSortie == 'PEDAGOGIQUE' or plan.sortieAI.categorieSortie.value == 'PEDAGOGIQUE' %}
+                                            background-color: #102c59; color: white;
+                                        {% elseif plan.sortieAI.categorieSortie == 'ADMINISTRATIVE' or plan.sortieAI.categorieSortie.value == 'ADMINISTRATIVE' %}
+                                            background-color: #9dbbce; color: #102c59;
+                                        {% else %}
+                                            background-color: #d52e28; color: white;
+                                        {% endif %}
+                                    ">
+                                        {% if plan.sortieAI.categorieSortie.value is defined %}
+                                            {{ plan.sortieAI.categorieSortie.value }}
+                                        {% else %}
+                                            {{ plan.sortieAI.categorieSortie }}
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
+                                
+                                <span class="badge" style="
+                                    {% if plan.statut == 'FINI' %} 
+                                        background-color: #28a745; color: white;
+                                    {% elseif plan.statut == 'EN_COURS' %} 
+                                        background-color: #ffc107; color: #102c59;
+                                    {% elseif plan.statut == 'EN_ATTENTE' %}
+                                        background-color: #6c757d; color: white;
+                                    {% elseif plan.statut == 'REJETE' %}
+                                        background-color: #d52e28; color: white;
+                                    {% else %}
+                                        background-color: #6c757d; color: white;
+                                    {% endif %}
+                                ">
+                                    {% if plan.statut == 'EN_ATTENTE' %}
+                                        EN ATTENTE
+                                    {% elseif plan.statut == 'EN_COURS' %}
+                                        EN COURS
+                                    {% elseif plan.statut == 'FINI' %}
+                                        FINI
+                                    {% elseif plan.statut == 'REJETE' %}
+                                        REJETÉ
+                                    {% else %}
+                                        {{ plan.statut }}
+                                    {% endif %}
+                                </span>
+                            </div>
                             
                             <!-- Description -->
                             <p class="card-text mb-4" style="color: #5a6c7d; line-height: 1.6;">
                                 {{ plan.description|striptags|slice(0, 120) }}...
                             </p>
                             
-                            <!-- Date -->
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-calendar me-2" style="color: #d52e28;"></i>
-                                <small style="color: #9dbbce;">
-                                    {% if plan.updatedAt %}
-                                        Mis à jour : {{ plan.updatedAt|date('d/m/Y') }}
-                                    {% else %}
-                                        Créé : {{ plan.createdAt|date('d/m/Y') }}
-                                    {% endif %}
+                            <!-- Articles liés -->
+                            {% if plan.articles|length > 0 %}
+                                <div class="mb-3">
+                                    <h6 style="color: #102c59; font-size: 0.9rem; font-weight: 600;">
+                                        <i class="bi bi-journal-text me-1" style="color: #d52e28;"></i>
+                                        Articles liés ({{ plan.articles|length }})
+                                    </h6>
+                                    <ul class="list-unstyled small">
+                                        {% for article in plan.articles|slice(0, 3) %}
+                                            <li class="mb-1">
+                                                <i class="bi bi-dot me-1" style="color: #d52e28;"></i>
+                                                <span style="color: #102c59;">{{ article.titre|slice(0, 30) }}{% if article.titre|length > 30 %}...{% endif %}</span>
+                                                <span class="badge" style="background-color: {{ article.published ? '#28a745' : '#ffc107' }}; color: white; font-size: 0.6rem; margin-left: 5px;">
+                                                    {{ article.published ? 'Pub' : 'Br' }}
+                                                </span>
+                                            </li>
+                                        {% endfor %}
+                                        {% if plan.articles|length > 3 %}
+                                            <li class="text-muted">+ {{ plan.articles|length - 3 }} autre(s)</li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            {% else %}
+                                <p class="text-muted small mb-3">
+                                    <i class="bi bi-info-circle me-1"></i>Aucun article lié
+                                </p>
+                            {% endif %}
+                            
+                            <!-- Date et ID -->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-calendar me-1" style="color: #d52e28;"></i>
+                                    <small style="color: #9dbbce;">
+                                        {{ plan.updatedAt ? plan.updatedAt|date('d/m/Y') : plan.date|date('d/m/Y') }}
+                                    </small>
+                                </div>
+                                <small style="color: #102c59; font-weight: 500;">
+                                    <i class="bi bi-hash"></i> #{{ plan.id }}
                                 </small>
                             </div>
                         </div>
+                        
+                        <!-- Footer avec bouton Voir détails -->
                         <div class="card-footer bg-transparent border-0 pt-0">
                             <div class="d-flex justify-content-between align-items-center">
-                                <a href="{{ path('app_enseignant_plan_detail', {'id': plan.id}) }}" class="btn text-white" style="background-color: #102c59; border-color: #102c59;">
+                                <a href="{{ path('app_enseignant_plan_detail', {'id': plan.id}) }}" 
+                                   class="btn text-white w-100" 
+                                   style="background-color: #102c59; border-color: #102c59;">
                                     <i class="bi bi-eye me-1"></i> Voir détails
                                 </a>
-                                
                             </div>
                         </div>
                     </div>
@@ -161,6 +251,9 @@
     font-size: 0.85em;
     letter-spacing: 0.5px;
     font-weight: 500;
+    margin-right: 0.5rem;
+    padding: 0.35em 0.65em;
+    border: none;
 }
 
 .btn {
@@ -200,13 +293,6 @@
     box-shadow: 0 4px 12px rgba(16, 44, 89, 0.3);
 }
 
-.page-item.disabled .page-link {
-    background-color: #f8f9fa;
-    border-color: #dee2e6;
-    color: #9dbbce;
-    opacity: 0.6;
-}
-
 /* Animation des cartes au chargement */
 @keyframes fadeInUp {
     from {
@@ -232,17 +318,6 @@
 .col-md-4:nth-child(4) { --animation-order: 4; }
 .col-md-4:nth-child(5) { --animation-order: 5; }
 .col-md-4:nth-child(6) { --animation-order: 6; }
-
-/* Améliorations de la typographie */
-h1 {
-    font-weight: 700;
-    letter-spacing: -0.5px;
-}
-
-.text-muted {
-    font-size: 1.1rem;
-    letter-spacing: 0.3px;
-}
 
 /* Effets subtils */
 .card-body {

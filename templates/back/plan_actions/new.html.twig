@@ -1,8 +1,6 @@
 {% extends 'back/basem.html.twig' %}
 
-{% block title %}
-    Nouveau Plan d'Action
-{% endblock %}
+{% block title %}Nouveau Plan d'Action{% endblock %}
 
 {% block body %}
 <div class="page-title" style="background-color: #9dbbce; padding: 20px 0;">
@@ -21,7 +19,7 @@
 <section class="section" style="padding: 40px 0;">
   <div class="container">
     <div class="row justify-content-center">
-      <div class="col-lg-8">
+      <div class="col-lg-10">
         
         <!-- Header avec titre principal -->
         <div class="text-center mb-5">
@@ -29,127 +27,263 @@
           <p style="color: #102c59; opacity: 0.8;">Définissez votre plan d'action pour une meilleure gestion</p>
         </div>
 
-        <div class="card" style="border: 1px solid #9dbbce; border-radius: 8px; box-shadow: 0 4px 12px rgba(16, 44, 89, 0.1);">
-          <div class="card-body p-4">
+        <!-- Messages flash -->
+        {% for message in app.flashes('success') %}
+          <div class="alert alert-success alert-dismissible fade show mb-4" style="background-color: rgba(40, 167, 69, 0.1); border-color: #28a745; color: #28a745; border-left: 4px solid #28a745; border-radius: 6px;">
+            <i class="bi bi-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+          <div class="alert alert-danger alert-dismissible fade show mb-4" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #d52e28; border-left: 4px solid #d52e28; border-radius: 6px;">
+            <i class="bi bi-exclamation-triangle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+
+        <div class="card" style="border: 1px solid #9dbbce; border-radius: 12px; box-shadow: 0 8px 24px rgba(16, 44, 89, 0.12);">
+          <div class="card-body p-5">
             
-            {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+            <!-- Formulaire avec désactivation validation HTML5 -->
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            
+            <!-- Info articles disponibles -->
+            {% if total_articles is defined %}
+            <div class="alert alert-info mb-4 d-flex align-items-center" style="background-color: rgba(16, 44, 89, 0.05); border: 2px solid #9dbbce; border-left: 6px solid #102c59; border-radius: 10px; padding: 16px 20px;">
+              <div class="me-3">
+                <i class="bi bi-journal-bookmark" style="color: #102c59; font-size: 1.5rem;"></i>
+              </div>
+              <div>
+                <strong style="color: #102c59;">{{ total_articles }}</strong> article(s) disponible(s) dans la base de données.
+              </div>
+            </div>
+            {% endif %}
             
             <!-- Décision -->
             <div class="mb-4">
-              <label class="form-label fw-bold" style="color: #102c59;">Décision <span style="color: #d52e28;">*</span></label>
+              <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                <i class="bi bi-chat-quote me-2" style="color: #d52e28;"></i>Décision <span style="color: #d52e28;">*</span>
+              </label>
               {{ form_widget(form.decision, {
                 'attr': {
-                  'class': 'form-control',
+                  'class': 'form-control form-control-lg',
                   'placeholder': 'Ex: Mettre en place une nouvelle stratégie pédagogique',
-                  'style': 'border-color: #9dbbce; border-radius: 6px;'
+                  'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;'
                 }
               }) }}
-              <div class="invalid-feedback" style="color: #d52e28;">
-                {{ form_errors(form.decision) }}
-              </div>
+              {% if form.decision.vars.errors|length > 0 %}
+                <div class="text-danger mt-2">
+                  {% for error in form.decision.vars.errors %}
+                    <div class="d-flex align-items-center"><i class="bi bi-exclamation-circle me-2"></i>{{ error.message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
             </div>
             
             <!-- Description détaillée -->
             <div class="mb-4">
-              <label class="form-label fw-bold" style="color: #102c59;">Description détaillée <span style="color: #d52e28;">*</span></label>
+              <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                <i class="bi bi-file-text me-2" style="color: #d52e28;"></i>Description détaillée <span style="color: #d52e28;">*</span>
+              </label>
               {{ form_widget(form.description, {
                 'attr': {
                   'class': 'form-control',
-                  'rows': 4,
+                  'rows': 5,
                   'placeholder': 'Rédigez le contenu complet du plan d\'action...',
-                  'style': 'border-color: #9dbbce; border-radius: 6px;'
+                  'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;'
                 }
               }) }}
-              <div class="invalid-feedback" style="color: #d52e28;">
-                {{ form_errors(form.description) }}
-              </div>
+              {% if form.description.vars.errors|length > 0 %}
+                <div class="text-danger mt-2">
+                  {% for error in form.description.vars.errors %}
+                    <div class="d-flex align-items-center"><i class="bi bi-exclamation-circle me-2"></i>{{ error.message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
             </div>
             
             <!-- Deux colonnes pour Statut et Catégorie -->
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label fw-bold" style="color: #102c59;">Statut <span style="color: #d52e28;">*</span></label>
-                  {{ form_widget(form.statut, {
-                    'attr': {
-                      'class': 'form-select',
-                      'style': 'border-color: #9dbbce; border-radius: 6px;'
-                    }
-                  }) }}
-                  <div class="invalid-feedback" style="color: #d52e28;">
-                    {{ form_errors(form.statut) }}
+<div class="row mb-4">
+  <div class="col-md-6">
+    <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+      <i class="bi bi-flag me-2" style="color: #d52e28;"></i>Statut <span style="color: #d52e28;">*</span>
+    </label>
+    {{ form_widget(form.statut, {
+      'attr': {
+        'class': 'form-select form-select-lg' ~ (form.statut.vars.errors|length ? ' is-invalid' : ''),
+        'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;' ~ (form.statut.vars.errors|length ? ' border-color: #d52e28;' : '')
+      }
+    }) }}
+    {% if form.statut.vars.errors|length > 0 %}
+      <div class="text-danger mt-2">
+        {% for error in form.statut.vars.errors %}
+          <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-circle me-2"></i>
+            {{ error.message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  
+  <div class="col-md-6">
+    <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+      <i class="bi bi-tag me-2" style="color: #d52e28;"></i>Catégorie <span style="color: #d52e28;">*</span>
+    </label>
+    {{ form_widget(form.categorie, {
+      'attr': {
+        'class': 'form-select form-select-lg' ~ (form.categorie.vars.errors|length ? ' is-invalid' : ''),
+        'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;' ~ (form.categorie.vars.errors|length ? ' border-color: #d52e28;' : '')
+      }
+    }) }}
+    {% if form.categorie.vars.errors|length > 0 %}
+      <div class="text-danger mt-2">
+        {% for error in form.categorie.vars.errors %}
+          <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-circle me-2"></i>
+            {{ error.message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>            
+            <!-- Date - Non modifiable -->
+            <div class="mb-4">
+              <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                <i class="bi bi-calendar me-2" style="color: #d52e28;"></i>Date <span style="color: #d52e28;">*</span>
+              </label>
+              {{ form_widget(form.date, {
+                'attr': {
+                  'class': 'form-control form-control-lg',
+                  'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px; background-color: #f8f9fa; cursor: not-allowed;',
+                  'readonly': true,
+                  'disabled': true
+                }
+              }) }}
+              <div class="form-text mt-1" style="color: #102c59; opacity: 0.7;">
+                <i class="bi bi-info-circle me-1"></i>La date est automatiquement celle du jour
+              </div>
+            </div>
+            
+            <!-- SECTION ARTICLES LIÉS -->
+            <div class="mb-5">
+              <div class="d-flex align-items-center mb-3">
+                <div style="width: 40px; height: 40px; background-color: #102c59; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                  <i class="bi bi-journal-text" style="color: white; font-size: 1.2rem;"></i>
+                </div>
+                <h4 class="mb-0" style="color: #102c59; font-weight: 700;">Articles liés</h4>
+                <span class="badge ms-3" id="total-badge" style="background-color: #9dbbce; color: #102c59; font-size: 0.9rem; padding: 6px 12px; border-radius: 20px;">Chargement...</span>
+              </div>
+              
+              <div class="card" style="border: 2px solid #9dbbce; border-radius: 12px; background-color: #f8fafc;">
+                <div class="card-body p-4">
+                  
+                  <!-- Barre de recherche -->
+                  <div class="mb-3">
+                    <div class="input-group">
+                      <span class="input-group-text" style="background-color: white; border: 2px solid #9dbbce; border-right: none; border-radius: 8px 0 0 8px;">
+                        <i class="bi bi-search" style="color: #102c59;"></i>
+                      </span>
+                      <input type="text" id="article-search" class="form-control" 
+                             placeholder="Rechercher un article par titre ou catégorie..." 
+                             style="border: 2px solid #9dbbce; border-left: none; border-right: none; padding: 12px 16px;">
+                      <span class="input-group-text" style="background-color: white; border: 2px solid #9dbbce; border-left: none; border-radius: 0 8px 8px 0;">
+                        <i class="bi bi-funnel" style="color: #102c59;"></i>
+                      </span>
+                    </div>
                   </div>
+                  
+                  <!-- Zone des checkboxes -->
+                  <div class="articles-container" style="max-height: 400px; overflow-y: auto; border: 2px solid #9dbbce; border-radius: 8px; padding: 15px; background-color: white;">
+                    <div class="articles-list">
+                      {% for child in form.articles %}
+                        <div class="article-item">
+                          <div class="form-check">
+                            {{ form_widget(child, {
+                              'attr': {
+                                'class': 'form-check-input article-checkbox',
+                                'data-statut': child.vars.attr['data-statut'] ?? ''
+                              }
+                            }) }}
+                            {{ form_label(child, null, {
+                              'label_attr': {
+                                'class': 'form-check-label'
+                              }
+                            }) }}
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  
+                  <!-- Barre d'outils -->
+                  <div class="d-flex flex-wrap align-items-center justify-content-between mt-3">
+                    <div class="d-flex gap-2">
+                      <button type="button" id="select-all-btn" class="btn btn-sm" 
+                              style="background-color: #102c59; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 500;">
+                        <i class="bi bi-check-all me-1"></i>Tout sélectionner
+                      </button>
+                      <button type="button" id="deselect-all-btn" class="btn btn-sm" 
+                              style="background-color: #9dbbce; color: #102c59; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 500;">
+                        <i class="bi bi-x me-1"></i>Tout désélectionner
+                      </button>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                      <span class="badge" id="selected-count" 
+                            style="background-color: #d52e28; color: white; font-size: 0.9rem; padding: 8px 16px; border-radius: 20px; font-weight: 500;">
+                        <i class="bi bi-check-circle me-1"></i><span id="selected-number">0</span> article(s) sélectionné(s)
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Légende des statuts -->
+                  <div class="mt-3 d-flex gap-3 flex-wrap">
+                    <span class="badge-status publie">
+                      <span class="dot" style="background-color: #28a745;"></span> Publié
+                    </span>
+                    <span class="badge-status brouillon">
+                      <span class="dot" style="background-color: #ffc107;"></span> Brouillon
+                    </span>
+                  </div>
+                  
                 </div>
               </div>
               
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label fw-bold" style="color: #102c59;">Catégorie <span style="color: #d52e28;">*</span></label>
-                  {{ form_widget(form.categorie, {
-                    'attr': {
-                      'class': 'form-select',
-                      'style': 'border-color: #9dbbce; border-radius: 6px;'
-                    }
-                  }) }}
-                  <div class="invalid-feedback" style="color: #d52e28;">
-                    {{ form_errors(form.categorie) }}
-                  </div>
+              <div class="form-text mt-2" style="color: #102c59; opacity: 0.7;">
+                <i class="bi bi-info-circle me-1"></i>
+                Cliquez sur les cases pour sélectionner plusieurs articles (pas besoin de Ctrl)
+              </div>
+            </div>
+
+            <!-- Information note -->
+            <div class="alert alert-info mt-4 mb-4" style="background-color: rgba(157, 187, 206, 0.15); border: 2px solid #9dbbce; color: #102c59; border-radius: 10px; border-left: 6px solid #102c59; padding: 16px 20px;">
+              <div class="d-flex">
+                <div class="me-3">
+                  <i class="bi bi-info-circle" style="color: #102c59; font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                  <strong>Information :</strong> Ce plan d'action sera automatiquement attribué à l'administrateur connecté.
                 </div>
               </div>
             </div>
-            
-            <!-- Date -->
-            <div class="mb-4">
-              <label class="form-label fw-bold" style="color: #102c59;">Date <span style="color: #d52e28;">*</span></label>
-              {{ form_widget(form.date, {
-                'attr': {
-                  'class': 'form-control',
-                  'placeholder': 'jj/mm/aaaa',
-                  'style': 'border-color: #9dbbce; border-radius: 6px;'
-                }
-              }) }}
-              <div class="invalid-feedback" style="color: #d52e28;">
-                {{ form_errors(form.date) }}
-              </div>
-            </div>
-            
-            <!-- Information note -->
-            <div class="alert alert-info mt-4 mb-4" style="background-color: rgba(157, 187, 206, 0.2); border-color: #9dbbce; color: #102c59; border-left: 4px solid #102c59; border-radius: 6px;">
-              <i class="bi bi-info-circle me-2" style="color: #102c59;"></i>
-              <strong>Information :</strong> Ce plan d'action sera automatiquement attribué à l'administrateur connecté.
-            </div>
 
             <!-- Boutons d'action -->
-            <div class="d-flex justify-content-between mt-4 pt-3 border-top" style="border-color: #9dbbce !important;">
-              <a href="{{ path('app_plan_actions_index') }}" class="btn" style="border: 1px solid #9dbbce; color: #102c59; border-radius: 6px; padding: 10px 25px;">
-                <i class="bi bi-arrow-left me-1"></i> Retour à la liste
+            <div class="d-flex justify-content-between mt-5 pt-4 border-top" style="border-color: #9dbbce !important; border-top-width: 2px;">
+              <a href="{{ path('app_plan_actions_index') }}" class="btn btn-lg" style="border: 2px solid #9dbbce; color: #102c59; border-radius: 10px; padding: 12px 30px; font-weight: 500; transition: all 0.3s;">
+                <i class="bi bi-arrow-left me-2"></i> Retour à la liste
               </a>
-              <button type="submit" class="btn" style="background-color: #102c59; color: white; border: none; border-radius: 6px; padding: 10px 25px; font-weight: 600;">
-                <i class="bi bi-plus-circle me-1"></i> Créer le Plan
+              
+              <button type="submit" class="btn btn-lg" style="background-color: #102c59; color: white; border: none; border-radius: 10px; padding: 12px 40px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 44, 89, 0.3); transition: all 0.3s;">
+                <i class="bi bi-plus-circle me-2"></i> Créer le Plan
               </button>
             </div>
             
             {{ form_end(form) }}
             
           </div>
-        </div>
-
-        <!-- Navigation footer -->
-        <div class="mt-4 text-center">
-          <nav class="nav justify-content-center">
-            <a class="nav-link" href="#" style="color: #102c59; opacity: 0.7;">
-              <i class="bi bi-clipboard-check me-1"></i> Plan d'actions
-            </a>
-            <a class="nav-link" href="#" style="color: #102c59; opacity: 0.7;">
-              <i class="bi bi-file-text me-1"></i> Articles
-            </a>
-            <a class="nav-link" href="#" style="color: #102c59; opacity: 0.7;">
-              <i class="bi bi-tag me-1"></i> Catégorie
-            </a>
-            <a class="nav-link" href="#" style="color: #102c59; opacity: 0.7;">
-              <i class="bi bi-window me-1"></i> Front Office
-            </a>
-          </nav>
         </div>
         
       </div>
@@ -158,194 +292,305 @@
 </section>
 
 <style>
+/* Style général */
 .card {
-  border-radius: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
-.form-label {
-  font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.form-control, .form-select {
-  border: 2px solid #9dbbce;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.form-control:focus, .form-select:focus {
-  border-color: #102c59;
-  box-shadow: 0 0 0 0.25rem rgba(16, 44, 89, 0.25);
-  outline: none;
-}
-
-.btn {
-  padding: 0.75rem 2rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.btn:hover {
+.card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 30px rgba(16, 44, 89, 0.15) !important;
+}
+.form-control:focus, .form-select:focus {
+  border-color: #102c59 !important;
+  box-shadow: 0 0 0 0.2rem rgba(16, 44, 89, 0.25) !important;
 }
 
-.btn[style*="background-color: #102c59"]:hover {
-  background-color: #0a1f3f !important;
+/* Style pour le champ date désactivé */
+input:disabled, input[readonly] {
+  background-color: #f8f9fa !important;
+  opacity: 0.8;
+  cursor: not-allowed;
 }
 
-.btn[style*="border: 1px solid #9dbbce"]:hover {
-  background-color: rgba(157, 187, 206, 0.1);
-  color: #102c59;
+/* Style des articles */
+.articles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-
-.nav-link {
-  font-weight: 500;
-  transition: all 0.3s;
+.article-item {
+  background-color: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
-
-.nav-link:hover {
-  color: #d52e28 !important;
-  opacity: 1 !important;
+.article-item:hover {
+  border-color: #9dbbce;
+  background-color: rgba(157, 187, 206, 0.05);
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
-
-.was-validated .form-control:invalid,
-.was-validated .form-select:invalid {
+.article-item .form-check {
+  padding: 12px 15px;
+  margin: 0;
+  min-height: auto;
+  display: flex;
+  align-items: center;
+}
+.article-item .form-check-input {
+  width: 20px;
+  height: 20px;
+  margin-top: 0;
+  margin-right: 12px;
+  cursor: pointer;
+  border: 2px solid #9dbbce;
+  flex-shrink: 0;
+}
+.article-item .form-check-input:checked {
+  background-color: #d52e28;
   border-color: #d52e28;
 }
-
-.was-validated .form-control:valid,
-.was-validated .form-select:valid {
-  border-color: #28a745;
+.article-item .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(213, 46, 40, 0.25);
+  border-color: #d52e28;
 }
-
-.invalid-feedback {
-  display: none;
-  width: 100%;
-  margin-top: 0.25rem;
-  font-size: 0.875em;
-}
-
-.was-validated .form-control:invalid ~ .invalid-feedback,
-.was-validated .form-select:invalid ~ .invalid-feedback {
-  display: block;
-}
-
-input[type="date"] {
-  position: relative;
-  padding-right: 2.5rem;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator {
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  opacity: 0.7;
+.article-item .form-check-label {
   color: #102c59;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
+/* Badges de statut */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.badge-status.publie {
+  background-color: rgba(40, 167, 69, 0.15);
+  color: #28a745;
+  border: 1px solid #28a745;
+}
+.badge-status.brouillon {
+  background-color: rgba(255, 193, 7, 0.15);
+  color: #856404;
+  border: 1px solid #ffc107;
+}
+.badge-status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
-.form-select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23102c59' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  background-size: 16px 12px;
+/* Badges dans les labels */
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 8px;
+}
+.status-badge.publie {
+  background-color: #28a745;
+  color: white;
+}
+.status-badge.brouillon {
+  background-color: #ffc107;
+  color: #000;
+}
+
+/* Style pour les articles filtrés */
+.article-item[data-filter="hide"] {
+  display: none;
+}
+
+/* Personnalisation de la scrollbar */
+.articles-container::-webkit-scrollbar {
+  width: 10px;
+}
+.articles-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.articles-container::-webkit-scrollbar-thumb {
+  background: #9dbbce;
+  border-radius: 4px;
+}
+.articles-container::-webkit-scrollbar-thumb:hover {
+  background: #102c59;
+}
+
+/* Animation des boutons */
+.btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+}
+.btn:active {
+  transform: translateY(0) !important;
+}
+
+/* Style pour les alertes */
+.alert {
+  animation: slideIn 0.5s ease-out;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Style pour les champs invalides */
+.is-invalid {
+  border-color: #d52e28 !important;
+  background-image: none;
+}
+.text-danger {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Validation côté client
-  const forms = document.querySelectorAll('.needs-validation');
-  
-  Array.from(forms).forEach(form => {
-    form.addEventListener('submit', event => {
-      if (!form.checkValidity()) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      
-      form.classList.add('was-validated');
-    }, false);
-  });
-  
-  // Formatage de la date
-  const dateInput = document.querySelector('input[type="date"]');
-  if (dateInput) {
-    // Définir la date d'aujourd'hui par défaut
-    if (!dateInput.value) {
-      const today = new Date().toISOString().split('T')[0];
-      dateInput.value = today;
-    }
-    
-    // Améliorer l'apparence du champ date
-    dateInput.style.cursor = 'pointer';
-    
-    // Ajouter un placeholder personnalisé
-    if (!dateInput.hasAttribute('placeholder')) {
-      dateInput.setAttribute('placeholder', 'Sélectionnez une date');
-    }
-    
-    // Format d'affichage
-    dateInput.addEventListener('change', function() {
-      const date = new Date(this.value);
-      if (!isNaN(date.getTime())) {
-        // Formater la date en français
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        const formatted = date.toLocaleDateString('fr-FR', options);
-        
-        // Créer un élément pour afficher la date formatée
-        let displayElement = this.nextElementSibling;
-        if (!displayElement || !displayElement.classList.contains('date-display')) {
-          displayElement = document.createElement('div');
-          displayElement.classList.add('date-display', 'mt-2', 'text-muted');
-          displayElement.style.fontSize = '0.9rem';
-          displayElement.style.color = '#102c59';
-          displayElement.style.opacity = '0.7';
-          this.parentNode.appendChild(displayElement);
-        }
-        displayElement.textContent = 'Date sélectionnée : ' + formatted;
-      }
-    });
-    
-    // Déclencher l'événement change au chargement si une date est déjà définie
-    if (dateInput.value) {
-      dateInput.dispatchEvent(new Event('change'));
-    }
+  // Animation d'entrée pour la carte
+  const card = document.querySelector('.card');
+  if (card) {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, 100);
   }
   
-  // Améliorer l'expérience des champs de formulaire
-  const formControls = document.querySelectorAll('.form-control, .form-select');
-  formControls.forEach(control => {
-    // Ajouter un effet de focus amélioré
-    control.addEventListener('focus', function() {
-      this.parentElement.style.position = 'relative';
-    });
-    
-    // Ajouter une animation de label flottant
-    const label = control.previousElementSibling;
-    if (label && label.classList.contains('form-label')) {
-      control.addEventListener('focus', function() {
-        label.style.color = '#102c59';
-        label.style.fontWeight = '700';
-      });
-      
-      control.addEventListener('blur', function() {
-        if (!this.value) {
-          label.style.color = '#102c59';
-          label.style.fontWeight = '600';
-        }
-      });
+  // Ajouter une classe aux champs avec erreurs
+  const errorFields = document.querySelectorAll('.text-danger');
+  errorFields.forEach(errorField => {
+    const input = errorField.previousElementSibling;
+    if (input && (input.classList.contains('form-control') || input.classList.contains('form-select'))) {
+      input.classList.add('is-invalid');
+      input.style.borderColor = '#d52e28';
     }
   });
+
+  // ===== GESTION DES CHECKBOXES D'ARTICLES =====
+  setTimeout(function() {
+    const checkboxes = document.querySelectorAll('.article-checkbox');
+    const totalBadge = document.getElementById('total-badge');
+    const selectedSpan = document.getElementById('selected-number');
+    const searchInput = document.getElementById('article-search');
+    const selectAllBtn = document.getElementById('select-all-btn');
+    const deselectAllBtn = document.getElementById('deselect-all-btn');
+    
+    if (checkboxes.length > 0) {
+      const totalOptions = checkboxes.length;
+      totalBadge.innerHTML = `<i class="bi bi-journal-text me-1"></i>${totalOptions} article(s)`;
+      
+      // Ajouter des badges de statut à côté des labels
+      checkboxes.forEach(checkbox => {
+        const statut = checkbox.getAttribute('data-statut');
+        const label = checkbox.closest('.form-check').querySelector('.form-check-label');
+        
+        if (statut && label && !label.querySelector('.status-badge')) {
+          const badge = document.createElement('span');
+          badge.className = 'status-badge ' + (statut === 'Publié' ? 'publie' : 'brouillon');
+          badge.textContent = statut;
+          label.appendChild(badge);
+        }
+      });
+      
+      // Fonction de mise à jour du compteur
+      function updateSelectedCount() {
+        const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        selectedSpan.textContent = selectedCount;
+        
+        const selectedBadge = document.getElementById('selected-count');
+        selectedBadge.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          selectedBadge.style.transform = 'scale(1)';
+        }, 200);
+      }
+      
+      // Fonction de filtrage
+      function filterArticles() {
+        const searchTerm = searchInput.value.toLowerCase();
+        let visibleCount = 0;
+        
+        checkboxes.forEach(checkbox => {
+          const articleItem = checkbox.closest('.article-item');
+          const label = checkbox.closest('.form-check').querySelector('.form-check-label');
+          const text = label ? label.textContent.toLowerCase() : '';
+          
+          if (text.includes(searchTerm)) {
+            articleItem.style.display = '';
+            articleItem.removeAttribute('data-filter');
+            visibleCount++;
+          } else {
+            articleItem.style.display = 'none';
+            articleItem.setAttribute('data-filter', 'hide');
+            checkbox.checked = false;
+          }
+        });
+        
+        totalBadge.innerHTML = `<i class="bi bi-journal-text me-1"></i>${visibleCount}/${totalOptions} article(s)`;
+        updateSelectedCount();
+      }
+      
+      // Recherche en temps réel
+      let searchTimeout;
+      searchInput.addEventListener('keyup', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(filterArticles, 300);
+      });
+      
+      // Tout sélectionner
+      selectAllBtn.addEventListener('click', function() {
+        checkboxes.forEach(checkbox => {
+          const articleItem = checkbox.closest('.article-item');
+          if (articleItem.style.display !== 'none') {
+            checkbox.checked = true;
+          }
+        });
+        updateSelectedCount();
+      });
+      
+      // Tout désélectionner
+      deselectAllBtn.addEventListener('click', function() {
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        updateSelectedCount();
+      });
+      
+      // Mise à jour du compteur au changement
+      checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+      });
+      
+      // Initialisation
+      updateSelectedCount();
+    }
+  }, 200);
 });
 </script>
 {% endblock %}

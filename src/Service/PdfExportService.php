@@ -66,4 +66,42 @@ class PdfExportService
     
     return $response;
 }
+/**
+ * Génère un PDF pour la liste des plans d'actions avec leurs articles
+ */
+public function generatePlansListPdf(array $plans, array $filters = []): Response
+{
+    $options = new Options();
+    $options->set('defaultFont', 'Arial');
+    $options->set('isHtml5ParserEnabled', true);
+    $options->set('isRemoteEnabled', true);
+
+    $dompdf = new Dompdf($options);
+
+    // Compter le nombre total d'articles
+    $totalArticles = 0;
+    foreach ($plans as $plan) {
+        $totalArticles += $plan->getArticles()->count();
+    }
+
+    $html = $this->twig->render('pdf/plans_table.html.twig', [
+        'plans' => $plans,
+        'filters' => $filters, // ← Important : passer les filtres
+        'date' => new \DateTime(),
+        'title' => 'Liste des Plans d\'Actions', 
+        'total_plans' => count($plans),
+        'total_articles' => $totalArticles
+    ]);
+
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'landscape');
+    $dompdf->render();
+
+    $filename = 'plans_actions_' . date('Y-m-d_H-i-s') . '.pdf';
+
+    return new Response($dompdf->output(), 200, [
+        'Content-Type' => 'application/pdf',
+        'Content-Disposition' => 'attachment; filename="' . $filename . '"'
+    ]);
+}
 }

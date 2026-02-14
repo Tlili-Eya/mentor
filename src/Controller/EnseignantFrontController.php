@@ -11,47 +11,50 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+
+#[Route('/enseignant')]
+#[IsGranted('ROLE_ENSEIGNANT')]
 class EnseignantFrontController extends AbstractController
 {
-    #[Route('/enseignant/dashboard', name: 'app_enseignant_dashboard')]
-public function dashboard(EntityManagerInterface $em): Response
-{
-    $conn = $em->getConnection();
-    
-    // Statistiques avec requêtes SQL directes (beaucoup plus rapides)
-    $stats = [
-        // Articles publiés
-        'total_articles' => (int) $conn->executeQuery(
-            "SELECT COUNT(*) FROM reference_article WHERE published = 1"
-        )->fetchOne(),
+    #[Route('', name: 'app_enseignant_dashboard')]
+    public function dashboard(EntityManagerInterface $em): Response
+    {
+        $conn = $em->getConnection();
         
-        // Plans pédagogiques
-        'plans_pedagogiques' => (int) $conn->executeQuery(
-            "SELECT COUNT(DISTINCT p.id) 
-             FROM plan_actions p 
-             LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id 
-             WHERE s.categorie_sortie = 'PEDAGOGIQUE'"
-        )->fetchOne(),
+        // Statistiques avec requêtes SQL directes (beaucoup plus rapides)
+        $stats = [
+            // Articles publiés
+            'total_articles' => (int) $conn->executeQuery(
+                "SELECT COUNT(*) FROM reference_article WHERE published = 1"
+            )->fetchOne(),
+            
+            // Plans pédagogiques
+            'plans_pedagogiques' => (int) $conn->executeQuery(
+                "SELECT COUNT(DISTINCT p.id) 
+                 FROM plan_actions p 
+                 LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id 
+                 WHERE s.categorie_sortie = 'PEDAGOGIQUE'"
+            )->fetchOne(),
+            
+            // Plans administratifs
+            'plans_administratifs' => (int) $conn->executeQuery(
+                "SELECT COUNT(DISTINCT p.id) 
+                 FROM plan_actions p 
+                 LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id 
+                 WHERE s.categorie_sortie = 'ADMINISTRATIVE'"
+            )->fetchOne(),
+        ];
         
-        // Plans administratifs
-        'plans_administratifs' => (int) $conn->executeQuery(
-            "SELECT COUNT(DISTINCT p.id) 
-             FROM plan_actions p 
-             LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id 
-             WHERE s.categorie_sortie = 'ADMINISTRATIVE'"
-        )->fetchOne(),
-    ];
-    
-    // Pour les enseignants, articles pédagogiques = tous les articles publiés
-    $stats['articles_pedagogiques'] = $stats['total_articles'];
-    
-    return $this->render('front/enseignant/dashboard.html.twig', [
-        'total_articles' => $stats['total_articles'],
-        'articles_pedagogiques' => $stats['articles_pedagogiques'],
-        'plans_pedagogiques' => $stats['plans_pedagogiques'],
-        'plans_administratifs' => $stats['plans_administratifs'],
-    ]);
-}
+        // Pour les enseignants, articles pédagogiques = tous les articles publiés
+        $stats['articles_pedagogiques'] = $stats['total_articles'];
+        
+        return $this->render('front/enseignant/dashboard.html.twig', [
+            'total_articles' => $stats['total_articles'],
+            'articles_pedagogiques' => $stats['articles_pedagogiques'],
+            'plans_pedagogiques' => $stats['plans_pedagogiques'],
+            'plans_administratifs' => $stats['plans_administratifs'],
+        ]);
+    }
 
     #[Route('/articles', name: 'app_enseignant_articles', methods: ['GET'])]
     public function articles(
@@ -117,64 +120,95 @@ public function dashboard(EntityManagerInterface $em): Response
         }
     }
 
-    ##[Route('/article/{id}', name: 'app_article_detail', methods: ['GET'])]
+    #[Route('/article/{id}', name: 'app_article_detail', methods: ['GET'])]
 public function detail(
     int $id,
     ReferenceArticleRepository $repository,
     EntityManagerInterface $em
 ): Response
 {
-    // OPTIMISATION 1: Désactiver le profiler pour les tests
-    if (function_exists('xdebug_disable')) {
-        xdebug_disable();
-    }
-
-    // OPTIMISATION 2: Utiliser une requête optimisée
     try {
+        // Récupérer l'article avec sa catégorie
         $article = $repository->createQueryBuilder('a')
             ->leftJoin('a.categorie', 'c')
-            ->addSelect('c') // Important: pour éviter le N+1
+            ->addSelect('c')
             ->where('a.id = :id')
             ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
 
         if (!$article) {
-            throw $this->createNotFoundException('Article non trouvé');
+            // Journaliser l'erreur
+            error_log("Article ID {$id} non trouvé dans la base de données");
+            
+            // Ajouter un message flash
+            $this->addFlash('error', "L'article demandé (ID: {$id}) n'existe pas.");
+            
+            // Rediriger vers la liste des articles
+            return $this->redirectToRoute('app_enseignant_articles');
         }
 
         // Vérifier la publication
         if (!$article->isPublished() && !$this->isGranted('ROLE_ADMIN')) {
-            throw $this->createNotFoundException('Cet article n\'est pas disponible.');
+            $this->addFlash('error', "Cet article n'est pas disponible.");
+            return $this->redirectToRoute('app_enseignant_articles');
         }
 
-        // OPTIMISATION 3: Limiter les données
+        // Récupérer les articles récents pour la sidebar
+        $recentArticles = $repository->createQueryBuilder('a')
+            ->where('a.published = true')
+            ->orderBy('a.createdAt', 'DESC')
+            ->setMaxResults(5)
+            ->getQuery()
+            ->getResult();
+
+        // Récupérer l'article précédent et suivant
+        $previousArticle = $repository->createQueryBuilder('a')
+            ->where('a.id < :id')
+            ->andWhere('a.published = true')
+            ->setParameter('id', $id)
+            ->orderBy('a.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        $nextArticle = $repository->createQueryBuilder('a')
+            ->where('a.id > :id')
+            ->andWhere('a.published = true')
+            ->setParameter('id', $id)
+            ->orderBy('a.id', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        // Créer un tableau simple pour le template
         $simpleArticle = [
             'id' => $article->getId(),
             'titre' => $article->getTitre(),
             'contenu' => $article->getContenu(),
-            'image' => $article->getImage(),
-            'resume' => $article->getResume(),
             'createdAt' => $article->getCreatedAt(),
             'updatedAt' => $article->getUpdatedAt(),
+            'published' => $article->isPublished(),
             'categorie' => $article->getCategorie() ? [
                 'id' => $article->getCategorie()->getId(),
-                'nom' => $article->getCategorie()->getNom(),
+                'nomCategorie' => $article->getCategorie()->getNomCategorie(),
             ] : null,
         ];
 
         return $this->render('front/enseignant/article_detail.html.twig', [
-            'article' => $simpleArticle, // Passer un tableau au lieu de l'entité
+            'article' => $simpleArticle,
+            'recentArticles' => $recentArticles,
+            'previousArticle' => $previousArticle,
+            'nextArticle' => $nextArticle,
         ]);
         
     } catch (\Exception $e) {
-        // Journaliser l'erreur
         error_log('Erreur chargement article: ' . $e->getMessage());
-        throw $this->createNotFoundException('Erreur lors du chargement de l\'article');
+        $this->addFlash('error', 'Erreur lors du chargement de l\'article.');
+        return $this->redirectToRoute('app_enseignant_articles');
     }
 }
-
-   #[Route('/plans', name: 'app_enseignant_plans', methods: ['GET'])]
+    #[Route('/plans', name: 'app_enseignant_plans', methods: ['GET'])]
 public function plans(
     Request $request,
     EntityManagerInterface $em
@@ -189,7 +223,7 @@ public function plans(
 
     $conn = $em->getConnection();
     
-    // OPTIMISATION: Requête SQL directe
+    // Requête principale pour les plans
     $sql = "
         SELECT 
             p.id,
@@ -209,42 +243,70 @@ public function plans(
     
     // Conditions
     if (!empty($search)) {
-        $sql .= " AND (p.decision LIKE ? OR p.description LIKE ?)";
-        $params[] = '%' . $search . '%';
-        $params[] = '%' . $search . '%';
+        $sql .= " AND (p.decision LIKE :search OR p.description LIKE :search)";
+        $params['search'] = '%' . $search . '%';
     }
     
     if (!empty($categorie) && in_array($categorie, ['PEDAGOGIQUE', 'ADMINISTRATIVE', 'STRATEGIQUE'])) {
-        $sql .= " AND s.categorie_sortie = ?";
-        $params[] = $categorie;
+        $sql .= " AND s.categorie_sortie = :categorie";
+        $params['categorie'] = $categorie;
     }
     
     // Tri par date
     $sql .= " ORDER BY p.updated_at DESC";
     
-    // 1. Compter le total (optimisé)
-    $countSql = "SELECT COUNT(*) FROM (" . str_replace(
-        ['p.id, p.decision, p.description, p.statut, p.date as createdAt, p.updated_at as updatedAt, s.id as sortie_id, s.categorie_sortie as sortie_categorie'],
-        ['1'],
-        $sql
-    ) . ") as counted";
+    // Compter
+    $countSql = "SELECT COUNT(*) as total FROM plan_actions p LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id WHERE 1=1";
     
-    $total = $conn->executeQuery($countSql, $params)->fetchOne();
+    $countParams = [];
+    if (!empty($search)) {
+        $countSql .= " AND (p.decision LIKE :search OR p.description LIKE :search)";
+        $countParams['search'] = '%' . $search . '%';
+    }
+    if (!empty($categorie) && in_array($categorie, ['PEDAGOGIQUE', 'ADMINISTRATIVE', 'STRATEGIQUE'])) {
+        $countSql .= " AND s.categorie_sortie = :categorie";
+        $countParams['categorie'] = $categorie;
+    }
     
-    // 2. Pagination - concaténation directe pour éviter les problèmes de types
+    $total = $conn->executeQuery($countSql, $countParams)->fetchOne();
+    
+    // Pagination
     $offset = ($page - 1) * $limit;
     $sql .= " LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
     
-    // 3. Exécuter la requête
+    // Exécuter la requête principale
     $startQuery = microtime(true);
-    $plansData = $conn->executeQuery($sql, $params)->fetchAllAssociative();
+    $stmt = $conn->prepare($sql);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value);
+    }
+    $plansData = $stmt->executeQuery()->fetchAllAssociative();
     $queryTime = microtime(true) - $startQuery;
     
     error_log("Enseignant plans query: " . sprintf("%.3f", $queryTime) . "s");
     
-    // 4. Convertir en tableau pour le template
+    // Pour chaque plan, récupérer les articles séparément
     $plans = [];
     foreach ($plansData as $data) {
+        // Récupérer les articles pour ce plan
+        $articlesSql = "
+            SELECT 
+                a.id,
+                a.titre,
+                a.published,
+                ac.id as categorie_id,
+                ac.nom_categorie as categorie_nom
+            FROM plan_actions_articles paa
+            JOIN reference_article a ON paa.reference_article_id = a.id
+            LEFT JOIN categorie_article ac ON a.categorie_id = ac.id
+            WHERE paa.plan_actions_id = :plan_id
+            ORDER BY a.titre
+        ";
+        
+        $articlesStmt = $conn->prepare($articlesSql);
+        $articlesStmt->bindValue('plan_id', $data['id']);
+        $articles = $articlesStmt->executeQuery()->fetchAllAssociative();
+        
         $plans[] = [
             'id' => $data['id'],
             'decision' => $data['decision'],
@@ -256,6 +318,7 @@ public function plans(
                 'id' => $data['sortie_id'],
                 'categorieSortie' => $data['sortie_categorie'],
             ] : null,
+            'articles' => $articles,
         ];
     }
     
@@ -273,7 +336,8 @@ public function plans(
         'total' => $total,
     ]);
 }
-  #[Route('/plan/{id}', name: 'app_enseignant_plan_detail', methods: ['GET'])]
+
+    #[Route('/plan/{id}', name: 'app_enseignant_plan_detail', methods: ['GET'])]
 public function planDetail(int $id, EntityManagerInterface $em): Response
 {
     // Validation
@@ -292,7 +356,6 @@ public function planDetail(int $id, EntityManagerInterface $em): Response
         )->fetchOne();
         
         if (!$exists) {
-            // Plan non trouvé, afficher des suggestions
             $availableIds = $conn->executeQuery(
                 "SELECT id, decision FROM plan_actions ORDER BY updated_at DESC LIMIT 5"
             )->fetchAllAssociative();
@@ -304,7 +367,7 @@ public function planDetail(int $id, EntityManagerInterface $em): Response
             ]);
         }
         
-        // Charger les données avec requête optimisée
+        // Charger les données du plan
         $sql = "
             SELECT 
                 p.id,
@@ -331,6 +394,27 @@ public function planDetail(int $id, EntityManagerInterface $em): Response
             throw new \Exception("Erreur lors du chargement du plan #{$id}");
         }
         
+        // Récupérer les articles pour ce plan
+        $articlesSql = "
+            SELECT 
+                a.id,
+                a.titre,
+                a.contenu,
+                a.published,
+                a.created_at as createdAt,
+                ac.id as categorie_id,
+                ac.nom_categorie as categorie_nom
+            FROM plan_actions_articles paa
+            JOIN reference_article a ON paa.reference_article_id = a.id
+            LEFT JOIN categorie_article ac ON a.categorie_id = ac.id
+            WHERE paa.plan_actions_id = :plan_id
+            ORDER BY a.titre
+        ";
+        
+        $articlesStmt = $conn->prepare($articlesSql);
+        $articlesStmt->bindValue('plan_id', $id);
+        $articles = $articlesStmt->executeQuery()->fetchAllAssociative();
+        
         // Préparer les données
         $plan = [
             'id' => $planData['id'],
@@ -339,6 +423,7 @@ public function planDetail(int $id, EntityManagerInterface $em): Response
             'statut' => $planData['statut'] ?? 'INCONNU',
             'date' => $planData['createdAt'] ? new \DateTime($planData['createdAt']) : null,
             'updatedAt' => $planData['updatedAt'] ? new \DateTime($planData['updatedAt']) : null,
+            'articles' => $articles,
             
             'sortieAI' => $planData['sortie_id'] ? [
                 'id' => $planData['sortie_id'],
@@ -402,11 +487,38 @@ public function planDetail(int $id, EntityManagerInterface $em): Response
             'user' => $user,
         ]);
     }
+
     #[Route('/reclamations', name: 'app_enseignant_reclamations', methods: ['GET'])]
-public function reclamations(): Response
+    public function reclamations(): Response
+    {
+        // Version temporaire - rediriger vers le dashboard
+        $this->addFlash('info', 'La page des réclamations sera disponible prochainement.');
+        return $this->redirectToRoute('app_enseignant_dashboard');
+    }
+    #[Route('/debug/articles', name: 'app_enseignant_debug_articles', methods: ['GET'])]
+public function debugArticles(ReferenceArticleRepository $repository): Response
 {
-    // Version temporaire - rediriger vers le dashboard
-    $this->addFlash('info', 'La page des réclamations sera disponible prochainement.');
-    return $this->redirectToRoute('app_enseignant_dashboard');
+    $articles = $repository->findAll();
+    
+    $html = '<h2>Liste des articles disponibles</h2>';
+    $html .= '<table border="1" cellpadding="5">';
+    $html .= '<tr><th>ID</th><th>Titre</th><th>Publié</th><th>Catégorie</th></tr>';
+    
+    foreach ($articles as $article) {
+        $html .= '<tr>';
+        $html .= '<td>' . $article->getId() . '</td>';
+        $html .= '<td>' . $article->getTitre() . '</td>';
+        $html .= '<td>' . ($article->isPublished() ? 'Oui' : 'Non') . '</td>';
+        $html .= '<td>' . ($article->getCategorie() ? $article->getCategorie()->getNomCategorie() : 'Aucune') . '</td>';
+        $html .= '</tr>';
+    }
+    $html .= '</table>';
+    
+    return new Response($html);
 }
+ #[Route('/preferences', name: 'app_enseignant_preferences')]
+    public function preferences(): Response
+    {
+        return $this->render('front/enseignant/preferences.html.twig');
+    }
 }

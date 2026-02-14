@@ -206,6 +206,8 @@
                     <th scope="col" style="color: #102c59; border-bottom: none;">Description</th>
                     <th scope="col" style="color: #102c59; border-bottom: none;">Catégorie</th>
                     <th scope="col" style="color: #102c59; border-bottom: none;">Statut</th>
+                    <th scope="col" style="color: #102c59; border-bottom: none;">Articles</th> 
+
                     <th scope="col" style="color: #102c59; border-bottom: none;">Date</th>
                     <th scope="col" class="text-center" style="color: #102c59; border-bottom: none;">Actions</th>
                   </tr>
@@ -269,6 +271,17 @@
                           {% endif %}
                         </span>
                       </td>
+                                            <td>
+                        {% if plan.articles is defined and plan.articles|length > 0 %}
+                          <span class="badge" style="background-color: #102c59; color: white; cursor: pointer;" 
+                                title="Voir les articles"
+                                onclick="alert('Articles liés :\n{% for article in plan.articles %}- {{ article.titre }}\n{% endfor %}')">
+                            {{ plan.articles|length }} article(s)
+                          </span>
+                        {% else %}
+                          <span class="text-muted">-</span>
+                        {% endif %}
+                      </td>
                       <td>{{ plan.date ? plan.date|date('d/m/Y') : 'N/A' }}</td>
                       <td class="text-center">
                         <div class="btn-group btn-group-sm" role="group">
@@ -280,14 +293,14 @@
                              class="btn btn-outline-primary" title="Éditer" style="border-color: #102c59; color: #102c59;">
                             <i class="bi bi-pencil"></i>
                           </a>
-                          <form method="post" action="{{ path('app_plan_actions_delete', {id: plan.id}) }}" 
-                                style="display:inline;" 
-                                onsubmit="return confirm('Confirmer la suppression ?');">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ plan.id) }}">
-                            <button type="submit" class="btn btn-outline-danger" title="Supprimer" style="border-color: #d52e28; color: #d52e28;">
-                              <i class="bi bi-trash"></i>
-                            </button>
-                          </form>
+                          <!-- Remplacer les lignes 155-161 (le formulaire de suppression) -->
+<form method="post" action="{{ path('app_plan_actions_delete', {id: plan.id}) }}" 
+      style="display:inline;">
+  <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ plan.id) }}">
+  <button type="submit" class="btn btn-outline-danger" title="Supprimer" style="border-color: #d52e28; color: #d52e28;">
+    <i class="bi bi-trash"></i>
+  </button>
+</form>
                         </div>
                       </td>
                     </tr>

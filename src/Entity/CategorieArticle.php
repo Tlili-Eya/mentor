@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 #[ORM\Entity(repositoryClass: CategorieArticleRepository::class)]
 class CategorieArticle
@@ -17,10 +19,22 @@ class CategorieArticle
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le nom de catégorie est obligatoire")]
+    #[Assert\Length(
+        min: 3,
+        max: 100,
+        minMessage: "Le nom doit contenir au moins {{ limit }} caractères",
+        maxMessage: "Le nom ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $nomCategorie = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(
+        max: 1000,
+        maxMessage: "La description ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $description = null;
+
 
     #[ORM\ManyToOne(inversedBy: 'categorieArticles')]
     private ?Utilisateur $auteur = null;

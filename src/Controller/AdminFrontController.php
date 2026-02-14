@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/admin')]
+#[IsGranted('ROLE_ADMIN')]
 class AdminFrontController extends AbstractController
 {
     #[Route('/dashboard', name: 'app_admin_dashboard', methods: ['GET'])]
@@ -54,7 +55,8 @@ class AdminFrontController extends AbstractController
             'alertesCritiques' => $alertesCritiques,
         ]);
     }
-#[Route('/plans', name: 'app_admin_plans', methods: ['GET'])]
+
+    #[Route('/plans', name: 'app_admin_plans', methods: ['GET'])]
 public function plans(
     Request $request,
     EntityManagerInterface $em
@@ -68,7 +70,7 @@ public function plans(
 
     $conn = $em->getConnection();
     
-    // Base SQL
+    // Requête principale pour les plans
     $sql = "
         SELECT 
             p.id,
@@ -86,56 +88,78 @@ public function plans(
     ";
     
     $params = [];
-    $paramTypes = [];
     
     // Conditions
     if (!empty($search)) {
-        $sql .= " AND (p.decision LIKE ? OR p.description LIKE ?)";
-        $searchTerm = '%' . $search . '%';
-        $params[] = $searchTerm;
-        $params[] = $searchTerm;
-        $paramTypes[] = \PDO::PARAM_STR;
-        $paramTypes[] = \PDO::PARAM_STR;
+        $sql .= " AND (p.decision LIKE :search OR p.description LIKE :search)";
+        $params['search'] = '%' . $search . '%';
     }
     
     if (!empty($categorie)) {
-        $sql .= " AND (p.categorie = ? OR s.categorie_sortie = ?)";
-        $params[] = $categorie;
-        $params[] = $categorie;
-        $paramTypes[] = \PDO::PARAM_STR;
-        $paramTypes[] = \PDO::PARAM_STR;
+        $sql .= " AND (p.categorie = :categorie OR s.categorie_sortie = :categorie)";
+        $params['categorie'] = $categorie;
     }
     
     if (!empty($statut)) {
-        $sql .= " AND p.statut = ?";
-        $params[] = $statut;
-        $paramTypes[] = \PDO::PARAM_STR;
+        $sql .= " AND p.statut = :statut";
+        $params['statut'] = $statut;
     }
     
     // Ordre
     $sql .= " ORDER BY p.updated_at DESC, p.date DESC";
     
-    // 1. Compter
-    $countSql = "SELECT COUNT(*) FROM (" . str_replace(
-        ['p.id, p.decision, p.description, p.statut, p.date as createdAt, p.updated_at as updatedAt, p.categorie as plan_categorie, s.id as sortie_id, s.categorie_sortie as sortie_categorie'],
-        ['1'],
-        $sql
-    ) . ") as counted";
+    // Compter le total
+    $countSql = "SELECT COUNT(*) as total FROM plan_actions p LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id WHERE 1=1";
     
-    $total = $conn->executeQuery($countSql, $params, $paramTypes)->fetchOne();
+    $countParams = [];
+    if (!empty($search)) {
+        $countSql .= " AND (p.decision LIKE :search OR p.description LIKE :search)";
+        $countParams['search'] = '%' . $search . '%';
+    }
+    if (!empty($categorie)) {
+        $countSql .= " AND (p.categorie = :categorie OR s.categorie_sortie = :categorie)";
+        $countParams['categorie'] = $categorie;
+    }
+    if (!empty($statut)) {
+        $countSql .= " AND p.statut = :statut";
+        $countParams['statut'] = $statut;
+    }
     
-    // 2. Pagination - APPROCHE SÉCURISÉE
+    $total = $conn->executeQuery($countSql, $countParams)->fetchOne();
+    
+    // Pagination
     $offset = ($page - 1) * $limit;
-    
-    // IMPORTANT: Concaténation directe avec validation numérique
     $sql .= " LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
     
-    // 3. Exécuter
-    $plansData = $conn->executeQuery($sql, $params, $paramTypes)->fetchAllAssociative();
+    // Exécuter la requête principale
+    $stmt = $conn->prepare($sql);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value);
+    }
+    $plansData = $stmt->executeQuery()->fetchAllAssociative();
     
-    // Conversion
+    // Pour chaque plan, récupérer les articles séparément
     $plans = [];
     foreach ($plansData as $data) {
+        // Récupérer les articles pour ce plan
+        $articlesSql = "
+            SELECT 
+                a.id,
+                a.titre,
+                a.published,
+                ac.id as categorie_id,
+                ac.nom_categorie as categorie_nom
+            FROM plan_actions_articles paa
+            JOIN reference_article a ON paa.reference_article_id = a.id
+            LEFT JOIN categorie_article ac ON a.categorie_id = ac.id
+            WHERE paa.plan_actions_id = :plan_id
+            ORDER BY a.titre
+        ";
+        
+        $articlesStmt = $conn->prepare($articlesSql);
+        $articlesStmt->bindValue('plan_id', $data['id']);
+        $articles = $articlesStmt->executeQuery()->fetchAllAssociative();
+        
         $plans[] = [
             'id' => $data['id'],
             'decision' => $data['decision'],
@@ -148,6 +172,7 @@ public function plans(
                 'id' => $data['sortie_id'],
                 'categorieSortie' => $data['sortie_categorie'],
             ] : null,
+            'articles' => $articles,
         ];
     }
     
@@ -163,7 +188,7 @@ public function plans(
         'total' => $total,
     ]);
 }
-#[Route('/plan/{id}', name: 'app_admin_plan_detail', methods: ['GET'])]
+   #[Route('/plan/{id}', name: 'app_admin_plan_detail', methods: ['GET'])]
 public function planDetail(
     int $id, 
     EntityManagerInterface $em
@@ -195,15 +220,15 @@ public function planDetail(
             ]);
         }
         
-        // Charger avec les BONS noms de colonnes
+        // Charger les données du plan
         $sql = "
             SELECT 
                 p.id,
                 p.decision,
                 p.description,
                 p.statut,
-                p.date as createdAt,       -- ICI: date
-                p.updated_at as updatedAt, -- ICI: updated_at
+                p.date as createdAt,
+                p.updated_at as updatedAt,
                 p.categorie as plan_categorie,
                 p.feedback_enseignant,
                 p.feedback_date,
@@ -228,6 +253,28 @@ public function planDetail(
             throw new \Exception("Erreur lors du chargement du plan #{$id}");
         }
         
+        // Récupérer les articles pour ce plan
+        $articlesSql = "
+            SELECT 
+                a.id,
+                a.titre,
+                a.contenu,
+                a.published,
+                a.created_at as createdAt,
+                a.updated_at as updatedAt,
+                ac.id as categorie_id,
+                ac.nom_categorie as categorie_nom
+            FROM plan_actions_articles paa
+            JOIN reference_article a ON paa.reference_article_id = a.id
+            LEFT JOIN categorie_article ac ON a.categorie_id = ac.id
+            WHERE paa.plan_actions_id = :plan_id
+            ORDER BY a.titre
+        ";
+        
+        $articlesStmt = $conn->prepare($articlesSql);
+        $articlesStmt->bindValue('plan_id', $id);
+        $articles = $articlesStmt->executeQuery()->fetchAllAssociative();
+        
         // Préparer les données
         $plan = [
             'id' => $planData['id'],
@@ -239,6 +286,7 @@ public function planDetail(
             'categorie' => $planData['plan_categorie'],
             'feedbackEnseignant' => $planData['feedback_enseignant'],
             'feedbackDate' => $planData['feedback_date'] ? new \DateTime($planData['feedback_date']) : null,
+            'articles' => $articles,
             
             'sortieAI' => $planData['sortie_id'] ? [
                 'id' => $planData['sortie_id'],
@@ -262,69 +310,152 @@ public function planDetail(
     }
 }
     #[Route('/articles', name: 'app_admin_articles', methods: ['GET'])]
-    public function articles(
-        Request $request,
-        ReferenceArticleRepository $articleRepository,
-        CategorieArticleRepository $categorieRepository
-    ): Response
-    {
-        // Version SÉCURISÉE sans instanciation directe de controller
-        try {
-            // Récupérer les articles avec pagination simple
-            $page = max(1, $request->query->getInt('page', 1));
-            $limit = 12;
-            
-            // Recherche
-            $search = $request->query->get('search', '');
-            $categorie = $request->query->get('categorie', null);
-            
-            $qb = $articleRepository->createQueryBuilder('a')
-                ->orderBy('a.createdAt', 'DESC');
-            
-            if (!empty($search)) {
-                $qb->andWhere('a.titre LIKE :search OR a.contenu LIKE :search')
-                   ->setParameter('search', '%' . $search . '%');
-            }
-            
-            if ($categorie) {
-                $qb->andWhere('a.categorie = :categorie')
-                   ->setParameter('categorie', $categorie);
-            }
-            
-            // Pagination
-            $total = count($qb->getQuery()->getResult());
-            $articles = $qb->setFirstResult(($page - 1) * $limit)
-                          ->setMaxResults($limit)
-                          ->getQuery()
-                          ->getResult();
-            
-            $totalPages = ceil($total / $limit);
-            $categories = $categorieRepository->findAll();
-            
-            return $this->render('front/admin/articles.html.twig', [
-                'articles' => $articles,
-                'categories' => $categories,
-                'search' => $search,
-                'categorie' => $categorie,
-                'currentPage' => $page,
-                'totalPages' => $totalPages,
-                'total' => $total,
-            ]);
-            
-        } catch (\Exception $e) {
-            // En cas d'erreur, afficher une liste vide
-            return $this->render('front/admin/articles.html.twig', [
-                'articles' => [],
-                'categories' => [],
-                'search' => '',
-                'categorie' => null,
-                'currentPage' => 1,
-                'totalPages' => 1,
-                'total' => 0,
-            ]);
+public function articles(
+    Request $request,
+    ReferenceArticleRepository $articleRepository,
+    CategorieArticleRepository $categorieRepository
+): Response
+{
+    try {
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 12;
+        
+        $search = $request->query->get('search', '');
+        $categorie = $request->query->get('categorie', null);
+        
+        $qb = $articleRepository->createQueryBuilder('a')
+            ->leftJoin('a.categorie', 'c')
+            ->addSelect('c')
+            ->orderBy('a.createdAt', 'DESC');
+        
+        if (!empty($search)) {
+            $qb->andWhere('a.titre LIKE :search OR a.contenu LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
         }
+        
+        if ($categorie) {
+            $qb->andWhere('a.categorie = :categorie')
+               ->setParameter('categorie', $categorie);
+        }
+        
+        // Compter le total
+        $total = count($qb->getQuery()->getResult());
+        
+        // Pagination
+        $articles = $qb->setFirstResult(($page - 1) * $limit)
+                      ->setMaxResults($limit)
+                      ->getQuery()
+                      ->getResult();
+        
+        $totalPages = ceil($total / $limit);
+        $categories = $categorieRepository->findAll();
+        
+        // Compter les articles récents (7 derniers jours)
+        $recentDate = new \DateTime('-7 days');
+        $recentArticlesCount = $articleRepository->createQueryBuilder('a')
+            ->select('COUNT(a.id)')
+            ->where('a.createdAt >= :recentDate')
+            ->setParameter('recentDate', $recentDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+        
+        return $this->render('front/admin/articles.html.twig', [
+            'articles' => $articles,
+            'categories' => $categories,
+            'search' => $search,
+            'categorie' => $categorie,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'total' => $total,
+            'recentArticlesCount' => $recentArticlesCount,
+        ]);
+        
+    } catch (\Exception $e) {
+        error_log('Erreur chargement articles admin: ' . $e->getMessage());
+        
+        return $this->render('front/admin/articles.html.twig', [
+            'articles' => [],
+            'categories' => [],
+            'search' => '',
+            'categorie' => null,
+            'currentPage' => 1,
+            'totalPages' => 1,
+            'total' => 0,
+            'recentArticlesCount' => 0,
+        ]);
     }
+}
+#[Route('/article/{id}', name: 'app_admin_article_detail', methods: ['GET'])]
+public function articleDetail(
+    int $id,
+    ReferenceArticleRepository $repository
+): Response
+{
+    try {
+        $article = $repository->createQueryBuilder('a')
+            ->leftJoin('a.categorie', 'c')
+            ->addSelect('c')
+            ->where('a.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
 
+        if (!$article) {
+            $this->addFlash('error', "L'article demandé n'existe pas.");
+            return $this->redirectToRoute('app_admin_articles');
+        }
+
+        // Récupérer les articles récents pour la sidebar
+        $recentArticles = $repository->createQueryBuilder('a')
+            ->orderBy('a.createdAt', 'DESC')
+            ->setMaxResults(5)
+            ->getQuery()
+            ->getResult();
+
+        // Récupérer l'article précédent et suivant
+        $previousArticle = $repository->createQueryBuilder('a')
+            ->where('a.id < :id')
+            ->setParameter('id', $id)
+            ->orderBy('a.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        $nextArticle = $repository->createQueryBuilder('a')
+            ->where('a.id > :id')
+            ->setParameter('id', $id)
+            ->orderBy('a.id', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        // Créer un tableau simple pour le template
+        $simpleArticle = [
+            'id' => $article->getId(),
+            'titre' => $article->getTitre(),
+            'contenu' => $article->getContenu(),
+            'createdAt' => $article->getCreatedAt(),
+            'updatedAt' => $article->getUpdatedAt(),
+            'published' => $article->isPublished(),
+            'categorie' => $article->getCategorie() ? [
+                'id' => $article->getCategorie()->getId(),
+                'nomCategorie' => $article->getCategorie()->getNomCategorie(),
+            ] : null,
+        ];
+
+        return $this->render('front/admin/article_detail.html.twig', [
+            'article' => $simpleArticle,
+            'recentArticles' => $recentArticles,
+            'previousArticle' => $previousArticle,
+            'nextArticle' => $nextArticle,
+        ]);
+        
+    } catch (\Exception $e) {
+        error_log('Erreur chargement article admin: ' . $e->getMessage());
+        $this->addFlash('error', 'Erreur lors du chargement de l\'article.');
+        return $this->redirectToRoute('app_admin_articles');
+    }
+}
     #[Route('/chat-ia', name: 'app_admin_chat_ia', methods: ['GET'])]
     public function chatIA(): Response
     {
@@ -342,5 +473,10 @@ public function planDetail(
         return $this->render('front/admin/reclamations.html.twig', [
             'reclamations' => $reclamations,
         ]);
+    }
+    #[Route('/preferences', name: 'app_admin_preferences')]
+    public function preferences(): Response
+    {
+        return $this->render('front/admin/preferences.html.twig');
     }
 }

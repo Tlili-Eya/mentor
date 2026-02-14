@@ -107,6 +107,53 @@
                     </p>
                 </div>
             </div>
+            <!-- Section Articles liés -->
+{% if plan.articles|length > 0 %}
+<div class="mb-5">
+    <div class="d-flex align-items-center mb-3">
+        <div style="width: 40px; height: 40px; background-color: #102c59; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+            <i class="bi bi-journal-text" style="color: white; font-size: 1.2rem;"></i>
+        </div>
+        <h3 style="color: #102c59; margin: 0; border-bottom: 2px solid #102c59; padding-bottom: 0.5rem; flex-grow: 1;">
+            Articles liés ({{ plan.articles|length }})
+        </h3>
+    </div>
+    
+    <div class="row">
+        {% for article in plan.articles %}
+            <div class="col-md-6 mb-3">
+                <div class="card h-100" style="border: 1px solid rgba(157, 187, 206, 0.5); border-radius: 10px;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title" style="color: #102c59; font-size: 1rem;">
+                                <i class="bi bi-dot" style="color: #d52e28;"></i>
+                                {{ article.titre }}
+                            </h5>
+                            <span class="badge" style="background-color: {{ article.published ? '#28a745' : '#ffc107' }}; color: white;">
+                                {{ article.published ? 'Publié' : 'Brouillon' }}
+                            </span>
+                        </div>
+                        
+                        {% if article.categorie_nom %}
+                            <p class="card-text">
+                                <small style="color: #9dbbce;">
+                                    <i class="bi bi-tag me-1"></i> {{ article.categorie_nom }}
+                                </small>
+                            </p>
+                        {% endif %}
+                        
+                        <a href="{{ path('app_article_detail', {'id': article.id}) }}" 
+                           class="btn btn-sm mt-2"
+                           style="background-color: #9dbbce; color: #102c59;">
+                            <i class="bi bi-eye me-1"></i> Lire l'article
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
             
             <!-- Sortie AI -->
             {% if plan.sortieAI %}

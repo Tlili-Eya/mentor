@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\PdfExportService;
 
-
 #[Route('/back/reference-article')]
 class ReferenceArticleController extends AbstractController
 {
@@ -33,7 +32,8 @@ class ReferenceArticleController extends AbstractController
         $limit = 10;
 
         $qb = $repository->createQueryBuilder('r')
-                        ->leftJoin('r.categorie', 'c');
+                        ->leftJoin('r.categorie', 'c')
+                        ->addSelect('c');
 
         // Recherche
         if (!empty($search)) {
@@ -114,17 +114,17 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-  #[Route('/{id}', name: 'app_reference_article_show', methods: ['GET'])]
-public function show(?ReferenceArticle $referenceArticle): Response
-{
-    if (!$referenceArticle) {
-        throw $this->createNotFoundException('Article non trouvé');
+    #[Route('/{id}', name: 'app_reference_article_show', methods: ['GET'])]
+    public function show(?ReferenceArticle $referenceArticle): Response
+    {
+        if (!$referenceArticle) {
+            throw $this->createNotFoundException('Article non trouvé');
+        }
+        
+        return $this->render('back/reference_article/show.html.twig', [
+            'reference_article' => $referenceArticle,
+        ]);
     }
-    
-    return $this->render('back/reference_article/show.html.twig', [
-        'reference_article' => $referenceArticle,
-    ]);
-}
 
     #[Route('/{id}/edit', name: 'app_reference_article_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, ReferenceArticle $article, EntityManagerInterface $entityManager): Response
@@ -150,11 +150,18 @@ public function show(?ReferenceArticle $referenceArticle): Response
     #[Route('/{id}/delete', name: 'app_reference_article_delete', methods: ['POST'])]
     public function delete(Request $request, ReferenceArticle $article, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $article->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete' . $article->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('app_reference_article_index');
+        }
+
+        try {
             $entityManager->remove($article);
             $entityManager->flush();
 
             $this->addFlash('success', 'L\'article a été supprimé avec succès!');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la suppression: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('app_reference_article_index');
@@ -166,7 +173,12 @@ public function show(?ReferenceArticle $referenceArticle): Response
         ReferenceArticle $article,
         EntityManagerInterface $entityManager
     ): Response {
-        if ($this->isCsrfTokenValid('publish' . $article->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('publish' . $article->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('app_reference_article_index');
+        }
+
+        try {
             $article->setPublished(!$article->isPublished());
             $article->setUpdatedAt(new \DateTime());
             
@@ -174,6 +186,8 @@ public function show(?ReferenceArticle $referenceArticle): Response
             
             $status = $article->isPublished() ? 'publié' : 'dépublié';
             $this->addFlash('success', "L'article a été {$status} avec succès!");
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la modification du statut.');
         }
 
         return $this->redirectToRoute('app_reference_article_index');
@@ -181,9 +195,9 @@ public function show(?ReferenceArticle $referenceArticle): Response
     
     #[Route('/{id}/pdf', name: 'app_reference_article_pdf', methods: ['GET'])]
     public function exportPdf(
-    ReferenceArticle $article,
-    PdfExportService $pdfService
-): Response {
-    return $pdfService->generateArticlePdf($article);
-}
+        ReferenceArticle $article,
+        PdfExportService $pdfService
+    ): Response {
+        return $pdfService->generateArticlePdf($article);
+    }
 }

@@ -115,13 +115,12 @@
             <i class="bi bi-arrow-left me-1"></i> Retour à la liste
           </a>
           
-          <form method="post" action="{{ path('app_categorie_article_delete', {'id': categorie.id}) }}" 
-                onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?');">
-            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ categorie.id) }}">
-            <button type="submit" class="btn" style="background-color: #d52e28; color: white; border: none; border-radius: 6px; padding: 10px 25px;">
-              <i class="bi bi-trash me-1"></i> Supprimer
-            </button>
-          </form>
+         <form method="post" action="{{ path('app_categorie_article_delete', {'id': categorie.id}) }}">
+  <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ categorie.id) }}">
+  <button type="submit" class="btn" style="background-color: #d52e28; color: white; border: none; border-radius: 6px; padding: 10px 25px;">
+    <i class="bi bi-trash me-1"></i> Supprimer
+  </button>
+</form>
         </div>
 
       </div>

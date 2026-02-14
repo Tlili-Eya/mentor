@@ -57,74 +57,89 @@ class CategorieArticleController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'app_categorie_article_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $categorie = new CategorieArticle();
-        $form = $this->createForm(CategorieArticleType::class, $categorie);
-        $form->handleRequest($request);
+ #[Route('/new', name: 'app_categorie_article_new', methods: ['GET', 'POST'])]
+public function new(Request $request, EntityManagerInterface $entityManager): Response
+{
+    $categorie = new CategorieArticle();
+    $form = $this->createForm(CategorieArticleType::class, $categorie);
+    $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $categorie->setCreatedAt(new \DateTime());
-            
-            $entityManager->persist($categorie);
-            $entityManager->flush();
+    // ICI : Vérifier si le formulaire est soumis ET VALIDE
+    if ($form->isSubmitted() && $form->isValid()) {
+        // Remplir les champs automatiques
+        $categorie->setCreatedAt(new \DateTime());
+        
+        // Persister et sauvegarder
+        $entityManager->persist($categorie);
+        $entityManager->flush();
 
-            $this->addFlash('success', 'La catégorie a été créée avec succès!');
-            return $this->redirectToRoute('app_categorie_article_index');
-        }
-
-        return $this->render('back/categorie_article/new.html.twig', [
-            'categorie' => $categorie,
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/{id}', name: 'app_categorie_article_show', methods: ['GET'])]
-    public function show(CategorieArticle $categorie): Response
-    {
-        return $this->render('back/categorie_article/show.html.twig', [
-            'categorie' => $categorie,
-        ]);
-    }
-
-    #[Route('/{id}/edit', name: 'app_categorie_article_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, CategorieArticle $categorie, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(CategorieArticleType::class, $categorie);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $categorie->setUpdatedAt(new \DateTime());
-            
-            $entityManager->flush();
-
-            $this->addFlash('success', 'La catégorie a été modifiée avec succès!');
-            return $this->redirectToRoute('app_categorie_article_index');
-        }
-
-        return $this->render('back/categorie_article/edit.html.twig', [
-            'categorie' => $categorie,
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/{id}/delete', name: 'app_categorie_article_delete', methods: ['POST'])]
-    public function delete(Request $request, CategorieArticle $categorie, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete' . $categorie->getId(), $request->request->get('_token'))) {
-            // Vérifier s'il y a des articles liés
-            if ($categorie->getReferenceArticles()->count() > 0) {
-                $this->addFlash('error', 'Impossible de supprimer cette catégorie car elle contient des articles!');
-                return $this->redirectToRoute('app_categorie_article_index');
-            }
-
-            $entityManager->remove($categorie);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'La catégorie a été supprimée avec succès!');
-        }
-
+        // Message de succès
+        $this->addFlash('success', 'La catégorie a été créée avec succès!');
         return $this->redirectToRoute('app_categorie_article_index');
     }
+
+    // Si le formulaire n'est pas valide, il sera réaffiché avec les erreurs
+    return $this->render('back/categorie_article/new.html.twig', [
+        'categorie' => $categorie,
+        'form' => $form,
+    ]);
+}
+
+   #[Route('/{id}/edit', name: 'app_categorie_article_edit', methods: ['GET', 'POST'])]
+public function edit(Request $request, CategorieArticle $categorie, EntityManagerInterface $entityManager): Response
+{
+    $form = $this->createForm(CategorieArticleType::class, $categorie);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        // Mettre à jour la date de modification
+        $categorie->setUpdatedAt(new \DateTime());
+        
+        $entityManager->flush();
+
+        $this->addFlash('success', 'La catégorie a été modifiée avec succès!');
+        return $this->redirectToRoute('app_categorie_article_index');
+    }
+
+    return $this->render('back/categorie_article/edit.html.twig', [
+        'categorie' => $categorie,
+        'form' => $form,
+    ]);
+}#[Route('/{id}/delete', name: 'app_categorie_article_delete', methods: ['POST'])]
+public function delete(Request $request, CategorieArticle $categorie, EntityManagerInterface $entityManager): Response
+{
+    // Vérifier le token CSRF
+    if (!$this->isCsrfTokenValid('delete' . $categorie->getId(), $request->request->get('_token'))) {
+        $this->addFlash('error', 'Token CSRF invalide.');
+        return $this->redirectToRoute('app_categorie_article_index');
+    }
+
+    // Vérifier s'il y a des articles liés
+    if ($categorie->getReferenceArticles()->count() > 0) {
+        $this->addFlash('error', 'Impossible de supprimer cette catégorie car elle contient des articles!');
+        return $this->redirectToRoute('app_categorie_article_index');
+    }
+
+    try {
+        $entityManager->remove($categorie);
+        $entityManager->flush();
+        
+        $this->addFlash('success', 'La catégorie a été supprimée avec succès!');
+    } catch (\Exception $e) {
+        $this->addFlash('error', 'Une erreur est survenue lors de la suppression: ' . $e->getMessage());
+    }
+
+    return $this->redirectToRoute('app_categorie_article_index');
+}
+#[Route('/{id}', name: 'app_categorie_article_show', methods: ['GET'])]
+public function show(CategorieArticle $categorie): Response
+{
+    // Récupérer les articles de cette catégorie
+    $articles = $categorie->getReferenceArticles();
+    
+    return $this->render('back/categorie_article/show.html.twig', [
+        'categorie' => $categorie,
+        'articles' => $articles,
+    ]);
+}
 }

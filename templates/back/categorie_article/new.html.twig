@@ -18,250 +18,190 @@
 
 <section class="section" style="padding: 40px 0;">
   <div class="container">
-    
     <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <div class="card" style="border: 1px solid #9dbbce; border-radius: 8px; box-shadow: 0 4px 12px rgba(16, 44, 89, 0.1);">
-          <div class="card-body p-4">
+      <div class="col-lg-10">
+        
+        <!-- Header avec titre principal -->
+        <div class="text-center mb-5">
+          <h2 class="mb-3" style="color: #102c59; font-weight: 700;">Créer une Nouvelle Catégorie</h2>
+          <p style="color: #102c59; opacity: 0.8;">Ajoutez une catégorie pour organiser vos articles</p>
+        </div>
+
+        <!-- Messages flash -->
+        {% for message in app.flashes('success') %}
+          <div class="alert alert-success alert-dismissible fade show mb-4" style="background-color: rgba(40, 167, 69, 0.1); border-color: #28a745; color: #28a745; border-left: 4px solid #28a745; border-radius: 6px;">
+            <i class="bi bi-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+          <div class="alert alert-danger alert-dismissible fade show mb-4" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #d52e28; border-left: 4px solid #d52e28; border-radius: 6px;">
+            <i class="bi bi-exclamation-triangle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+
+        <div class="card" style="border: 1px solid #9dbbce; border-radius: 12px; box-shadow: 0 8px 24px rgba(16, 44, 89, 0.12);">
+          <div class="card-body p-5">
             
-            <div class="text-center mb-4">
-              <h2 class="mb-1" style="color: #102c59;">Créer une Nouvelle Catégorie</h2>
-              <p style="color: #102c59; opacity: 0.8;">Ajoutez une catégorie pour organiser vos articles</p>
+            <!-- Formulaire avec désactivation validation HTML5 -->
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            
+            <!-- Nom de la catégorie -->
+            <div class="mb-4">
+              <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                <i class="bi bi-tag me-2" style="color: #d52e28;"></i>Nom de la catégorie <span style="color: #d52e28;">*</span>
+              </label>
+              {{ form_widget(form.nomCategorie, {
+                'attr': {
+                  'class': 'form-control form-control-lg' ~ (form.nomCategorie.vars.errors|length ? ' is-invalid' : ''),
+                  'placeholder': 'Ex: Pédagogie, Orientation, Psychologie...',
+                  'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;'
+                }
+              }) }}
+              {% if form.nomCategorie.vars.errors|length > 0 %}
+                <div class="text-danger mt-2">
+                  {% for error in form.nomCategorie.vars.errors %}
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-exclamation-circle-fill me-2" style="color: #d52e28;"></i>
+                      {{ error.message }}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <!-- Description -->
+            <div class="mb-4">
+              <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                <i class="bi bi-file-text me-2" style="color: #d52e28;"></i>Description
+              </label>
+              {{ form_widget(form.description, {
+                'attr': {
+                  'class': 'form-control' ~ (form.description.vars.errors|length ? ' is-invalid' : ''),
+                  'rows': 5,
+                  'placeholder': 'Décrivez le type d\'articles de cette catégorie...',
+                  'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;'
+                }
+              }) }}
+              {% if form.description.vars.errors|length > 0 %}
+                <div class="text-danger mt-2">
+                  {% for error in form.description.vars.errors %}
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-exclamation-circle-fill me-2" style="color: #d52e28;"></i>
+                      {{ error.message }}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
             </div>
 
-            <!-- Flash Messages -->
-            {% for label, messages in app.flashes %}
-              {% for message in messages %}
-                <div class="alert alert-dismissible fade show mb-4" style="
-                  {% if label == 'error' or label == 'danger' %}
-                    background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #d52e28;
-                  {% elseif label == 'success' %}
-                    background-color: rgba(40, 167, 69, 0.1); border-color: #28a745; color: #28a745;
-                  {% else %}
-                    background-color: rgba(157, 187, 206, 0.2); border-color: #9dbbce; color: #102c59;
-                  {% endif %}
-                  border-left: 4px solid {% if label == 'error' or label == 'danger' %}#d52e28{% elseif label == 'success' %}#28a745{% else %}#102c59{% endif %};
-                  border-radius: 6px;
-                ">
-                  <i class="bi bi-{{ label == 'error' or label == 'danger' ? 'exclamation' : 'check' }}-circle me-2"></i>
-                  {{ message }}
-                  <button type="button" class="btn-close" data-bs-dismiss="alert" style="color: #102c59;"></button>
+            <!-- Information note -->
+            <div class="alert alert-info mt-4 mb-4" style="background-color: rgba(157, 187, 206, 0.15); border: 2px solid #9dbbce; color: #102c59; border-radius: 10px; border-left: 6px solid #102c59; padding: 16px 20px;">
+              <div class="d-flex">
+                <div class="me-3">
+                  <i class="bi bi-info-circle" style="color: #102c59; font-size: 1.5rem;"></i>
                 </div>
-              {% endfor %}
-            {% endfor %}
+                <div>
+                  <strong>Information :</strong> Cette catégorie sera utilisée pour organiser les articles de référence.
+                </div>
+              </div>
+            </div>
 
-            <form method="post" class="needs-validation" novalidate>
-              {{ form_start(form) }}
+            <!-- Boutons d'action -->
+            <div class="d-flex justify-content-between mt-5 pt-4 border-top" style="border-color: #9dbbce !important; border-top-width: 2px;">
+              <a href="{{ path('app_categorie_article_index') }}" class="btn btn-lg" style="border: 2px solid #9dbbce; color: #102c59; border-radius: 10px; padding: 12px 30px; font-weight: 500; transition: all 0.3s;">
+                <i class="bi bi-arrow-left me-2"></i> Retour à la liste
+              </a>
               
-              <div class="mb-4">
-                <label for="{{ form.nomCategorie.vars.id }}" class="form-label fw-bold" style="color: #102c59;">
-                  Nom de la catégorie <span style="color: #d52e28;">*</span>
-                </label>
-                {{ form_widget(form.nomCategorie, {
-                  'attr': {
-                    'class': 'form-control' ~ (form.nomCategorie.vars.errors|length ? ' is-invalid' : ''),
-                    'placeholder': 'Ex: Pédagogie, Orientation, Psychologie...',
-                    'style': 'border-color: #9dbbce; border-radius: 6px;'
-                  }
-                }) }}
-                <div class="invalid-feedback" style="color: #d52e28;">
-                  {{ form_errors(form.nomCategorie) }}
-                </div>
-              </div>
-
-              <div class="mb-4">
-                <label for="{{ form.description.vars.id }}" class="form-label fw-bold" style="color: #102c59;">
-                  Description
-                </label>
-                {{ form_widget(form.description, {
-                  'attr': {
-                    'class': 'form-control' ~ (form.description.vars.errors|length ? ' is-invalid' : ''),
-                    'rows': '4',
-                    'placeholder': 'Décrivez le type d\'articles de cette catégorie...',
-                    'style': 'border-color: #9dbbce; border-radius: 6px;'
-                  }
-                }) }}
-                <div class="invalid-feedback" style="color: #d52e28;">
-                  {{ form_errors(form.description) }}
-                </div>
-              </div>
-
-              <div class="d-flex justify-content-between mt-4 pt-3 border-top" style="border-color: #9dbbce !important;">
-                <a href="{{ path('app_categorie_article_index') }}" class="btn" style="border: 1px solid #9dbbce; color: #102c59; border-radius: 6px; padding: 10px 25px;">
-                  <i class="bi bi-arrow-left me-1"></i> Retour
-                </a>
-                <button type="submit" class="btn" style="background-color: #102c59; color: white; border: none; border-radius: 6px; padding: 10px 25px; font-weight: 600;">
-                  <i class="bi bi-plus-circle me-1"></i> Créer
-                </button>
-              </div>
-
-              {{ form_end(form) }}
-            </form>
+              <button type="submit" class="btn btn-lg" style="background-color: #102c59; color: white; border: none; border-radius: 10px; padding: 12px 40px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 44, 89, 0.3); transition: all 0.3s;">
+                <i class="bi bi-plus-circle me-2"></i> Créer la Catégorie
+              </button>
+            </div>
+            
+            {{ form_end(form) }}
             
           </div>
         </div>
+        
       </div>
     </div>
-
   </div>
 </section>
 
 <style>
 .card {
-  border-radius: 12px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 44, 89, 0.15);
+  box-shadow: 0 12px 30px rgba(16, 44, 89, 0.15) !important;
 }
-
-.form-label {
-  font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.form-control, .form-select {
-  border: 2px solid #9dbbce;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
 .form-control:focus, .form-select:focus {
-  border-color: #102c59;
-  box-shadow: 0 0 0 0.25rem rgba(16, 44, 89, 0.25);
-  outline: none;
+  border-color: #102c59 !important;
+  box-shadow: 0 0 0 0.2rem rgba(16, 44, 89, 0.25) !important;
 }
-
 .btn {
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
-
 .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
 }
-
-.btn[style*="background-color: #102c59"]:hover {
-  background-color: #0a1f3f !important;
+.alert {
+  animation: slideIn 0.5s ease-out;
 }
-
-.btn[style*="border: 1px solid #9dbbce"]:hover {
-  background-color: rgba(157, 187, 206, 0.1);
-  color: #102c59;
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
-
-.was-validated .form-control:invalid,
-.was-validated .form-select:invalid {
-  border-color: #d52e28;
+.is-invalid {
+  border-color: #d52e28 !important;
 }
-
-.was-validated .form-control:valid,
-.was-validated .form-select:valid {
-  border-color: #28a745;
-}
-
-.invalid-feedback {
-  display: none;
-  width: 100%;
-  margin-top: 0.25rem;
-  font-size: 0.875em;
-}
-
-.was-validated .form-control:invalid ~ .invalid-feedback,
-.was-validated .form-select:invalid ~ .invalid-feedback {
-  display: block;
-}
-
-.bi {
-  vertical-align: middle;
-}
-
-.rounded {
+.text-danger {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 8px 12px;
+  background-color: rgba(213, 46, 40, 0.08);
   border-radius: 8px;
+  border-left: 4px solid #d52e28;
+  animation: fadeIn 0.3s ease;
+  color: #b32520;
+  font-weight: 500;
 }
-
-.border-top {
-  border-top-width: 2px !important;
+.text-danger .bi {
+  font-size: 1rem;
 }
-
-.btn-close {
-  filter: invert(18%) sepia(50%) saturate(3000%) hue-rotate(200deg) brightness(30%) contrast(100%);
-}
-
-.btn-close:hover {
-  filter: invert(15%) sepia(80%) saturate(5000%) hue-rotate(350deg) brightness(90%) contrast(100%);
-}
-
-textarea.form-control {
-  min-height: 120px;
-  resize: vertical;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Validation côté client
-  const forms = document.querySelectorAll('.needs-validation');
-  
-  Array.from(forms).forEach(form => {
-    form.addEventListener('submit', function(event) {
-      if (!form.checkValidity()) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      form.classList.add('was-validated');
-    }, false);
-  });
-  
   // Animation d'entrée pour la carte
   const card = document.querySelector('.card');
   if (card) {
     card.style.opacity = '0';
     card.style.transform = 'translateY(20px)';
-    
     setTimeout(() => {
-      card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
       card.style.opacity = '1';
       card.style.transform = 'translateY(0)';
     }, 100);
   }
   
-  // Compteur de caractères pour la description
-  const descriptionInput = document.querySelector('textarea');
-  if (descriptionInput) {
-    const charCount = document.createElement('div');
-    charCount.className = 'form-text mt-2';
-    charCount.style.color = '#102c59';
-    charCount.style.opacity = '0.7';
-    charCount.style.fontSize = '0.875rem';
-    descriptionInput.parentNode.appendChild(charCount);
-    
-    function updateCharCount() {
-      const length = descriptionInput.value.length;
-      charCount.textContent = `${length} caractères`;
-      
-      if (length > 500) {
-        charCount.style.color = '#28a745';
-      } else if (length > 100) {
-        charCount.style.color = '#102c59';
-      } else {
-        charCount.style.color = '#d52e28';
-      }
+  // Ajouter une classe aux champs avec erreurs
+  const errorFields = document.querySelectorAll('.text-danger');
+  errorFields.forEach(errorField => {
+    const input = errorField.previousElementSibling;
+    if (input && (input.classList.contains('form-control') || input.classList.contains('form-select'))) {
+      input.classList.add('is-invalid');
+      input.style.borderColor = '#d52e28';
     }
-    
-    descriptionInput.addEventListener('input', updateCharCount);
-    updateCharCount();
-  }
+  });
 });
 </script>
 {% endblock %}

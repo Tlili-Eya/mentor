@@ -1,5 +1,4 @@
 <?php
-// src/Entity/PlanActions.php
 
 namespace App\Entity;
 
@@ -8,31 +7,52 @@ use App\Enum\CategorieSortie;
 use App\Repository\PlanActionsRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection; 
+
+
 
 #[ORM\Entity(repositoryClass: PlanActionsRepository::class)]
 class PlanActions
 {
-    #[ORM\Id]
+  #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "La décision est obligatoire")]
+    #[Assert\Length(
+        min: 5,
+        max: 200,
+        minMessage: "La décision doit contenir au moins {{ limit }} caractères",
+        maxMessage: "La décision ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $decision = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: "La description est obligatoire")]
+    #[Assert\Length(
+        min: 10,
+        minMessage: "La description doit contenir au moins {{ limit }} caractères"
+    )]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $date = null; 
+    #[Assert\NotBlank(message: "La date est obligatoire")]
+    private ?\DateTimeInterface $date = null;
+
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
     
     #[ORM\Column(type: 'string', enumType: Statut::class)]
+    #[Assert\NotNull(message: "Le statut est obligatoire")] 
     private ?Statut $statut = null;
 
     #[ORM\Column(type: 'string', enumType: CategorieSortie::class, nullable: true)]
+    #[Assert\NotNull(message: "La catégorie est obligatoire")]
     private ?CategorieSortie $categorie = null;
 
     #[ORM\ManyToOne(inversedBy: 'planActions')]
@@ -47,13 +67,19 @@ class PlanActions
     #[ORM\ManyToOne]
     private ?Utilisateur $feedbackAuteur = null;
 
-
+ /**
+     * @var Collection<int, ReferenceArticle>
+     */
+    #[ORM\ManyToMany(targetEntity: ReferenceArticle::class, inversedBy: 'planActions')]
+    #[ORM\JoinTable(name: 'plan_actions_articles')]
+    private Collection $articles;
 
     public function __construct()
     {
-        $this->date = new \DateTime(); // CORRIGÉ : pas d'espace après =
-        $this->statut = Statut::EnAttente;
-        $this->categorie = CategorieSortie::Pedagogique;
+        $this->date = new \DateTime();
+        $this->statut = null;
+        $this->categorie = null;
+        $this->articles = new ArrayCollection(); 
     }
 
     public function getId(): ?int
@@ -184,5 +210,27 @@ class PlanActions
     {
         return $this->statut?->value ?? '';
     }
+  /**
+     * @return Collection<int, ReferenceArticle>
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
 
+    public function addArticle(ReferenceArticle $article): static
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles->add($article);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(ReferenceArticle $article): static
+    {
+        $this->articles->removeElement($article);
+
+        return $this;
+    }
 }

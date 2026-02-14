@@ -210,14 +210,15 @@
                        target="_blank">
                       <i class="bi bi-file-pdf"></i>
                     </a>
-                    <form method="post" action="{{ path('app_reference_article_delete', {id: article.id}) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">
-                      <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ article.id) }}">
-                      <button type="submit" class="btn btn-sm" 
-                              style="border: 1px solid #d52e28; color: #d52e28;"
-                              title="Supprimer">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </form>
+                    <!-- Remplacer la ligne 124-130 (le formulaire de suppression) -->
+<form method="post" action="{{ path('app_reference_article_delete', {id: article.id}) }}" style="display:inline;">
+  <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ article.id) }}">
+  <button type="submit" class="btn btn-sm" 
+          style="border: 1px solid #d52e28; color: #d52e28;"
+          title="Supprimer">
+    <i class="bi bi-trash"></i>
+  </button>
+</form>
                   </div>
                 </div>
               </div>

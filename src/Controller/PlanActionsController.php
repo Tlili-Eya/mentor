@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\PlanActions;
 use App\Form\PlanActionsType;
 use App\Repository\PlanActionsRepository;
+use App\Repository\ReferenceArticleRepository; // AJOUTER CET IMPORT
 use App\Enum\Statut;
 use App\Service\PdfExportService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,7 +21,7 @@ class PlanActionsController extends AbstractController
     public function index(Request $request, PlanActionsRepository $repository): Response
     {
         $search = $request->query->get('search', '');
-        $sortBy = $request->query->get('sort', 'date'); // 'date' par défaut
+        $sortBy = $request->query->get('sort', 'date');
         $order = $request->query->get('order', 'DESC');
         $statut = $request->query->get('statut', '');
         $categorie = $request->query->get('categorie', '');
@@ -31,50 +32,41 @@ class PlanActionsController extends AbstractController
 
         $qb = $repository->createQueryBuilder('p');
 
-        // Recherche
         if (!empty($search)) {
             $qb->andWhere('p.decision LIKE :search OR p.description LIKE :search')
                ->setParameter('search', '%' . $search . '%');
         }
 
-        // Filtre par statut
         if (!empty($statut)) {
             try {
                 $statutEnum = Statut::from($statut);
                 $qb->andWhere('p.statut = :statut')
                    ->setParameter('statut', $statutEnum);
-            } catch (\ValueError $e) {
-                // Statut invalide, on ignore le filtre
-            }
+            } catch (\ValueError $e) {}
         }
 
-        // Filtre par catégorie
         if (!empty($categorie)) {
             $qb->andWhere('p.categorie = :categorie')
                ->setParameter('categorie', $categorie);
         }
 
-        // Filtre par date début
         if (!empty($dateDebut)) {
             $qb->andWhere('p.date >= :date_debut')
                ->setParameter('date_debut', new \DateTime($dateDebut));
         }
 
-        // Filtre par date fin
         if (!empty($dateFin)) {
             $qb->andWhere('p.date <= :date_fin')
                ->setParameter('date_fin', new \DateTime($dateFin . ' 23:59:59'));
         }
 
-        // Tri
         $validSorts = ['id', 'decision', 'date', 'statut'];
         if (in_array($sortBy, $validSorts)) {
             $qb->orderBy('p.' . $sortBy, strtoupper($order) === 'ASC' ? 'ASC' : 'DESC');
         } else {
-            $qb->orderBy('p.date', 'DESC'); // Tri par défaut
+            $qb->orderBy('p.date', 'DESC');
         }
 
-        // Pagination
         $total = count($qb->getQuery()->getResult());
         $plans = $qb->setFirstResult(($page - 1) * $limit)
                     ->setMaxResults($limit)
@@ -99,27 +91,45 @@ class PlanActionsController extends AbstractController
     }
 
     #[Route('/new', name: 'app_plan_actions_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $planAction = new PlanActions();
-        $form = $this->createForm(PlanActionsType::class, $planAction);
-        $form->handleRequest($request);
+public function new(
+    Request $request, 
+    EntityManagerInterface $entityManager,
+    ReferenceArticleRepository $articleRepo
+): Response
+{
+    $planAction = new PlanActions();
+    $planAction->setDate(new \DateTime());
+    
+    $form = $this->createForm(PlanActionsType::class, $planAction);
+    $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+    if ($form->isSubmitted()) {
+        if ($form->isValid()) {
             $planAction->setUpdatedAt(new \DateTime());
             
-            $entityManager->persist($planAction);
-            $entityManager->flush();
+            try {
+                $entityManager->persist($planAction);
+                $entityManager->flush();
 
-            $this->addFlash('success', 'Le plan d\'action a été créé avec succès!');
-            return $this->redirectToRoute('app_plan_actions_index');
+                $this->addFlash('success', 'Le plan d\'action a été créé avec succès!');
+                return $this->redirectToRoute('app_plan_actions_index');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Erreur lors de la création: ' . $e->getMessage());
+            }
+        } else {
+            // Message si validation échoue
+            $this->addFlash('warning', 'Veuillez remplir tous les champs obligatoires (Statut et Catégorie).');
         }
-
-        return $this->render('back/plan_actions/new.html.twig', [
-            'plan_actions' => $planAction,
-            'form' => $form,
-        ]);
     }
+
+    $totalArticles = $articleRepo->count([]);
+
+    return $this->render('back/plan_actions/new.html.twig', [
+        'plan_actions' => $planAction,
+        'form' => $form,
+        'total_articles' => $totalArticles,
+    ]);
+}
 
     #[Route('/{id}', name: 'app_plan_actions_show', methods: ['GET'])]
     public function show(PlanActions $planAction): Response
@@ -138,10 +148,18 @@ class PlanActionsController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $planAction->setUpdatedAt(new \DateTime());
             
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
 
-            $this->addFlash('success', 'Le plan d\'action a été modifié avec succès!');
-            return $this->redirectToRoute('app_plan_actions_index');
+                $this->addFlash('success', 'Le plan d\'action a été modifié avec succès!');
+                return $this->redirectToRoute('app_plan_actions_index');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Erreur lors de la modification: ' . $e->getMessage());
+            }
+        } else {
+            if ($form->isSubmitted()) {
+                $this->addFlash('warning', 'Veuillez corriger les erreurs dans le formulaire.');
+            }
         }
 
         return $this->render('back/plan_actions/edit.html.twig', [
@@ -153,80 +171,97 @@ class PlanActionsController extends AbstractController
     #[Route('/{id}/delete', name: 'app_plan_actions_delete', methods: ['POST'])]
     public function delete(Request $request, PlanActions $planAction, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $planAction->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete' . $planAction->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('app_plan_actions_index');
+        }
+
+        try {
             $entityManager->remove($planAction);
             $entityManager->flush();
 
             $this->addFlash('success', 'Le plan d\'action a été supprimé avec succès!');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la suppression: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('app_plan_actions_index');
     }
 
-    #[Route('/export/pdf', name: 'app_plan_actions_export_pdf', methods: ['GET'])]
-    public function exportPdf(
-        Request $request,
-        PlanActionsRepository $repository,
-        PdfExportService $pdfService
-    ): Response {
-        // Récupérer les plans avec les mêmes filtres que l'index
-        $search = $request->query->get('search', '');
-        $statut = $request->query->get('statut', '');
-        $categorie = $request->query->get('categorie', '');
-        $dateDebut = $request->query->get('date_debut', '');
-        $dateFin = $request->query->get('date_fin', '');
+  #[Route('/export/pdf', name: 'app_plan_actions_export_pdf', methods: ['GET'])]
+public function exportPdf(
+    Request $request,
+    PlanActionsRepository $repository,
+    PdfExportService $pdfService
+): Response {
+    $search = $request->query->get('search', '');
+    $statut = $request->query->get('statut', '');
+    $categorie = $request->query->get('categorie', '');
+    $dateDebut = $request->query->get('date_debut', '');
+    $dateFin = $request->query->get('date_fin', '');
 
-        $qb = $repository->createQueryBuilder('p');
+    $qb = $repository->createQueryBuilder('p')
+        ->leftJoin('p.articles', 'a')
+        ->addSelect('a');
 
-        // Appliquer les mêmes filtres que l'index
-        if (!empty($search)) {
-            $qb->andWhere('p.decision LIKE :search OR p.description LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
+    if (!empty($search)) {
+        $qb->andWhere('p.decision LIKE :search OR p.description LIKE :search')
+           ->setParameter('search', '%' . $search . '%');
+    }
+
+    if (!empty($statut)) {
+        try {
+            $statutEnum = Statut::from($statut);
+            $qb->andWhere('p.statut = :statut')
+               ->setParameter('statut', $statutEnum);
+        } catch (\ValueError $e) {}
+    }
+
+    if (!empty($categorie)) {
+        $qb->andWhere('p.categorie = :categorie')
+           ->setParameter('categorie', $categorie);
+    }
+
+    if (!empty($dateDebut)) {
+        $qb->andWhere('p.date >= :date_debut')
+           ->setParameter('date_debut', new \DateTime($dateDebut));
+    }
+
+    if (!empty($dateFin)) {
+        $qb->andWhere('p.date <= :date_fin')
+           ->setParameter('date_fin', new \DateTime($dateFin . ' 23:59:59'));
+    }
+
+    $qb->orderBy('p.date', 'DESC');
+    
+    $plans = $qb->getQuery()->getResult();
+
+    // Créer le tableau des filtres
+    $filters = [
+        'search' => $search,
+        'statut' => $statut,
+        'categorie' => $categorie,
+        'date_debut' => $dateDebut,
+        'date_fin' => $dateFin,
+    ];
+
+    // Passer les filtres au service
+    return $pdfService->generatePlansListPdf($plans, $filters);
+}
+    // ROUTE DE DÉBOGAGE À AJOUTER TEMPORAIREMENT
+    #[Route('/debug/articles', name: 'debug_articles')]
+    public function debugArticles(ReferenceArticleRepository $repo): Response
+    {
+        $articles = $repo->findAll();
+        $output = "<h2>Articles dans la base : " . count($articles) . "</h2>";
+        $output .= "<ul>";
+        foreach ($articles as $article) {
+            $categorie = $article->getCategorie() ? $article->getCategorie()->getNomCategorie() : 'Sans catégorie';
+            $statut = $article->isPublished() ? 'Publié' : 'Brouillon';
+            $output .= "<li><strong>{$article->getTitre()}</strong> - Catégorie: {$categorie} - {$statut}</li>";
         }
-
-        if (!empty($statut)) {
-            try {
-                $statutEnum = Statut::from($statut);
-                $qb->andWhere('p.statut = :statut')
-                   ->setParameter('statut', $statutEnum);
-            } catch (\ValueError $e) {
-                // Ignorer
-            }
-        }
-
-        if (!empty($categorie)) {
-            $qb->andWhere('p.categorie = :categorie')
-               ->setParameter('categorie', $categorie);
-        }
-
-        if (!empty($dateDebut)) {
-            $qb->andWhere('p.date >= :date_debut')
-               ->setParameter('date_debut', new \DateTime($dateDebut));
-        }
-
-        if (!empty($dateFin)) {
-            $qb->andWhere('p.date <= :date_fin')
-               ->setParameter('date_fin', new \DateTime($dateFin . ' 23:59:59'));
-        }
-
-        $qb->orderBy('p.date', 'DESC');
+        $output .= "</ul>";
         
-        $plans = $qb->getQuery()->getResult();
-
-        // Préparer les données pour le PDF
-        $data = [
-            'plans' => $plans,
-            'title' => 'Liste des Plans d\'Actions',
-            'date' => new \DateTime(),
-            'filters' => [
-                'search' => $search,
-                'statut' => $statut,
-                'categorie' => $categorie,
-                'date_debut' => $dateDebut,
-                'date_fin' => $dateFin,
-            ]
-        ];
-
-        return $pdfService->generateTablePdf($data, 'plans_actions_' . date('Y-m-d'));
+        return new Response($output);
     }
 }

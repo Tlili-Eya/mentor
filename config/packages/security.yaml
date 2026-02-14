@@ -12,6 +12,12 @@ security:
                 class: App\Entity\Utilisateur
                 property: email
 
+    role_hierarchy:
+        ROLE_ADMINISTRATEUR: [ROLE_ADMINM, ROLE_ADMIN, ROLE_ENSEIGNANT]
+        ROLE_ADMINM: [ROLE_ADMIN]
+        ROLE_ENSEIGNANT: [ROLE_USER]
+        ROLE_ADMIN: [ROLE_USER]
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -50,7 +56,7 @@ security:
         
         # Backoffice admin uniquement
         - { path: ^/admin, roles: ROLE_ADMIN }
-        
+        - { path: ^/adminm, roles: ROLE_ADMINM }
         # Routes utilisateur connecté
         - { path: ^/utilisateur, roles: IS_AUTHENTICATED_FULLY }
         

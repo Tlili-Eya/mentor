@@ -29,15 +29,14 @@ class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
              return new RedirectResponse($this->router->generate('front_home'));
         }
 
-        // ROLE_ADMINM or ROLE_ADMINISTRATEUR -> front_admin (new blank page)
+        // ROLE_ADMINM or ROLE_ADMINISTRATEUR -> app_admin_dashboard
         if (in_array('ROLE_ADMINM', $roles, true) || in_array('ROLE_ADMINISTRATEUR', $roles, true)) {
-            return new RedirectResponse($this->router->generate('front_admin'));
+            return new RedirectResponse($this->router->generate('app_admin_dashboard'));
         }
 
-        // ROLE_ENSEIGNANT -> front_enseignant
+        // ROLE_ENSEIGNANT -> app_enseignant_dashboard
         if (in_array('ROLE_ENSEIGNANT', $roles, true)) {
-            // New blank enseignant page
-            return new RedirectResponse($this->router->generate('front_enseignant'));
+            return new RedirectResponse($this->router->generate('app_enseignant_dashboard'));
         }
 
         // Default behavior for ROLE_ETUDIANT and others

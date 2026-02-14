@@ -5,23 +5,14 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
-
-
 #[Route('/', name: 'front_')]
-final class FrontController extends AbstractController
+class FrontController extends AbstractController
 {
-
     #[Route('affiche', name: 'affiche')]
-    
     public function affiche(): Response
     {
         return $this->render('front/affiche.html.twig');
     }
-
-    
-    
-
 
     #[Route('home', name: 'home')]
     public function home(): Response
@@ -35,22 +26,11 @@ final class FrontController extends AbstractController
         return $this->render('front/about.html.twig');
     }
 
-    #[Route('parcours', name: 'parcours')]
-    public function parcours(): Response
-    {
-        return $this->render('front/parcours.html.twig');
-    }
 
     #[Route('course-details', name: 'course_details')]
     public function courseDetails(): Response
     {
         return $this->render('front/course-details.html.twig');
-    }
-
-    #[Route('projets', name: 'projets')]
-    public function projets(): Response
-    {
-        return $this->render('front/projets.html.twig');
     }
 
     #[Route('instructor-profile', name: 'instructor_profile')]
@@ -117,6 +97,14 @@ final class FrontController extends AbstractController
     public function error404(): Response
     {
         return $this->render('front/404.html.twig');
+    
+    }
+
+    #[Route('ai-embauche', name: 'ai_embauche')]
+    public function aiEmbauche(): Response
+    {
+        return $this->render('front/ai-embauche.html.twig');
+    
     }
 
   

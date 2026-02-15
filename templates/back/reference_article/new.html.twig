@@ -1,0 +1,259 @@
+{% extends 'back/basem.html.twig' %}
+
+{% block title %}Nouvel Article{% endblock %}
+
+{% block body %}
+<div class="page-title" style="background-color: #9dbbce; padding: 20px 0;">
+  <div class="container d-lg-flex justify-content-between align-items-center">
+    <h1 class="mb-2 mb-lg-0" style="color: #102c59; font-weight: 700;">Nouvel Article</h1>
+    <nav class="breadcrumbs">
+      <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 10px;">
+        <li><a href="{{ path('back_home') }}" style="color: #102c59; text-decoration: none;">Accueil</a></li>
+        <li><a href="{{ path('app_reference_article_index') }}" style="color: #102c59; text-decoration: none;">Articles</a></li>
+        <li style="color: #d52e28;">› Nouveau</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<section class="section" style="padding: 40px 0;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        
+        <!-- Header avec titre principal -->
+        <div class="text-center mb-5">
+          <h2 class="mb-3" style="color: #102c59; font-weight: 700;">Créer un Nouvel Article</h2>
+          <p style="color: #102c59; opacity: 0.8;">Rédigez un article d'aide à la décision</p>
+        </div>
+
+        <!-- Messages flash -->
+        {% for message in app.flashes('success') %}
+          <div class="alert alert-success alert-dismissible fade show mb-4" style="background-color: rgba(40, 167, 69, 0.1); border-color: #28a745; color: #28a745; border-left: 4px solid #28a745; border-radius: 6px;">
+            <i class="bi bi-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+          <div class="alert alert-danger alert-dismissible fade show mb-4" style="background-color: rgba(213, 46, 40, 0.1); border-color: #d52e28; color: #d52e28; border-left: 4px solid #d52e28; border-radius: 6px;">
+            <i class="bi bi-exclamation-triangle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+
+        <div class="card" style="border: 1px solid #9dbbce; border-radius: 12px; box-shadow: 0 8px 24px rgba(16, 44, 89, 0.12);">
+          <div class="card-body p-5">
+            
+            <!-- Formulaire avec désactivation validation HTML5 -->
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            
+            <!-- Titre -->
+            <div class="mb-4">
+              <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                <i class="bi bi-chat-quote me-2" style="color: #d52e28;"></i>Titre de l'article <span style="color: #d52e28;">*</span>
+              </label>
+              {{ form_widget(form.titre, {
+                'attr': {
+                  'class': 'form-control form-control-lg' ~ (form.titre.vars.errors|length ? ' is-invalid' : ''),
+                  'placeholder': 'Ex: Les meilleures pratiques pédagogiques en 2025',
+                  'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;'
+                }
+              }) }}
+              {% if form.titre.vars.errors|length > 0 %}
+                <div class="text-danger mt-2">
+                  {% for error in form.titre.vars.errors %}
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-exclamation-circle-fill me-2" style="color: #d52e28;"></i>
+                      {{ error.message }}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <!-- Contenu -->
+            <div class="mb-4">
+              <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                <i class="bi bi-file-text me-2" style="color: #d52e28;"></i>Contenu de l'article <span style="color: #d52e28;">*</span>
+              </label>
+              {{ form_widget(form.contenu, {
+                'attr': {
+                  'class': 'form-control' ~ (form.contenu.vars.errors|length ? ' is-invalid' : ''),
+                  'rows': 10,
+                  'placeholder': 'Rédigez le contenu complet de l\'article...',
+                  'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;'
+                }
+              }) }}
+              {% if form.contenu.vars.errors|length > 0 %}
+                <div class="text-danger mt-2">
+                  {% for error in form.contenu.vars.errors %}
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-exclamation-circle-fill me-2" style="color: #d52e28;"></i>
+                      {{ error.message }}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <!-- Deux colonnes pour Catégorie et Statut -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                  <i class="bi bi-tag me-2" style="color: #d52e28;"></i>Catégorie <span style="color: #d52e28;">*</span>
+                </label>
+                {{ form_widget(form.categorie, {
+                  'attr': {
+                    'class': 'form-select form-select-lg' ~ (form.categorie.vars.errors|length ? ' is-invalid' : ''),
+                    'style': 'border: 2px solid #9dbbce; border-radius: 10px; padding: 12px 16px;'
+                  }
+                }) }}
+                {% if form.categorie.vars.errors|length > 0 %}
+                  <div class="text-danger mt-2">
+                    {% for error in form.categorie.vars.errors %}
+                      <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-circle-fill me-2" style="color: #d52e28;"></i>
+                        {{ error.message }}
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label fw-bold" style="color: #102c59; font-size: 1.1rem;">
+                  <i class="bi bi-flag me-2" style="color: #d52e28;"></i>Statut
+                </label>
+                <div class="form-check form-switch mt-2" style="padding-left: 3.5rem;">
+                  {{ form_widget(form.published, {
+                    'attr': {
+                      'class': 'form-check-input' ~ (form.published.vars.errors|length ? ' is-invalid' : ''),
+                      'role': 'switch',
+                      'style': 'width: 3rem; height: 1.5rem; margin-left: -3.5rem;'
+                    }
+                  }) }}
+                  <label class="form-check-label fw-bold" for="{{ form.published.vars.id }}" style="color: #102c59; font-size: 1.1rem;">
+                    {{ form.published.vars.label }}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Information note -->
+            <div class="alert alert-info mt-4 mb-4" style="background-color: rgba(157, 187, 206, 0.15); border: 2px solid #9dbbce; color: #102c59; border-radius: 10px; border-left: 6px solid #102c59; padding: 16px 20px;">
+              <div class="d-flex">
+                <div class="me-3">
+                  <i class="bi bi-info-circle" style="color: #102c59; font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                  <strong>Information :</strong> Cet article sera automatiquement attribué à l'administrateur connecté.
+                </div>
+              </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="d-flex justify-content-between mt-5 pt-4 border-top" style="border-color: #9dbbce !important; border-top-width: 2px;">
+              <a href="{{ path('app_reference_article_index') }}" class="btn btn-lg" style="border: 2px solid #9dbbce; color: #102c59; border-radius: 10px; padding: 12px 30px; font-weight: 500; transition: all 0.3s;">
+                <i class="bi bi-arrow-left me-2"></i> Retour à la liste
+              </a>
+              
+              <button type="submit" class="btn btn-lg" style="background-color: #102c59; color: white; border: none; border-radius: 10px; padding: 12px 40px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 44, 89, 0.3); transition: all 0.3s;">
+                <i class="bi bi-plus-circle me-2"></i> Créer l'Article
+              </button>
+            </div>
+            
+            {{ form_end(form) }}
+            
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(16, 44, 89, 0.15) !important;
+}
+.form-control:focus, .form-select:focus {
+  border-color: #102c59 !important;
+  box-shadow: 0 0 0 0.2rem rgba(16, 44, 89, 0.25) !important;
+}
+.btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+}
+.alert {
+  animation: slideIn 0.5s ease-out;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.is-invalid {
+  border-color: #d52e28 !important;
+}
+.text-danger {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 8px 12px;
+  background-color: rgba(213, 46, 40, 0.08);
+  border-radius: 8px;
+  border-left: 4px solid #d52e28;
+  animation: fadeIn 0.3s ease;
+  color: #b32520;
+  font-weight: 500;
+}
+.text-danger .bi {
+  font-size: 1rem;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Style pour le switch */
+.form-check-input:checked {
+  background-color: #d52e28;
+  border-color: #d52e28;
+}
+.form-check-input:focus {
+  border-color: #9dbbce;
+  box-shadow: 0 0 0 0.2rem rgba(213, 46, 40, 0.25);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Animation d'entrée pour la carte
+  const card = document.querySelector('.card');
+  if (card) {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, 100);
+  }
+  
+  // Ajouter une classe aux champs avec erreurs
+  const errorFields = document.querySelectorAll('.text-danger');
+  errorFields.forEach(errorField => {
+    const input = errorField.previousElementSibling;
+    if (input && (input.classList.contains('form-control') || input.classList.contains('form-select'))) {
+      input.classList.add('is-invalid');
+      input.style.borderColor = '#d52e28';
+    }
+  });
+});
+</script>
+{% endblock %}

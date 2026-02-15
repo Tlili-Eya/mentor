@@ -1,0 +1,50 @@
+{# templates/back/sortie_ai/show.html.twig #}
+{% extends 'back/basem.html.twig' %}
+
+{% block title %}Détails Sortie IA #{{ sortie_ai.id }}{% endblock %}
+
+{% block body %}
+<div class="page-title light-background">
+  <div class="container">
+    <h1 class="text-primary">Détails Sortie IA #{{ sortie_ai.id }}</h1>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header" style="background-color: #102c59; color: white;">
+            <h4 class="mb-0">Informations</h4>
+          </div>
+          <div class="card-body p-4">
+            <p><strong>Type:</strong> <span class="badge bg-info">{{ sortie_ai.typeSortie.value }}</span></p>
+            <p><strong>Cible:</strong> <span class="badge bg-primary">{{ sortie_ai.cible.value }}</span></p>
+            <p><strong>Criticité:</strong> <span class="badge bg-danger">{{ sortie_ai.criticite.value }}</span></p>
+            <p><strong>Catégorie:</strong> {{ sortie_ai.categorieSortie.value }}</p>
+            <p><strong>Contenu:</strong><br>{{ sortie_ai.contenu }}</p>
+            <p><strong>Date:</strong> {{ sortie_ai.createdAt|date('d/m/Y') }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card shadow-sm">
+          <div class="card-header" style="background-color: #d52e28; color: white;">
+            <h5 class="mb-0">Actions</h5>
+          </div>
+          <div class="card-body">
+            <a href="{{ path('app_sortie_ai_edit', {id: sortie_ai.id}) }}" class="btn btn-primary w-100 mb-2">Modifier</a>
+            <form method="post" action="{{ path('app_sortie_ai_delete', {id: sortie_ai.id}) }}" onsubmit="return confirm('Confirmer ?');">
+              <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ sortie_ai.id) }}">
+              <button type="submit" class="btn btn-danger w-100">Supprimer</button>
+            </form>
+            <hr>
+            <a href="{{ path('app_sortie_ai_index') }}" class="btn btn-secondary w-100">Retour</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

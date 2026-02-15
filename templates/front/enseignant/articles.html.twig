@@ -1,0 +1,314 @@
+{% extends 'front/enseignant/basem.html.twig' %}
+
+{% block title %}Articles - Enseignant{% endblock %}
+
+{% block body %}
+<div class="page-title py-4" style="background: linear-gradient(135deg, #102c59 0%, #1a3f7a 100%);">
+    <div class="container">
+        <h1 class="text-white mb-2">Articles Pédagogiques</h1>
+        <p class="text-light opacity-85">Découvrez nos ressources pédagogiques et articles spécialisés</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <!-- Section de recherche et filtres -->
+    <div class="row mb-5">
+        <div class="col-lg-4 mb-3 mb-lg-0">
+            <div class="card border-0 shadow-sm" style="border-top: 4px solid #102c59;">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="color: #102c59;">
+                        <i class="bi bi-funnel me-2"></i>Filtrer les articles
+                    </h5>
+                    
+                    <form method="GET" class="needs-validation" novalidate>
+                        <!-- Recherche -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" style="color: #102c59;">Rechercher</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: #9dbbce; border-color: #9dbbce;">
+                                    <i class="bi bi-search" style="color: #102c59;"></i>
+                                </span>
+                                <input type="text" name="search" class="form-control" 
+                                       placeholder="Titre, contenu..." value="{{ search }}"
+                                       style="border-color: #9dbbce;">
+                            </div>
+                        </div>
+                        
+                        <!-- Catégories -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold" style="color: #102c59;">Catégorie</label>
+                            <select name="categorie" class="form-select" style="border-color: #9dbbce;">
+                                <option value="">Toutes les catégories</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}" {{ categorie|default('') == cat.id ? 'selected' : '' }}>
+                                        {{ cat.nomCategorie }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Boutons -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn text-white" style="background-color: #102c59; border-color: #102c59;">
+                                <i class="bi bi-filter me-1"></i> Appliquer
+                            </button>
+                            <a href="{{ path('app_enseignant_articles') }}" class="btn" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
+                                <i class="bi bi-x-circle me-1"></i> Réinitialiser
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contenu principal -->
+        <div class="col-lg-8">
+            <!-- Statistiques -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm text-white" style="background-color: #102c59;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-1 opacity-85">Articles</h6>
+                                    <h3 class="card-title mb-0">{{ articles|length }}</h3>
+                                </div>
+                                <i class="bi bi-file-text display-6 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm text-white" style="background-color: #9dbbce;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-1" style="color: #102c59;">Catégories</h6>
+                                    <h3 class="card-title mb-0" style="color: #102c59;">{{ categories|length }}</h3>
+                                </div>
+                                <i class="bi bi-tags display-6 opacity-75" style="color: #102c59;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 shadow-sm text-white" style="background-color: #d52e28;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-1 opacity-85">Derniers 7 jours</h6>
+                                    <h3 class="card-title mb-0">{{ recentArticlesCount is defined ? recentArticlesCount : 0 }}</h3>
+                                </div>
+                                <i class="bi bi-calendar-week display-6 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Liste des articles -->
+            {% if articles|length > 0 %}
+                <div class="row">
+                    {% for article in articles %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-0 shadow-sm h-100 hover-shadow transition" style="border-top: 3px solid #102c59;">
+                                <div class="card-body">
+                                    <!-- En-tête de l'article -->
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        {% if article.categorie %}
+                                            <span class="badge" style="background-color: #9dbbce; color: #102c59; font-weight: 500;">
+                                                {{ article.categorie.nomCategorie }}
+                                            </span>
+                                        {% endif %}
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar me-1"></i>{{ article.createdAt|date('d/m/Y') }}
+                                        </small>
+                                    </div>
+                                    
+                                    <!-- Titre -->
+                                    <h5 class="card-title mb-3" style="color: #102c59;">
+                                        <a href="{{ path('app_article_detail', {'id': article.id}) }}" 
+                                           class="text-decoration-none" style="color: #102c59;">
+                                            {{ article.titre }}
+                                        </a>
+                                    </h5>
+                                    
+                                    <!-- Contenu tronqué -->
+                                    <p class="card-text mb-4" style="color: #555; line-height: 1.6;">
+                                        {{ article.contenu|striptags|slice(0, 150) }}...
+                                    </p>
+                                    
+                                    <!-- Auteur et bouton -->
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-2">
+                                                <i class="bi bi-person-circle" style="color: #102c59;"></i>
+                                            </div>
+                                            <div>
+                                                <small class="fw-bold" style="color: #102c59;">Admin</small>
+                                                <small class="text-muted d-block">Auteur</small>
+                                            </div>
+                                        </div>
+                                        <a href="{{ path('app_article_detail', {'id': article.id}) }}" 
+                                           class="btn btn-sm text-white" style="background-color: #d52e28; border-color: #d52e28;">
+                                            <i class="bi bi-book me-1"></i> Lire l'article
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- Aucun article -->
+                <div class="text-center py-5">
+                    <i class="bi bi-file-text display-1 mb-3 d-block" style="color: #9dbbce;"></i>
+                    <h4 class="mb-3" style="color: #102c59;">Aucun article trouvé</h4>
+                    <p class="mb-4" style="color: #666;">Aucun article ne correspond à vos critères de recherche.</p>
+                    <a href="{{ path('app_enseignant_articles') }}" class="btn text-white" style="background-color: #102c59; border-color: #102c59;">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Réinitialiser les filtres
+                    </a>
+                </div>
+            {% endif %}
+            
+            <!-- Pagination -->
+            {% if totalPages > 1 %}
+                <nav aria-label="Navigation des articles" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        {% if currentPage > 1 %}
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   href="{{ path('app_enseignant_articles', {'page': currentPage-1, 'search': search, 'categorie': categorie|default('')}) }}"
+                                   style="color: #102c59; border-color: #9dbbce;">
+                                    <i class="bi bi-chevron-left"></i> Précédent
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page in 1..totalPages %}
+                            {% if page >= currentPage - 2 and page <= currentPage + 2 %}
+                                <li class="page-item {{ page == currentPage ? 'active' : '' }}">
+                                    <a class="page-link" 
+                                       href="{{ path('app_enseignant_articles', {'page': page, 'search': search, 'categorie': categorie|default('')}) }}"
+                                       style="{{ page == currentPage ? 'background-color: #102c59; border-color: #102c59;' : 'color: #102c59; border-color: #9dbbce;' }}">
+                                        {{ page }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if currentPage < totalPages %}
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   href="{{ path('app_enseignant_articles', {'page': currentPage+1, 'search': search, 'categorie': categorie|default('')}) }}"
+                                   style="color: #102c59; border-color: #9dbbce;">
+                                    Suivant <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.page-title {
+    background-color: #102c59;
+    border-bottom: 3px solid #d52e28;
+}
+
+.hover-shadow {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(16, 44, 89, 0.15) !important;
+}
+
+.card {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.badge {
+    border-radius: 4px;
+    padding: 0.35em 0.65em;
+    font-size: 0.85em;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #102c59;
+    box-shadow: 0 0 0 0.2rem rgba(16, 44, 89, 0.25);
+}
+
+.btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    transition: all 0.2s;
+}
+
+.page-link:hover {
+    background-color: #9dbbce;
+    border-color: #9dbbce;
+    color: #102c59;
+}
+
+.page-item.active .page-link {
+    background-color: #102c59;
+    border-color: #102c59;
+    color: white;
+}
+
+.text-primary {
+    color: #102c59 !important;
+}
+
+.text-secondary {
+    color: #102c59 !important;
+}
+
+.bg-primary {
+    background-color: #102c59 !important;
+}
+
+.bg-info {
+    background-color: #9dbbce !important;
+}
+
+.bg-success {
+    background-color: #d52e28 !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation des cards au survol
+    const cards = document.querySelectorAll('.hover-shadow');
+    
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.boxShadow = '0 15px 30px rgba(16, 44, 89, 0.2)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.boxShadow = '';
+        });
+    });
+    
+    // Validation du formulaire
+    const form = document.querySelector('.needs-validation');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,446 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Programme :
+	{{ programme.titre }}
+{% endblock %}
+
+{% block stylesheets %}
+	<style>:root
+	{
+		--primary-color: #102c59;
+		--secondary-color: #9dbbce;
+		--accent-color: #d52e28;
+	}
+
+	.page-header {
+		background: linear-gradient(135deg, var(--primary-color) 0%, #1a458a 100%);
+		padding: 80px 0;
+		color: white;
+		margin-bottom: 50px;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.page-header::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 300px;
+		height: 300px;
+		background: rgba(157, 187, 206, 0.1);
+		border-radius: 50%;
+		transform: translate(150px, -150px);
+	}
+
+	.stat-card {
+		background: white;
+		border: none;
+		border-radius: 20px;
+		padding: 30px;
+		box-shadow: 0 10px 30px rgba(16, 44, 89, 0.05);
+		height: 100%;
+		transition: transform 0.3s ease;
+		border: 1px solid rgba(157, 187, 206, 0.1);
+	}
+
+	.stat-card:hover {
+		transform: translateY(-5px);
+	}
+
+	.motivation-banner {
+		background: #f8faff;
+		border-radius: 20px;
+		padding: 30px;
+		border-left: 5px solid var(--accent-color);
+		margin-bottom: 40px;
+		position: relative;
+	}
+
+	.motivation-banner i.quote-icon {
+		position: absolute;
+		top: 20px;
+		right: 30px;
+		font-size: 3rem;
+		opacity: 0.1;
+		color: var(--primary-color);
+	}
+
+	.task-list-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 30px;
+	}
+
+	.task-card {
+		background: white;
+		border-radius: 18px;
+		padding: 20px 30px;
+		margin-bottom: 20px;
+		border: 1px solid rgba(157, 187, 206, 0.15);
+		transition: all 0.3s ease;
+		display: flex;
+		align-items: center;
+		gap: 20px;
+	}
+
+	.task-card:hover {
+		border-color: var(--secondary-color);
+		box-shadow: 0 10px 25px rgba(16, 44, 89, 0.05);
+		transform: translateX(10px);
+	}
+
+	.task-order {
+		width: 45px;
+		height: 45px;
+		background: var(--primary-color);
+		color: white;
+		border-radius: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 800;
+		font-size: 1.2rem;
+		flex-shrink: 0;
+	}
+
+	.task-content {
+		flex-grow: 1;
+	}
+
+	.badge-etat {
+		font-size: 0.75rem;
+		padding: 5px 12px;
+		border-radius: 50px;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	.etat-realisee {
+		background: rgba(25, 135, 84, 0.1);
+		color: #198754;
+	}
+	.etat-encours {
+		background: rgba(255, 193, 7, 0.1);
+		color: #d97706;
+	}
+	.etat-abandonner {
+		background: rgba(220, 53, 69, 0.1);
+		color: #dc3545;
+	}
+
+	.btn-action-sm {
+		width: 38px;
+		height: 38px;
+		padding: 0;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 10px;
+		transition: all 0.3s;
+		border: none;
+	}
+
+	.btn-view {
+		background: #f0fdf4;
+		color: #198754;
+	}
+	.btn-view:hover {
+		background: #198754;
+		color: white;
+	}
+
+	.btn-edit {
+		background: #fffbeb;
+		color: #d97706;
+	}
+	.btn-edit:hover {
+		background: #fbbf24;
+		color: white;
+	}
+
+	.btn-delete {
+		background: #fef2f2;
+		color: #dc2626;
+	}
+	.btn-delete:hover {
+		background: #dc2626;
+		color: white;
+	}
+
+	.pie {
+		position: relative;
+		width: 120px;
+		height: 120px;
+		border-radius: 50%;
+		margin: 0 auto;
+	}
+
+	.inner-circle {
+		position: absolute;
+		inset: 15%;
+		background: #fff;
+		border-radius: 50%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.form-control-custom {
+		border-radius: 12px;
+		padding: 12px 20px;
+		border: 1.5px solid #eee;
+	}
+
+	.btn-new-task {
+		background-color: var(--primary-color);
+		color: white;
+		padding: 10px 25px;
+		font-weight: 600;
+		border-radius: 50px;
+		transition: all 0.3s;
+	}
+
+	.btn-new-task:hover {
+		background-color: #1a458a;
+		color: white;
+		transform: translateY(-2px);
+	}
+</style>{% endblock %}{% block body %}
+
+{% set totalTaches = programme.tache|length %}
+{% set realisees = programme.tache|filter(t => t.etat.value in ['realisee', 'validee'])|length %}
+{% set encours = programme.tache|filter(t => t.etat.value in ['encours', 'en_cours'])|length %}
+{% set abandonnes = programme.tache|filter(t => t.etat.value in ['Abandonner', 'abandonner'])|length %}
+
+{% set score = totalTaches > 0 ? (realisees * 100 / totalTaches)|round(0) : 0 %}
+
+{% set medaille = null %}
+{% if score > 0 %}
+	{% if score <= 50 %}
+		{% set medaille = 'Bronze 🥉' %}
+	{% elseif score <= 80 %}
+		{% set medaille = 'Argent 🥈' %}
+	{% else %}
+		{% set medaille = 'Or 🥇' %}
+	{% endif %}
+{% endif %}
+
+{% set pRealisees = totalTaches > 0 ? (realisees * 100 / totalTaches) : 0 %}
+{% set pEncours = totalTaches > 0 ? (encours * 100 / totalTaches) : 0 %}
+
+<div class="page-header">
+	<div class="container" data-aos="fade-down">
+		<div class="row align-items-center">
+			<div class="col-lg-8">
+				<nav aria-label="breadcrumb" class="mb-3">
+					<ol class="breadcrumb">
+						<li class="breadcrumb-item">
+							<a href="{{ path('front_events_index') }}" class="text-white opacity-75">Mes Objectifs</a>
+						</li>
+						<li class="breadcrumb-item active text-white" aria-current="page">Programme</li>
+					</ol>
+				</nav>
+				<h1 class="display-4 fw-bold">{{ programme.titre }}</h1>
+				<p class="lead opacity-75">Généré le
+					{{ programme.dategeneration|date('d/m/Y') }}
+					pour votre réussite.</p>
+			</div>
+			<div class="col-lg-4 text-lg-end">
+				<a href="{{ path('front_events_index') }}" class="btn btn-light rounded-pill px-4 fw-bold">
+					<i class="bi bi-arrow-left me-2"></i>Retour aux objectifs
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div
+	class="container mb-5">
+
+	<!-- Motivation Banner -->
+	{% if programme.motivation|length > 0 %}
+		{% set dernier = programme.motivation|sort((a,b) => b.dategeneratiomm <=> a.dategeneratiomm)|first %}
+		<div class="motivation-banner" data-aos="fade-up">
+			<i class="bi bi-quote quote-icon"></i>
+			<h5 class="fw-bold text-uppercase small mb-2" style="color: var(--accent-color); letter-spacing: 1px;">Le mot du mentor</h5>
+			<p class="fs-5 mb-1 text-dark fw-medium" style="white-space: pre-line;">"{{ dernier.messagemotivant|default('Chaque pas compte. Continuez ainsi !') }}"</p>
+			<small class="text-muted italic">{{ dernier.dategeneratiomm|date('d/m/Y H:i') }}</small>
+		</div>
+	{% endif %}
+
+	<!-- Stats Cards -->
+	<div class="row g-4 mb-5">
+		<div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+			<div class="stat-card text-center">
+				<h6 class="text-uppercase small fw-bold text-muted mb-4">Progression</h6>
+				<div class="display-3 fw-bold text-primary mb-2">{{ score }}%</div>
+				<div class="progress rounded-pill mb-2" style="height: 10px;">
+					<div class="progress-bar bg-success" role="progressbar" style="width: {{ score }}%"></div>
+				</div>
+				<p class="small text-muted mb-0">{{ realisees }}
+					tâches sur
+					{{ totalTaches }}
+					validées</p>
+			</div>
+		</div>
+
+		<div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+			<div class="stat-card">
+				<h6 class="text-uppercase small fw-bold text-muted mb-3 text-center">Répartition</h6>
+				<div class="d-flex align-items-center gap-4">
+					<div class="pie" style="background: conic-gradient(#198754 0% {{ pRealisees }}%, #ffc107 {{ pRealisees }}% {{ pRealisees + pEncours }}%, #dc3545 {{ pRealisees + pEncours }}% 100%);">
+						<div class="inner-circle">
+							<span class="fw-bold">{{ totalTaches }}</span>
+							<small>Tâches</small>
+						</div>
+					</div>
+					<div class="flex-grow-1 small">
+						<div class="mb-1">
+							<span class="badge rounded-circle p-1 bg-success me-2"></span>
+							{{ realisees }}
+							Atteints</div>
+						<div class="mb-1">
+							<span class="badge rounded-circle p-1 bg-warning me-2"></span>
+							{{ encours }}
+							En cours</div>
+						<div>
+							<span class="badge rounded-circle p-1 bg-danger me-2"></span>
+							{{ abandonnes }}
+							Abandonnés</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
+			<div class="stat-card text-center">
+				<h6 class="text-uppercase small fw-bold text-muted mb-3">Récompense</h6>
+				<div class="py-2">
+					{% if medaille %}
+						<div class="display-5 mb-2">{{ medaille|split(' ')|first }}</div>
+						<h4 class="fw-bold text-primary">{{ medaille|split(' ')|last }}</h4>
+					{% else %}
+						<div class="display-6 mt-3 text-muted opacity-25">
+							<i class="bi bi-trophy"></i>
+						</div>
+						<p class="text-muted mt-2">Validez vos tâches pour gagner une médaille</p>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tasks Section -->
+	<div class="task-list-header" data-aos="fade-up">
+		<h2 class="fw-bold text-primary mb-0">
+			<i class="bi bi-list-task me-2"></i>Vos Étapes de Réussite</h2>
+		<button type="button" class="btn btn-new-task" data-bs-toggle="modal" data-bs-target="#addTacheModal">
+			<i class="bi bi-plus-lg me-2"></i>Ajouter une tâche
+		</button>
+	</div>
+
+	<div class="row">
+		<div class="col-12">
+			{% if programme.tache|length > 0 %}
+				{% for tache in programme.tache %}
+					<div class="task-card" data-aos="fade-left" data-aos-delay="{{ loop.index * 50 }}">
+						<div class="task-order">{{ tache.ordre }}</div>
+						<div class="task-content">
+							<div class="d-flex justify-content-between align-items-start mb-1">
+								<h5 class="fw-bold mb-0 text-dark">{{ tache.titre ?? 'Tâche sans titre' }}</h5>
+								<span class="badge-etat etat-{{ tache.etat.value|default('encours')|lower }}">
+									{{ tache.etat ? tache.etat.value|capitalize : '—' }}
+								</span>
+							</div>
+							<p class="text-muted mb-0 small">{{ tache.description|default('Aucune description fournie.') }}</p>
+						</div>
+						<div class="d-flex gap-2">
+							<a href="{{ path('front_tache_show', {'id': tache.id}) }}" class="btn-action-sm btn-view" title="Détails">
+								<i class="bi bi-eye"></i>
+							</a>
+							<a href="{{ path('front_tache_edit', {'id': tache.id}) }}" class="btn-action-sm btn-edit" title="Modifier">
+								<i class="bi bi-pencil"></i>
+							</a>
+							<form method="post" action="{{ path('front_tache_delete', {'id': tache.id}) }}" onsubmit="return confirm('Supprimer cette tâche ?');" class="d-inline">
+								<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ tache.id) }}">
+								<button type="submit" class="btn-action-sm btn-delete" title="Supprimer">
+									<i class="bi bi-trash"></i>
+								</button>
+							</form>
+						</div>
+					</div>
+				{% endfor %}
+			{% else %}
+				<div class="text-center py-5 bg-white rounded-4 border border-dashed" data-aos="zoom-in">
+					<i class="bi bi-clipboard-x display-1 text-muted opacity-25"></i>
+					<h4 class="mt-4 fw-bold">Votre programme est encore vierge</h4>
+					<p class="text-muted">Définissez vos premières étapes pour atteindre votre objectif.</p>
+					<button class="btn btn-primary rounded-pill px-4 mt-2" data-bs-toggle="modal" data-bs-target="#addTacheModal">Ajouter ma première étape</button>
+				</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+
+<!-- ==================== MODAL AJOUT TÂCHE ==================== -->
+<div class="modal fade" id="addTacheModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered">
+		<div class="modal-content border-0 shadow-lg" style="border-radius: 25px; overflow: hidden;">
+
+			<div class="modal-header bg-primary text-white p-4 border-0">
+				<h5 class="modal-title fs-4 fw-bold" id="addTacheModalLabel">
+					<i class="bi bi-plus-circle me-2"></i>Nouvelle étape
+				</h5>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+
+			<div class="modal-body p-5">
+				{{ form_start(formTache, {'attr': {'novalidate': 'novalidate'}}) }}
+
+				<div class="row">
+					<div class="col-md-9 mb-4">
+						<label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">Titre de la tâche</label>
+						{{ form_widget(formTache.titre, {'attr': {'class': 'form-control form-control-custom', 'placeholder': 'Ex: Configurer environnement'}}) }}
+						<div class="text-danger small mt-1">{{ form_errors(formTache.titre) }}</div>
+					</div>
+					<div class="col-md-3 mb-4">
+						<label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">Ordre</label>
+						{{ form_widget(formTache.ordre, {'attr': {'class': 'form-control form-control-custom', 'placeholder': '1'}}) }}
+						<div class="text-danger small mt-1">{{ form_errors(formTache.ordre) }}</div>
+					</div>
+				</div>
+
+				<div class="mb-4">
+					<label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">Description détaillée</label>
+					{{ form_widget(formTache.description, {'attr': {'class': 'form-control form-control-custom', 'rows': 4, 'placeholder': 'Expliquez ce qu\'il y a à faire...'}}) }}
+          <div class="text-danger small mt-1">{{ form_errors(formTache.description) }}</div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">État d'avancement</label>
+            {{ form_widget(formTache.etat, {'attr': {'class': 'form-select form-control-custom'}}) }}
+					<div class="text-danger small mt-1">{{ form_errors(formTache.etat) }}</div>
+				</div>
+
+				<div class="d-flex gap-3 mt-4">
+					<button type="button" class="btn btn-outline-secondary rounded-pill px-5 fw-bold flex-grow-1" data-bs-dismiss="modal">Annuler</button>
+					<button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold flex-grow-1" style="background-color: var(--primary-color);">Créer la tâche</button>
+				</div>
+
+				{{ form_end(formTache) }}
+			</div>
+		</div>
+	</div>
+</div>
+
+{% if formTache.vars.submitted and not formTache.vars.valid %}
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+const modal = new bootstrap.Modal(document.getElementById('addTacheModal'));
+modal.show();
+});
+	</script>
+{% endif %}{% endblock %}

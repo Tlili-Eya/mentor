@@ -1,168 +1,473 @@
 {% extends 'front/base.html.twig' %}
 
-{% block body %}
-<body class="events-page">
-
-<main class="main">
-
-  <!-- Page Title -->
-  <div class="page-title light-background">
-    <div class="container d-lg-flex justify-content-between align-items-center">
-      <h1 class="mb-2 mb-lg-0">Events</h1>
-      <nav class="breadcrumbs">
-        <ol>
-          <li><a href="/">Home</a></li>
-          <li class="current">Events</li>
-        </ol>
-      </nav>
-    </div>
-  </div><!-- End Page Title -->
-
-  <!-- Courses Events Section -->
-  <section id="courses-events" class="courses-events section">
-
-    <div class="container" data-aos="fade-up" data-aos-delay="100">
-
-      <div class="row">
-
-        <div class="col-lg-8">
-
-          <!-- Event Item -->
-          <article class="event-card" data-aos="fade-up" data-aos-delay="200">
-            <div class="row g-0">
-              <div class="col-md-4">
-                <div class="event-image">
-                  <img src="{{ asset('assets/img/education/events-3.webp') }}" class="img-fluid" alt="Event Image">
-                  <div class="date-badge">
-                    <span class="day">15</span>
-                    <span class="month">Dec</span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-8">
-                <div class="event-content">
-                  <div class="event-meta">
-                    <span class="time"><i class="bi bi-clock"></i> 2:00 PM - 4:00 PM</span>
-                    <span class="location"><i class="bi bi-geo-alt"></i> Online Webinar</span>
-                  </div>
-                  <h3 class="event-title">
-                    <a href="#">Advanced Data Science Techniques Workshop</a>
-                  </h3>
-                  <p class="event-description">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  </p>
-                  <div class="event-footer">
-                    <div class="instructor">
-                      <img src="{{ asset('assets/img/person/person-f-8.webp') }}" class="instructor-avatar" alt="">
-                      <span>Dr. Sarah Johnson</span>
-                    </div>
-                    <div class="event-price">
-                      <span class="price">$49</span>
-                    </div>
-                  </div>
-                  <div class="event-actions">
-                    <a href="#" class="btn btn-primary">Register Now</a>
-                    <a href="#" class="btn btn-outline">Learn More</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </article><!-- End Event Item -->
-
-          <!-- Event Item -->
-          <article class="event-card" data-aos="fade-up" data-aos-delay="300">
-            <div class="row g-0">
-              <div class="col-md-4">
-                <div class="event-image">
-                  <img src="{{ asset('assets/img/education/events-7.webp') }}" class="img-fluid" alt="">
-                  <div class="date-badge">
-                    <span class="day">22</span>
-                    <span class="month">Dec</span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-8">
-                <div class="event-content">
-                  <div class="event-meta">
-                    <span class="time"><i class="bi bi-clock"></i> 6:00 PM - 8:30 PM</span>
-                    <span class="location"><i class="bi bi-geo-alt"></i> Hybrid Event</span>
-                  </div>
-                  <h3 class="event-title">
-                    <a href="#">Machine Learning for Beginners Masterclass</a>
-                  </h3>
-                  <p class="event-description">
-                    Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.
-                  </p>
-                  <div class="event-footer">
-                    <div class="instructor">
-                      <img src="{{ asset('assets/img/person/person-m-12.webp') }}" class="instructor-avatar" alt="">
-                      <span>Prof. Michael Chen</span>
-                    </div>
-                    <div class="event-price">
-                      <span class="price free">Free</span>
-                    </div>
-                  </div>
-                  <div class="event-actions">
-                    <a href="#" class="btn btn-primary">Register Now</a>
-                    <a href="#" class="btn btn-outline">Learn More</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </article><!-- End Event Item -->
-
-          <!-- Pagination -->
-          <nav class="pagination-wrapper mt-5">
-            <ul class="pagination justify-content-center">
-              <li class="page-item disabled">
-                <a class="page-link" href="#"><i class="bi bi-chevron-left"></i></a>
-              </li>
-              <li class="page-item active"><a class="page-link" href="#">1</a></li>
-              <li class="page-item"><a class="page-link" href="#">2</a></li>
-              <li class="page-item"><a class="page-link" href="#">3</a></li>
-              <li class="page-item">
-                <a class="page-link" href="#"><i class="bi bi-chevron-right"></i></a>
-              </li>
-            </ul>
-          </nav>
-
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-
-          <div class="sidebar-widget search-widget">
-            <h4 class="widget-title">Search Events</h4>
-            <form class="search-form">
-              <input type="text" class="form-control" placeholder="Search events...">
-            </form>
-          </div>
-
-          <div class="sidebar-widget upcoming-widget mt-4">
-            <h4 class="widget-title">Upcoming Events</h4>
-
-            <div class="upcoming-item">
-              <div class="upcoming-date">
-                <span class="day">18</span>
-                <span class="month">Dec</span>
-              </div>
-              <div class="upcoming-content">
-                <h5><a href="#">Python Programming Bootcamp</a></h5>
-                <span class="price">$95</span>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </section><!-- /Courses Events Section -->
-
-</main>
-
-</body>
+{% block title %}Mes Objectifs - MentorAI
 {% endblock %}
+
+{% block stylesheets %}
+	<style>:root
+	{
+		--primary-color: #102c59;
+		--secondary-color: #9dbbce;
+		--accent-color: #d52e28;
+	}
+
+	.page-header {
+		background: linear-gradient(135deg, var(--primary-color) 0%, #1a458a 100%);
+		padding: 80px 0;
+		color: white;
+		margin-bottom: 50px;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.page-header::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 300px;
+		height: 300px;
+		background: rgba(157, 187, 206, 0.1);
+		border-radius: 50%;
+		transform: translate(150px, -150px);
+	}
+
+	.card-objectif {
+		border: none;
+		border-radius: 20px;
+		box-shadow: 0 15px 35px rgba(16, 44, 89, 0.08);
+		transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+		margin-bottom: 40px;
+		overflow: hidden;
+		background: #fff;
+		border: 1px solid rgba(157, 187, 206, 0.2);
+	}
+
+	.card-objectif:hover {
+		box-shadow: 0 20px 45px rgba(16, 44, 89, 0.15);
+		border-color: var(--secondary-color);
+	}
+
+	.badge-status {
+		font-size: 0.75rem;
+		padding: 6px 15px;
+		border-radius: 50px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+		display: inline-block;
+		margin-bottom: 15px;
+	}
+
+	.status-atteint {
+		background: rgba(25, 135, 84, 0.1);
+		color: #198754;
+	}
+	.status-encours {
+		background: rgba(255, 193, 7, 0.1);
+		color: #ffc107;
+	}
+	.status-abandonner {
+		background: rgba(213, 46, 40, 0.1);
+		color: #d52e28;
+	}
+
+	.objectif-title {
+		font-size: 1.6rem;
+		font-weight: 800;
+		color: var(--primary-color);
+		margin-bottom: 10px;
+	}
+
+	.stats-card {
+		background: #fff;
+		border-radius: 20px;
+		padding: 30px;
+		border: 1px solid rgba(157, 187, 206, 0.2);
+		box-shadow: 0 10px 25px rgba(16, 44, 89, 0.05);
+		margin-bottom: 40px;
+	}
+
+	.stat-pie-circle {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.pie {
+		position: relative;
+		width: 150px;
+		height: 150px;
+		border-radius: 50%;
+	}
+
+	.inner-circle {
+		position: absolute;
+		inset: 18%;
+		background: #fff;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+	}
+
+	.legend-item {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 8px;
+		font-size: 0.9rem;
+	}
+
+	.legend-color {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+	}
+
+	.action-buttons {
+		padding: 20px 25px;
+		background: #fcfdfe;
+		border-top: 1px solid #f0f4f8;
+		display: flex;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.btn-action {
+		flex: 1;
+		min-width: 140px;
+		border-radius: 12px;
+		padding: 12px;
+		font-weight: 700;
+		font-size: 0.9rem;
+		transition: all 0.3s;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		text-decoration: none;
+	}
+
+	.btn-program {
+		background: #eef2f7;
+		color: var(--primary-color);
+	}
+	.btn-program:hover {
+		background: var(--primary-color);
+		color: white;
+	}
+
+	.btn-view {
+		background: #f0fdf4;
+		color: #198754;
+	}
+	.btn-view:hover {
+		background: #198754;
+		color: white;
+	}
+
+	.btn-edit {
+		background: #fffbeb;
+		color: #d97706;
+	}
+	.btn-edit:hover {
+		background: #fbbf24;
+		color: white;
+	}
+
+	.btn-delete {
+		background: #fef2f2;
+		color: #dc2626;
+		border: 1.5px solid #fee2e2;
+	}
+	.btn-delete:hover {
+		background: #dc2626;
+		color: white;
+		border-color: #dc2626;
+	}
+
+	.btn-new {
+		background-color: var(--primary-color);
+		color: white;
+		padding: 12px 30px;
+		font-weight: 700;
+		border-radius: 50px;
+	}
+
+	.btn-new:hover {
+		background-color: #1a458a;
+		color: white;
+		transform: translateY(-2px);
+	}
+
+	.search-box {
+		background: white;
+		padding: 30px;
+		border-radius: 20px;
+		box-shadow: 0 10px 25px rgba(16, 44, 89, 0.05);
+		margin-top: -50px;
+		position: relative;
+		z-index: 10;
+		border: 1px solid rgba(157, 187, 206, 0.1);
+	}
+
+	.form-control-custom {
+		border-radius: 12px;
+		padding: 12px 20px;
+		border: 1.5px solid #eee;
+	}
+
+	.form-control-custom:focus {
+		border-color: var(--secondary-color);
+		box-shadow: none;
+	}
+</style>{% endblock %}{% block body %}
+<div class="page-header">
+	<div class="container" data-aos="fade-down">
+		<div class="row align-items-center">
+			<div class="col-lg-8">
+				<h1 class="display-4 fw-bold">Mes Objectifs & Progression</h1>
+				<p class="lead opacity-75">Définissez vos buts, suivez vos étapes et visualisez vos réussites.</p>
+			</div>
+			<div class="col-lg-4 text-lg-end">
+				<button type="button" class="btn btn-light btn-new" data-bs-toggle="modal" data-bs-target="#objectifModal">
+					<i class="bi bi-plus-circle-fill me-2"></i>Nouvel Objectif
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div
+	class="container mb-5">
+	<!-- Search & Filters -->
+	<div class="search-box mb-5" data-aos="fade-up">
+		<form method="GET" class="row g-3 align-items-end">
+			<div class="col-md-5">
+				<label class="form-label fw-bold small text-uppercase" style="letter-spacing: 1px;">Rechercher un objectif</label>
+				<div class="input-group">
+					<input type="text" name="titre" class="form-control form-control-custom" placeholder="Titre de l'objectif..." value="{{ app.request.query.get('titre') }}">
+				</div>
+			</div>
+			<div class="col-md-3">
+				<label class="form-label fw-bold small text-uppercase" style="letter-spacing: 1px;">Trier par</label>
+				<select name="sort" class="form-select form-control-custom" onchange="this.form.submit()">
+					<option value="datedebut" {{ app.request.query.get('sort') == 'datedebut' ? 'selected' }}>Date de début</option>
+					<option value="datefin" {{ app.request.query.get('sort') == 'datefin' ? 'selected' }}>Date de fin</option>
+					<option value="titre" {{ app.request.query.get('sort') == 'titre' ? 'selected' }}>Titre</option>
+					<option value="statut" {{ app.request.query.get('sort') == 'statut' ? 'selected' }}>Statut</option>
+				</select>
+			</div>
+			<div class="col-md-4 d-flex gap-2">
+				<button type="submit" class="btn btn-primary flex-grow-1 rounded-pill fw-bold" style="background-color: var(--primary-color);">Filtrer</button>
+				{% if app.request.query.get('titre') %}
+					<a href="{{ path('front_events_index') }}" class="btn btn-outline-secondary rounded-pill fw-bold px-4">Effacer</a>
+				{% endif %}
+			</div>
+		</form>
+	</div>
+
+	<div
+		class="row">
+		<!-- Stats Column -->
+		<div class="col-lg-4">
+			<div class="stats-card" data-aos="fade-right">
+				<h5 class="fw-bold mb-4 text-center">Répartition des Objectifs</h5>
+				<div class="stat-pie-circle mb-4">
+					<div class="pie" style="
+							                        background: conic-gradient(
+							                            {% if total > 0 %}
+							                                #198754 0% {{ (atteints / total * 100)|round(2) }}%,
+							                                #ffc107 {{ (atteints / total * 100)|round(2) }}% {{ ((atteints + enCours) / total * 100)|round(2) }}%,
+							                                #d52e28 {{ ((atteints + enCours) / total * 100)|round(2) }}% 100%
+							                            {% else %}
+							                                #e0e0e0 0% 100%
+							                            {% endif %}
+							                        );
+							                    ">
+						<div class="inner-circle flex-column">
+							<span class="display-6 fw-bold text-primary">{{ total }}</span>
+							<small class="text-muted">Total</small>
+						</div>
+					</div>
+				</div>
+				<div class="legend ps-3">
+					<div class="legend-item">
+						<span class="legend-color" style="background: #198754"></span>
+						<span>Atteints :
+							<strong>{{ atteints }}</strong>
+						</span>
+					</div>
+					<div class="legend-item">
+						<span class="legend-color" style="background: #ffc107"></span>
+						<span>En cours :
+							<strong>{{ enCours }}</strong>
+						</span>
+					</div>
+					<div class="legend-item">
+						<span class="legend-color" style="background: #d52e28"></span>
+						<span>Abandonnés :
+							<strong>{{ abandonnes }}</strong>
+						</span>
+					</div>
+				</div>
+				<hr class="my-4 opacity-50">
+				<div class="d-flex justify-content-center gap-2">
+					<a href="{{ path('front_events_export_excel') }}" class="btn btn-sm btn-success rounded-pill px-3">
+						<i class="bi bi-file-earmark-excel me-1"></i>
+						Excel
+					</a>
+					<a href="{{ path('front_events_export_word') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+						<i class="bi bi-file-earmark-word me-1"></i>
+						Word
+					</a>
+				</div>
+			</div>
+
+			<form method="post" action="{{ path('front_events_reset') }}" onsubmit="return confirm('Attention ! Cela va SUPPRIMER TOUS les objectifs. Continuer ?');" class="d-grid mb-4">
+				<button type="submit" class="btn btn-outline-danger rounded-pill fw-bold">
+					<i class="bi bi-trash3 me-2"></i>Réinitialiser mes données
+				</button>
+			</form>
+		</div>
+
+		<!-- List Column -->
+		<div class="col-lg-8">
+			{% if objectifs is empty %}
+				<div class="text-center py-5 bg-white rounded-4 border border-dashed" data-aos="zoom-in">
+					<i class="bi bi-journal-x display-1 text-muted opacity-25"></i>
+					<h3 class="mt-4 fw-bold">Aucun objectif trouvé</h3>
+					<p class="text-muted">Commencez à définir vos priorités pour les voir s'afficher ici.</p>
+					<button class="btn btn-new mt-3" data-bs-toggle="modal" data-bs-target="#objectifModal">Créer mon premier objectif</button>
+				</div>
+			{% else %}
+				{% for objectif in objectifs %}
+					<div class="card-objectif" data-aos="fade-up">
+						<div class="p-4 p-lg-5">
+							<div class="d-flex justify-content-between align-items-start mb-3">
+								<div>
+									<span class="badge-status status-{{ (objectif.statut.value|default('encours'))|lower }}">
+										{{ objectif.statut.value|default('En cours') }}
+									</span>
+									<h2 class="objectif-title">{{ objectif.titre }}</h2>
+								</div>
+								<div class="text-end">
+									<span class="badge bg-light text-primary border rounded-pill px-3 py-2 small">
+										ID:
+										{{ objectif.idObjectif ?? ('PPD' ~ objectif.id) }}
+									</span>
+								</div>
+							</div>
+
+							<p class="text-muted mb-4 lead" style="font-size: 1.1rem;">{{ objectif.description }}</p>
+
+							<div class="row g-3">
+								<div class="col-md-6">
+									<div class="d-flex align-items-center gap-2 text-muted">
+										<i class="bi bi-calendar-event fs-5"></i>
+										<span>Début :
+											<strong>{{ objectif.datedebut ? objectif.datedebut|date('d/m/Y') : '—' }}</strong>
+										</span>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="d-flex align-items-center gap-2 text-muted">
+										<i class="bi bi-calendar-check fs-5"></i>
+										<span>Échéance :
+											<strong>{{ objectif.datefin ? objectif.datefin|date('d/m/Y') : '—' }}</strong>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="action-buttons">
+							<a href="{{ path('front_programme_show', {id: objectif.programme.id}) }}" class="btn-action btn-program">
+								<i class="bi bi-list-check"></i>
+								Mon Programme
+							</a>
+							<a href="{{ path('front_events_show', {id: objectif.id}) }}" class="btn-action btn-view">
+								<i class="bi bi-eye"></i>
+								Détails
+							</a>
+							<a href="{{ path('front_events_edit', {id: objectif.id}) }}" class="btn-action btn-edit">
+								<i class="bi bi-pencil"></i>
+								Modifier
+							</a>
+							<form method="post" action="{{ path('front_events_delete', {id: objectif.id}) }}" onsubmit="return confirm('Supprimer cet objectif ? Action irréversible.');" class="flex-grow-1" style="min-width: 140px;">
+								<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ objectif.id) }}">
+								<button type="submit" class="btn-action btn-delete w-100">
+									<i class="bi bi-trash"></i>
+									Supprimer
+								</button>
+							</form>
+						</div>
+					</div>
+				{% endfor %}
+			{% endif %}
+		</div>
+	</div>
+</div>
+
+<!-- ==================== MODAL AJOUT OBJECTIF ==================== -->
+<div class="modal fade" id="objectifModal" tabindex="-1" aria-labelledby="objectifModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-dialog-centered">
+		<div class="modal-content border-0 shadow-lg" style="border-radius: 25px; overflow: hidden;">
+
+			<div class="modal-header bg-primary text-white p-4 border-0">
+				<h5 class="modal-title fs-4 fw-bold" id="objectifModalLabel">
+					<i class="bi bi-bullseye me-2"></i>Nouvel Objectif
+				</h5>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+
+			<div class="modal-body p-5">
+				{{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+				<div class="mb-4">
+					<label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">Titre de l'objectif</label>
+					{{ form_widget(form.titre, {'attr': {'class': 'form-control form-control-custom', 'placeholder': 'Ex: Apprendre Symfony en 30 jours'}}) }}
+					<div class="text-danger small mt-1">{{ form_errors(form.titre) }}</div>
+				</div>
+
+				<div class="mb-4">
+					<label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">Description & Étapes</label>
+					{{ form_widget(form.description, {'attr': {'class': 'form-control form-control-custom', 'rows': 4, 'placeholder': 'Détaillez vos intentions...'}}) }}
+					<div class="text-danger small mt-1">{{ form_errors(form.description) }}</div>
+				</div>
+
+				<div class="row g-4">
+					<div class="col-md-6 mb-4">
+						<label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">Date de début</label>
+						{{ form_widget(form.datedebut, {'attr': {'class': 'form-control form-control-custom'}}) }}
+						<div class="text-danger small mt-1">{{ form_errors(form.datedebut) }}</div>
+					</div>
+
+					<div class="col-md-6 mb-4">
+						<label class="form-label fw-bold text-uppercase small" style="letter-spacing: 1px;">Date de fin estimée</label>
+						{{ form_widget(form.datefin, {'attr': {'class': 'form-control form-control-custom'}}) }}
+						<div class="text-danger small mt-1">{{ form_errors(form.datefin) }}</div>
+					</div>
+				</div>
+
+				<div class="d-flex gap-3 mt-4">
+					<button type="button" class="btn btn-outline-secondary rounded-pill px-5 fw-bold flex-grow-1" data-bs-dismiss="modal">Annuler</button>
+					<button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold flex-grow-1" style="background-color: var(--primary-color);">Créer l'Objectif</button>
+				</div>
+
+				{{ form_end(form) }}
+			</div>
+		</div>
+	</div>
+</div>
+
+{% if showModal %}
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+const modal = new bootstrap.Modal(document.getElementById('objectifModal'));
+modal.show();
+});
+	</script>
+{% endif %}{% endblock %}

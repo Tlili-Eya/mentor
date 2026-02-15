@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 #[ORM\Entity(repositoryClass: ReferenceArticleRepository::class)]
 class ReferenceArticle
@@ -17,12 +19,25 @@ class ReferenceArticle
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le titre de l'article est obligatoire")]
+    #[Assert\Length(
+        min: 5,
+        max: 255,
+        minMessage: "Le titre doit contenir au moins {{ limit }} caractères",
+        maxMessage: "Le titre ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $titre = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: "Le contenu de l'article est obligatoire")]
+    #[Assert\Length(
+        min: 20,
+        minMessage: "Le contenu doit contenir au moins {{ limit }} caractères"
+    )]
     private ?string $contenu = null;
 
     #[ORM\ManyToOne(inversedBy: 'referenceArticles')]
+    #[Assert\NotNull(message: "La catégorie est obligatoire")]
     private ?CategorieArticle $categorie = null;
 
     #[ORM\ManyToOne(inversedBy: 'referenceArticles')]
@@ -35,18 +50,28 @@ class ReferenceArticle
     private ?\DateTime $updatedAt = null;
 
     #[ORM\Column]
-    private ?bool $published = null;
+    private bool $published = false;
 
     /**
      * @var Collection<int, SortieAI>
      */
-#[ORM\OneToMany(mappedBy: 'article', targetEntity: SortieAI::class, orphanRemoval:true)]
-private Collection $sortiesAI;
+    #[ORM\OneToMany(mappedBy: 'article', targetEntity: SortieAI::class, orphanRemoval:true)]
+    private Collection $sortiesAI;
+
+    /**
+     * @var Collection<int, PlanActions>
+     */
+    #[ORM\ManyToMany(targetEntity: PlanActions::class, mappedBy: 'articles')]
+    private Collection $planActions;
 
     public function __construct()
     {
         $this->sortieAIs = new ArrayCollection();
+        $this->createdAt = new \DateTime();
+        $this->published = false;
+        $this->planActions = new ArrayCollection(); // AJOUT
     }
+
 
     public function getId(): ?int
     {
@@ -125,7 +150,7 @@ private Collection $sortiesAI;
         return $this;
     }
 
-    public function isPublished(): ?bool
+    public function isPublished(): bool
     {
         return $this->published;
     }
@@ -133,7 +158,6 @@ private Collection $sortiesAI;
     public function setPublished(bool $published): static
     {
         $this->published = $published;
-
         return $this;
     }
 
@@ -159,6 +183,32 @@ private Collection $sortiesAI;
     {
         if ($this->sortieAIs->removeElement($sortieAI)) {
             $sortieAI->removeReferenceArticle($this);
+        }
+
+        return $this;
+    }
+     /**
+     * @return Collection<int, PlanActions>
+     */
+    public function getPlanActions(): Collection
+    {
+        return $this->planActions;
+    }
+
+    public function addPlanAction(PlanActions $planAction): static
+    {
+        if (!$this->planActions->contains($planAction)) {
+            $this->planActions->add($planAction);
+            $planAction->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removePlanAction(PlanActions $planAction): static
+    {
+        if ($this->planActions->removeElement($planAction)) {
+            $planAction->removeArticle($this);
         }
 
         return $this;

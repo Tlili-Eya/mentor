@@ -1,0 +1,184 @@
+{% extends 'back/basem.html.twig' %}
+
+{% block title %}Historique des Sorties IA{% endblock %}
+
+{% block body %}
+
+<div class="page-title light-background">
+  <div class="container d-lg-flex justify-content-between align-items-center">
+    <h1 class="mb-2 mb-lg-0 text-primary">Historique des Sorties IA</h1>
+    <nav class="breadcrumbs">
+      <ol>
+        <li><a href="{{ path('back_home') }}">Accueil</a></li>
+        <li class="current">Sorties IA</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    {% for message in app.flashes('success') %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+
+    {# HEADER SANS BOUTON AJOUTER - JUSTE TITRE ET STATS #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="mb-0 text-secondary">Historique des Sorties IA ({{ total }})</h2>
+        <p class="text-muted mb-0">
+          <i class="bi bi-info-circle"></i> 
+          Les sorties IA sont générées automatiquement par l'assistant intelligent
+        </p>
+      </div>
+      <a href="{{ path('app_sortie_ai_stats') }}" class="btn btn-outline-primary">
+        <i class="bi bi-graph-up"></i> Statistiques
+      </a>
+    </div>
+
+    <form method="get" class="row mb-3 g-3">
+      <div class="col-md-3">
+        <input type="text" name="search" class="form-control" placeholder="Rechercher..." value="{{ search }}">
+      </div>
+      <div class="col-md-2">
+        <select name="cible" class="form-select">
+          <option value="">Toutes les cibles</option>
+          <option value="ETUDIANT" {% if cible == 'ETUDIANT' %}selected{% endif %}>Étudiant</option>
+          <option value="CLASSE" {% if cible == 'CLASSE' %}selected{% endif %}>Classe</option>
+          <option value="ENSEIGNANT" {% if cible == 'ENSEIGNANT' %}selected{% endif %}>Enseignant</option>
+          <option value="ADMINISTRATEUR" {% if cible == 'ADMINISTRATEUR' %}selected{% endif %}>Administrateur</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="type" class="form-select">
+          <option value="">Tous les types</option>
+          <option value="ALERTE" {% if typeSortie == 'ALERTE' %}selected{% endif %}>Alerte</option>
+          <option value="PREDICTION" {% if typeSortie == 'PREDICTION' %}selected{% endif %}>Prédiction</option>
+          <option value="RECOMMANDATION" {% if typeSortie == 'RECOMMANDATION' %}selected{% endif %}>Recommandation</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="criticite" class="form-select">
+          <option value="">Toutes criticités</option>
+          <option value="FAIBLE" {% if criticite == 'FAIBLE' %}selected{% endif %}>Faible</option>
+          <option value="MOYEN" {% if criticite == 'MOYEN' %}selected{% endif %}>Moyen</option>
+          <option value="ELEVE" {% if criticite == 'ELEVE' %}selected{% endif %}>Élevé</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="sort" class="form-select">
+          <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Date création</option>
+          <option value="cible" {% if sortBy == 'cible' %}selected{% endif %}>Cible</option>
+          <option value="typeSortie" {% if sortBy == 'typeSortie' %}selected{% endif %}>Type</option>
+          <option value="criticite" {% if sortBy == 'criticite' %}selected{% endif %}>Criticité</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </form>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead style="background-color: #eef3f7;">
+              <tr class="text-secondary">
+                <th>#</th>
+                <th>Type</th>
+                <th>Cible</th>
+                <th>Catégorie</th>
+                <th>Criticité</th>
+                <th>Contenu</th>
+                <th>Date</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for sortie in sorties %}
+                <tr>
+                  <td>{{ sortie.id }}</td>
+                  <td>
+                    {% if sortie.typeSortie.value == 'ALERTE' %}
+                      <span class="badge bg-warning text-dark">{{ sortie.typeSortie.value }}</span>
+                    {% elseif sortie.typeSortie.value == 'PREDICTION' %}
+                      <span class="badge bg-info">{{ sortie.typeSortie.value }}</span>
+                    {% else %}
+                      <span class="badge bg-success">{{ sortie.typeSortie.value }}</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ sortie.cible.value }}</td>
+                  <td>{{ sortie.categorieSortie.value }}</td>
+                  <td>
+                    {% if sortie.criticite.value == 'ELEVE' %}
+                      <span class="badge bg-danger">ÉLEVÉ</span>
+                    {% elseif sortie.criticite.value == 'MOYEN' %}
+                      <span class="badge bg-warning text-dark">MOYEN</span>
+                    {% else %}
+                      <span class="badge bg-secondary">FAIBLE</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ sortie.contenu|length > 50 ? sortie.contenu|slice(0, 50) ~ '...' : sortie.contenu }}</td>
+                  <td>{{ sortie.createdAt|date('d/m/Y') }}</td>
+                  <td class="text-end">
+                    {# GARDER SEULEMENT VOIR ET SUPPRIMER - PAS DE MODIFIER #}
+                    <a href="{{ path('app_sortie_ai_show', {id: sortie.id}) }}" class="btn btn-sm btn-outline-info me-1" title="Voir détails">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <form method="post" action="{{ path('app_sortie_ai_delete', {id: sortie.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette sortie IA ?');">
+                      <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ sortie.id) }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="8" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                    <p class="mt-2">Aucune sortie IA générée pour le moment</p>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    {% if totalPages > 1 %}
+      <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+          {% if currentPage > 1 %}
+            <li class="page-item">
+              <a class="page-link" href="{{ path('app_sortie_ai_index', {page: currentPage - 1, search: search, sort: sortBy, order: order, cible: cible, type: typeSortie, criticite: criticite}) }}">Précédent</a>
+            </li>
+          {% endif %}
+
+          {% for i in 1..totalPages %}
+            <li class="page-item {% if i == currentPage %}active{% endif %}">
+              <a class="page-link" href="{{ path('app_sortie_ai_index', {page: i, search: search, sort: sortBy, order: order, cible: cible, type: typeSortie, criticite: criticite}) }}">{{ i }}</a>
+            </li>
+          {% endfor %}
+
+          {% if currentPage < totalPages %}
+            <li class="page-item">
+              <a class="page-link" href="{{ path('app_sortie_ai_index', {page: currentPage + 1, search: search, sort: sortBy, order: order, cible: cible, type: typeSortie, criticite: criticite}) }}">Suivant</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+
+  </div>
+</section>
+
+{% endblock %}

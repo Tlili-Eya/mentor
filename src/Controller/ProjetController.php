@@ -54,7 +54,8 @@ class ProjetController extends AbstractController
             $entityManager->persist($projet);
             $entityManager->flush();
 
-            return $this->redirectToRoute('front_projets', ['id' => $projet->getId()]);
+            $this->addFlash('success', 'Le projet a été ' . ($activeProject && $activeProject->getId() ? 'mis à jour' : 'créé') . ' avec succès.');
+            return $this->redirectToRoute('front_mes_projets');
         }
 
         $resourceForm = null;

@@ -107,6 +107,13 @@ class FrontController extends AbstractController
     
     }
 
+    #[Route('jeux', name: 'jeux')]
+    public function jeux(): Response
+    {
+        return $this->render('front/jeux.html.twig');
+    
+    }
+
   
 
 

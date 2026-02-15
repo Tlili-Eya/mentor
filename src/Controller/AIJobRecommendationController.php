@@ -54,6 +54,12 @@ class AIJobRecommendationController extends AbstractController
         // 3. Rank Jobs using AI logic
         $rankedJobs = $recommendationService->rankJobs($profile, $jobs);
 
-        return new JsonResponse($rankedJobs);
+        // 4. Get Career Suggestions
+        $suggestions = $recommendationService->getCareerSuggestions($user);
+
+        return new JsonResponse([
+            'jobs' => $rankedJobs,
+            'suggestions' => $suggestions
+        ]);
     }
 }

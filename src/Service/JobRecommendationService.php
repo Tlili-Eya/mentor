@@ -86,17 +86,97 @@ class JobRecommendationService
      */
     public function rankJobs(string $userProfile, array $jobs): array
     {
-        // In a real scenario, this would call OpenAI or Mistral
-        // We will simulate the ranking with a simple matching for now
+        $technos = $this->extractSkills($userProfile);
+        
         foreach ($jobs as &$job) {
             $score = 0;
-            if (stripos($userProfile, 'Symfony') !== false && stripos($job['title'], 'Symfony') !== false) $score += 40;
-            if (stripos($userProfile, 'Python') !== false && stripos($job['description'], 'Python') !== false) $score += 30;
-            $job['match_score'] = min(98, 60 + $score + rand(0, 10));
+            $textToSearch = ($job['title'] ?? '') . ' ' . ($job['description'] ?? '');
+            
+            foreach ($technos as $tech) {
+                if (stripos($textToSearch, $tech) !== false) {
+                    $score += 25;
+                }
+            }
+
+            // Bonus for specific titles
+            if (stripos($job['title'], 'Senior') !== false || stripos($job['title'], 'Lead') !== false) {
+                if (count($technos) > 5) $score += 10;
+            }
+
+            $job['match_score'] = min(99, 40 + $score + rand(0, 10));
         }
 
         usort($jobs, fn($a, $b) => $b['match_score'] <=> $a['match_score']);
         
         return $jobs;
+    }
+
+    /**
+     * Generates "Next Step" career suggestions based on user projects.
+     */
+    public function getCareerSuggestions(Utilisateur $user): array
+    {
+        $projects = $user->getProjets();
+        $allTechs = [];
+        foreach ($projects as $p) {
+            $t = explode(',', $p->getTechnologies());
+            foreach ($t as $tech) {
+                $trimmed = trim($tech);
+                if (!empty($trimmed)) $allTechs[] = strtolower($trimmed);
+            }
+        }
+        $uniqueTechs = array_unique($allTechs);
+
+        $suggestions = [];
+
+        // Logic for next steps
+        if (in_array('php', $uniqueTechs) || in_array('symfony', $uniqueTechs)) {
+            $suggestions[] = [
+                'title' => 'Maîtriser React ou Vue.js',
+                'description' => 'En tant que développeur PHP/Symfony, devenir Fullstack avec un framework JS moderne augmentera votre employabilité de 40%.',
+                'icon' => 'bi-code-slash'
+            ];
+            $suggestions[] = [
+                'title' => 'Architecture Microservices',
+                'description' => 'Vos projets montrent une bonne base monolithique. Apprendre Docker et Kubernetes serait la suite logique.',
+                'icon' => 'bi-layers'
+            ];
+        }
+
+        if (in_array('python', $uniqueTechs)) {
+            $suggestions[] = [
+                'title' => 'Deep Learning & IA',
+                'description' => 'Puisque vous utilisez Python, spécialisez-vous en TensorFlow ou PyTorch pour viser des postes de Data Scientist.',
+                'icon' => 'bi-cpu'
+            ];
+        }
+
+        if (count($uniqueTechs) < 3) {
+            $suggestions[] = [
+                'title' => 'Diversifier votre Stack',
+                'description' => 'Ajoutez plus de projets avec des technologies variées (NoSQL, Cloud, API REST) pour enrichir votre profil.',
+                'icon' => 'bi-plus-circle'
+            ];
+        } else {
+             $suggestions[] = [
+                'title' => 'Certification DevOps',
+                'description' => 'Votre profil est déjà solide techniquement. Une certification AWS ou Azure serait un atout majeur.',
+                'icon' => 'bi-shield-check'
+            ];
+        }
+
+        return array_slice($suggestions, 0, 3);
+    }
+
+    private function extractSkills(string $profile): array
+    {
+        $commonTechs = ['PHP', 'Symfony', 'React', 'Vue', 'Angular', 'Python', 'Java', 'Docker', 'Kubernetes', 'SQL', 'NoSQL', 'AWS', 'Azure', 'JavaScript', 'TypeScript'];
+        $found = [];
+        foreach ($commonTechs as $tech) {
+            if (stripos($profile, $tech) !== false) {
+                $found[] = $tech;
+            }
+        }
+        return $found;
     }
 }

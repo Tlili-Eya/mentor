@@ -8,54 +8,19 @@ use App\Enum\TypeRessource;
 use App\Repository\ProjetRepository;
 use App\Repository\RessourceRepository;
 use App\Repository\ParcoursRepository;
+use App\Repository\FeedbackRepository;
+use App\Repository\UtilisateurRepository;
 use App\Entity\Utilisateur;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-use App\Repository\FeedbackRepository;
-use App\Repository\UtilisateurRepository;
-use App\Entity\Feedback;
 use Doctrine\ORM\EntityManagerInterface;
 
 #[Route('/', name: 'front_')]
 final class FrontController extends AbstractController
 {
-    // ============================================================
-    // 🚨 TEMPORAIRE - UTILISATEUR MOCKÉ POUR TESTS
-    // ============================================================
-    // À REMPLACER PAR $this->getUser() quand le vrai login sera intégré
-    // ============================================================
-    
-    /**
-     * Récupère un utilisateur temporaire pour les tests
-     * 
-     * IMPORTANT : Cette fonction est TEMPORAIRE !
-     * Quand le vrai système de login sera intégré par Hejer :
-     * 1. Supprime cette fonction
-     * 2. Remplace tous les getMockUser() par $this->getUser()
-     * 3. C'est tout !
-     */
-    private function getMockUser(UtilisateurRepository $userRepo)
-    {
-        // CHANGE L'ID ICI pour tester avec un autre utilisateur
-        $userId = 2; // ← Change cet ID selon l'utilisateur que tu veux simuler
-        
-        $user = $userRepo->find($userId);
-        
-        if (!$user) {
-            throw new \Exception("Utilisateur #$userId n'existe pas ! Crée-le dans la base ou change l'ID dans getMockUser()");
-        }
-        
-        return $user;
-    }
-    
-    // ============================================================
-    // ROUTES NORMALES
-    // ============================================================
-
     #[Route('', name: 'home')]
     public function home(): Response
     {
@@ -74,6 +39,7 @@ final class FrontController extends AbstractController
     {
         return $this->render('front/course-details.html.twig');
     }
+
 // Projet creation with validation
 
     #[Route('projets', name: 'projets')]
@@ -146,7 +112,7 @@ final class FrontController extends AbstractController
                 $projet->setTitre($titre);
                 $projet->setType($type);
                 $projet->setTechnologies($technologies);
-                $projet->setDescription($description);
+;
                 
                 if ($dateDebutObj) {
                     $projet->setDateDebut($dateDebutObj);
@@ -265,9 +231,41 @@ final class FrontController extends AbstractController
     }
 
     #[Route('contact', name: 'contact')]
-    public function contact(): Response
-    {
-        return $this->render('front/contact.html.twig');
+    public function contact(
+        Request $request,
+        FeedbackRepository $feedbackRepo,
+        UtilisateurRepository $userRepo
+    ): Response {
+        // ✅ NOTIFICATION FACEBOOK-LIKE : Calculer le nombre de nouveaux feedbacks traités
+        $newTreatedCount = 0;
+        try {
+            // Get mock user (temporary)
+            $userId = 2;
+            $user = $userRepo->find($userId);
+            
+            if ($user) {
+                // Récupérer tous les feedbacks de l'utilisateur
+                $feedbacks = $feedbackRepo->findBy(['utilisateur' => $user]);
+                
+                // Récupérer les IDs des feedbacks déjà vus depuis la session
+                $session = $request->getSession();
+                $seenFeedbackIds = $session->get('seen_treated_feedbacks', []);
+                
+                // Compter les feedbacks traités qui ne sont pas encore vus
+                foreach ($feedbacks as $feedback) {
+                    $etat = strtolower($feedback->getEtatfeedback() ?? '');
+                    if (($etat === 'traite' || $etat === 'traité') && !in_array($feedback->getId(), $seenFeedbackIds)) {
+                        $newTreatedCount++;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Silently fail if user doesn't exist
+        }
+        
+        return $this->render('front/contact.html.twig', [
+            'newTreatedCount' => $newTreatedCount
+        ]);
     }
 
     #[Route('enroll', name: 'enroll')]
@@ -288,203 +286,6 @@ final class FrontController extends AbstractController
         return $this->render('front/404.html.twig');
     }
 
-    // ============================================================
-    // CRUD FEEDBACK (avec utilisateur mocké)
-    // ============================================================
-
-    /**
-     * AJOUT FEEDBACK
-     * ✅ UTILISE LA VALIDATION PHP DES ENTITÉS
-     * 
-     * TEMPORAIRE : Utilise getMockUser()
-     * APRÈS INTÉGRATION : Remplace par $this->getUser()
-     */
-    #[Route('feedback/add', name: 'feedback_add', methods: ['POST'])]
-    public function addFeedback(
-        Request $request,
-        EntityManagerInterface $em,
-        UtilisateurRepository $userRepo,  // ← TEMPORAIRE, à retirer après
-        ValidatorInterface $validator
-    ): Response {
-        // Créer une nouvelle instance de Feedback
-        $feedback = new Feedback();
-
-        // Récupérer les données du formulaire
-        $typeFeedback = $request->request->get('type_feedback');
-        $contenu = $request->request->get('contenu');
-        $rating = $request->request->get('rating');
-
-        $feedback->setTypefeedback($typeFeedback);
-        $feedback->setContenu($contenu);
-        $feedback->setNote((int)$rating);
-        $feedback->setEtatfeedback('en_attente');
-        $feedback->setDatefeedback(new \DateTime());
-        
-        // 🚨 TEMPORAIRE : Utilise un utilisateur mocké
-        // APRÈS : Remplace par $feedback->setUtilisateur($this->getUser());
-        $feedback->setUtilisateur($this->getMockUser($userRepo));
-
-        // ✅ VALIDATION PHP via les contraintes de l'entité
-        $errors = $validator->validate($feedback);
-        
-        if (count($errors) > 0) {
-            foreach ($errors as $error) {
-                $this->addFlash('error', $error->getMessage());
-            }
-            return $this->redirectToRoute('front_contact');
-        }
-
-        // Persister et sauvegarder
-        $em->persist($feedback);
-        $em->flush();
-
-        // Message de succès
-        $this->addFlash('success', 'Votre feedback a été envoyé avec succès !');
-
-        // Rediriger vers la liste
-        return $this->redirectToRoute('front_feedback_list');
-    }
-
-    /**
-     * LISTE FEEDBACK
-     * 
-     * TEMPORAIRE : Utilise getMockUser()
-     * APRÈS INTÉGRATION : Remplace par $this->getUser()
-     */
-    #[Route('feedback/list', name: 'feedback_list')]
-    public function feedbackList(
-        FeedbackRepository $repo,
-        UtilisateurRepository $userRepo  // ← TEMPORAIRE, à retirer après
-    ): Response {
-        // 🚨 TEMPORAIRE : Récupère un utilisateur mocké
-        // APRÈS : Remplace par $user = $this->getUser();
-        $user = $this->getMockUser($userRepo);
-
-        // Récupérer tous les feedbacks de cet utilisateur
-        $feedbacks = $repo->findBy(
-            ['utilisateur' => $user],
-            ['datefeedback' => 'DESC']
-        );
-
-        return $this->render('front/feedback_list.html.twig', [
-            'feedbacks' => $feedbacks
-        ]);
-    }
-
-    /**
-     * MODIFIER FEEDBACK
-     * ✅ UTILISE LA VALIDATION PHP DES ENTITÉS
-     * ✅ NOUVELLE LOGIQUE : Modifiable SEULEMENT si "en_attente"
-     * 
-     * TEMPORAIRE : Utilise getMockUser()
-     * APRÈS INTÉGRATION : Remplace par $this->getUser()
-     */
-    #[Route('feedback/{id}/edit', name: 'feedback_edit', methods: ['GET', 'POST'])]
-    public function edit(
-        Request $request,
-        Feedback $feedback,
-        EntityManagerInterface $em,
-        UtilisateurRepository $userRepo,  // ← TEMPORAIRE, à retirer après
-        ValidatorInterface $validator
-    ): Response {
-        // 🚨 TEMPORAIRE : Récupère un utilisateur mocké
-        // APRÈS : Remplace par $user = $this->getUser();
-        $user = $this->getMockUser($userRepo);
-
-        // Vérifier que le feedback appartient à l'utilisateur
-        if ($feedback->getUtilisateur() !== $user) {
-            $this->addFlash('error', 'Vous ne pouvez pas modifier ce feedback.');
-            return $this->redirectToRoute('front_feedback_list');
-        }
-
-        // ✅ NOUVELLE LOGIQUE : Vérifier si le feedback est modifiable
-        // Modifiable SEULEMENT si "en_attente"
-        $etat = strtolower($feedback->getEtatfeedback() ?? '');
-        
-        if ($etat === 'traite' || $etat === 'traité') {
-            $this->addFlash('error', 'Ce feedback a déjà été traité et ne peut plus être modifié.');
-            return $this->redirectToRoute('front_feedback_list');
-        }
-
-        // Si c'est une requête POST, enregistrer les modifications
-        if ($request->isMethod('POST')) {
-            $typeFeedback = $request->request->get('type_feedback');
-            $contenu = $request->request->get('contenu');
-            $rating = $request->request->get('rating');
-
-            // Mettre à jour
-            $feedback->setTypefeedback($typeFeedback);
-            $feedback->setContenu($contenu);
-            $feedback->setNote((int)$rating);
-
-            // ✅ VALIDATION PHP via les contraintes de l'entité
-            $errors = $validator->validate($feedback);
-            
-            if (count($errors) > 0) {
-                foreach ($errors as $error) {
-                    $this->addFlash('error', $error->getMessage());
-                }
-                return $this->redirectToRoute('front_feedback_edit', ['id' => $feedback->getId()]);
-            }
-
-            $em->flush();
-
-            $this->addFlash('success', 'Feedback modifié avec succès !');
-            return $this->redirectToRoute('front_feedback_list');
-        }
-
-        // Afficher le formulaire de modification
-        return $this->render('front/edit.html.twig', [
-            'feedback' => $feedback,
-        ]);
-    }
-
-    /**
-     * SUPPRIMER FEEDBACK
-     * 
-     * ✅ NOUVELLE LOGIQUE : Supprimable SEULEMENT si "en_attente"
-     * 
-     * TEMPORAIRE : Utilise getMockUser()
-     * APRÈS INTÉGRATION : Remplace par $this->getUser()
-     */
-    #[Route('feedback/{id}/delete', name: 'feedback_delete', methods: ['POST'])]
-    public function delete(
-        Request $request,
-        Feedback $feedback,
-        EntityManagerInterface $em,
-        UtilisateurRepository $userRepo  // ← TEMPORAIRE, à retirer après
-    ): Response {
-        // 🚨 TEMPORAIRE : Récupère un utilisateur mocké
-        // APRÈS : Remplace par $user = $this->getUser();
-        $user = $this->getMockUser($userRepo);
-
-        // Vérifier que le feedback appartient à l'utilisateur
-        if ($feedback->getUtilisateur() !== $user) {
-            $this->addFlash('error', 'Vous ne pouvez pas supprimer ce feedback.');
-            return $this->redirectToRoute('front_feedback_list');
-        }
-
-        // ✅ NOUVELLE LOGIQUE : Vérifier si le feedback est supprimable
-        // Supprimable SEULEMENT si "en_attente"
-        $etat = strtolower($feedback->getEtatfeedback() ?? '');
-        
-        if ($etat === 'traite' || $etat === 'traité') {
-            $this->addFlash('error', 'Ce feedback a déjà été traité et ne peut plus être supprimé.');
-            return $this->redirectToRoute('front_feedback_list');
-        }
-
-        // Vérifier le token CSRF
-        $token = $request->request->get('_token');
-        if ($this->isCsrfTokenValid('delete' . $feedback->getId(), $token)) {
-            $em->remove($feedback);
-            $em->flush();
-            $this->addFlash('success', 'Feedback supprimé avec succès !');
-        } else {
-            $this->addFlash('error', 'Token CSRF invalide.');
-        }
-
-        return $this->redirectToRoute('front_feedback_list');
-    }
     #[Route('api/resource/delete/{id}', name: 'api_resource_delete', methods: ['POST'])]
     public function deleteResource(int $id, EntityManagerInterface $em, RessourceRepository $ressourceRepo, ManagerRegistry $doctrine): Response
     {

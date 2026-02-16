@@ -1,0 +1,410 @@
+================================================================================
+ARCHITECTURE DIAGRAM - MODULE GESTION FEEDBACK
+================================================================================
+
+BEFORE REFACTORING:
+===================
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         FrontController.php                              │
+│                              (869 lines)                                 │
+├─────────────────────────────────────────────────────────────────────────┤
+│  General Routes:                                                         │
+│  • home()                                                                │
+│  • about()                                                               │
+│  • contact()                                                             │
+│  • etc...                                                                │
+│                                                                          │
+│  Project Routes (Arslen's module):                                       │
+│  • projets()                                                             │
+│  • mesprojets()                                                          │
+│  • deleteProjet()                                                        │
+│  • updateProjet()                                                        │
+│  • etc...                                                                │
+│                                                                          │
+│  Feedback Routes (Amal's module): ← MIXED WITH EVERYTHING               │
+│  • getMockUser()                                                         │
+│  • addFeedback()                                                         │
+│  • feedbackList()                                                        │
+│  • edit()                                                                │
+│  • delete()                                                              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         BackController.php                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│  General Routes:                                                         │
+│  • home()                                                                │
+│  • about()                                                               │
+│  • courses()                                                             │
+│  • blog()                                                                │
+│  • etc...                                                                │
+│                                                                          │
+│  Traitement Routes (Amal's module): ← MIXED WITH EVERYTHING             │
+│  • analyzeRepetitiveMessages()                                           │
+│  • contact()                                                             │
+│  • traitement()                                                          │
+│  • editTraitement()                                                      │
+│  • deleteTraitement()                                                    │
+│  • exportFeedbackPdf()                                                   │
+│  • exportAllFeedbacksPdf()                                               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PROBLEMS:
+❌ Large files (869 lines in FrontController)
+❌ Mixed responsibilities
+❌ Hard to maintain
+❌ Hard to test
+❌ Merge conflicts with team
+
+
+AFTER REFACTORING:
+==================
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         FrontController.php                              │
+│                           (Cleaned - Smaller)                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│  General Routes:                                                         │
+│  • home()                                                                │
+│  • about()                                                               │
+│  • contact()                                                             │
+│  • etc...                                                                │
+│                                                                          │
+│  Project Routes (Arslen's module):                                       │
+│  • projets()                                                             │
+│  • mesprojets()                                                          │
+│  • deleteProjet()                                                        │
+│  • updateProjet()                                                        │
+│  • etc...                                                                │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ Feedback routes extracted to ↓
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      FeedbackController.php (NEW!)                       │
+│                         Prefix: / (front)                                │
+│                         Name: front_                                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│  Mock User (Temporary):                                                  │
+│  • getMockUser() → Returns user id=2 for testing                        │
+│                                                                          │
+│  CRUD Operations:                                                        │
+│  • addFeedback()      → POST   /feedback/add                            │
+│  • feedbackList()     → GET    /feedback/list                           │
+│  • edit()             → GET|POST /feedback/{id}/edit                    │
+│  • delete()           → POST   /feedback/{id}/delete                    │
+│                                                                          │
+│  Business Rules:                                                         │
+│  ✓ Edit only if status = "en_attente"                                   │
+│  ✓ Delete only if status = "en_attente"                                 │
+│  ✓ User can only see/edit/delete their own feedbacks                    │
+│  ✓ PHP validation using entity constraints                              │
+│  ✓ CSRF protection on delete                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         BackController.php                               │
+│                           (Cleaned - Smaller)                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│  General Routes:                                                         │
+│  • home()                                                                │
+│  • about()                                                               │
+│  • courses()                                                             │
+│  • blog()                                                                │
+│  • etc...                                                                │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ Traitement routes extracted to ↓
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    TraitementController.php (NEW!)                       │
+│                         Prefix: /admin (back)                            │
+│                         Name: back_                                      │
+├─────────────────────────────────────────────────────────────────────────┤
+│  Analysis:                                                               │
+│  • analyzeRepetitiveMessages() → Detects recurring issues               │
+│                                                                          │
+│  Feedback Management:                                                    │
+│  • contact()          → GET    /admin/contact                           │
+│    - List all feedbacks (all users)                                     │
+│    - Search by user name                                                │
+│    - Filter "only untreated"                                            │
+│    - Show repetitive words analysis                                     │
+│                                                                          │
+│  Treatment Operations:                                                   │
+│  • traitement()       → GET|POST /admin/traitement/{id}                 │
+│  • editTraitement()   → GET|POST /admin/traitement/{id}/edit            │
+│  • deleteTraitement() → POST   /admin/traitement/{id}/delete            │
+│                                                                          │
+│  Export (In Development):                                                │
+│  • exportFeedbackPdf()    → GET /admin/feedback/{id}/export-pdf         │
+│  • exportAllFeedbacksPdf() → GET /admin/feedbacks/export-all-pdf        │
+│                                                                          │
+│  Business Rules:                                                         │
+│  ✓ Processing changes feedback status to "traite"                       │
+│  ✓ Deleting treatment returns feedback to "en_attente"                  │
+│  ✓ PHP validation using entity constraints                              │
+│  ✓ CSRF protection on delete                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+BENEFITS:
+✅ Smaller, focused files
+✅ Clear separation of concerns
+✅ Easier to maintain
+✅ Easier to test
+✅ Less merge conflicts
+✅ Follows Symfony best practices
+
+
+DATA FLOW:
+==========
+
+USER SIDE (Front-office):
+-------------------------
+
+    ┌──────────┐
+    │  User    │
+    │ (id=2)   │ ← Mock user for testing
+    └────┬─────┘
+         │
+         ↓
+    ┌─────────────────────────────────┐
+    │   FeedbackController.php        │
+    │   (Front-office)                │
+    └────┬────────────────────────┬───┘
+         │                        │
+         ↓                        ↓
+    ┌─────────┐            ┌──────────┐
+    │ Feedback│            │ Templates│
+    │ Entity  │            │  (Twig)  │
+    └─────────┘            └──────────┘
+         │                        │
+         ↓                        ↓
+    ┌─────────────────────────────────┐
+    │         Database                │
+    │  • feedback table               │
+    │  • utilisateur table            │
+    └─────────────────────────────────┘
+
+
+ADMIN SIDE (Back-office):
+-------------------------
+
+    ┌──────────┐
+    │  Admin   │
+    └────┬─────┘
+         │
+         ↓
+    ┌─────────────────────────────────┐
+    │   TraitementController.php      │
+    │   (Back-office)                 │
+    └────┬────────────────────────┬───┘
+         │                        │
+         ↓                        ↓
+    ┌─────────┐            ┌──────────┐
+    │Traitement│           │ Templates│
+    │ Entity  │            │  (Twig)  │
+    └─────────┘            └──────────┘
+         │                        │
+         ↓                        ↓
+    ┌─────────────────────────────────┐
+    │         Database                │
+    │  • traitement table             │
+    │  • feedback table               │
+    │  • utilisateur table            │
+    └─────────────────────────────────┘
+
+
+ENTITY RELATIONSHIPS:
+=====================
+
+┌──────────────────┐
+│   Utilisateur    │
+│                  │
+│  • id            │
+│  • nom           │
+│  • prenom        │
+│  • email         │
+└────────┬─────────┘
+         │
+         │ 1
+         │
+         │ N
+         ↓
+┌──────────────────┐
+│    Feedback      │
+│                  │
+│  • id            │
+│  • contenu       │
+│  • note (1-5)    │
+│  • datefeedback  │
+│  • typefeedback  │
+│  • etatfeedback  │ ← "en_attente" or "traite"
+│  • utilisateur   │
+└────────┬─────────┘
+         │
+         │ 1
+         │
+         │ 1
+         ↓
+┌──────────────────┐
+│   Traitement     │
+│                  │
+│  • id            │
+│  • typetraitement│
+│  • description   │
+│  • datetraitement│
+│  • decision      │
+│  • feedback      │
+└──────────────────┘
+
+
+ROUTE MAPPING:
+==============
+
+FRONT-OFFICE (User):
+--------------------
+URL                          Controller Method              Template
+─────────────────────────────────────────────────────────────────────────
+POST   /feedback/add         FeedbackController::addFeedback()
+                                                             → front/contact.html.twig
+
+GET    /feedback/list        FeedbackController::feedbackList()
+                                                             → front/feedback_list.html.twig
+
+GET    /feedback/{id}/edit   FeedbackController::edit()
+POST   /feedback/{id}/edit                                  → front/edit.html.twig
+
+POST   /feedback/{id}/delete FeedbackController::delete()
+                                                             → redirect to list
+
+
+BACK-OFFICE (Admin):
+--------------------
+URL                                  Controller Method                    Template
+──────────────────────────────────────────────────────────────────────────────────
+GET    /admin/contact                TraitementController::contact()
+                                                                          → back/contact.html.twig
+
+GET    /admin/traitement/{id}        TraitementController::traitement()
+POST   /admin/traitement/{id}                                            → back/traitement.html.twig
+
+GET    /admin/traitement/{id}/edit   TraitementController::editTraitement()
+POST   /admin/traitement/{id}/edit                                       → back/traitement_edit.html.twig
+
+POST   /admin/traitement/{id}/delete TraitementController::deleteTraitement()
+                                                                          → redirect to contact
+
+GET    /admin/feedback/{id}/export-pdf        TraitementController::exportFeedbackPdf()
+                                                                          → (in development)
+
+GET    /admin/feedbacks/export-all-pdf        TraitementController::exportAllFeedbacksPdf()
+                                                                          → (in development)
+
+
+SECURITY LAYERS:
+================
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         SECURITY CHECKS                                  │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  1. AUTHENTICATION (Future)                                              │
+│     ┌──────────────────────────────────────────────────────────┐       │
+│     │ $user = $this->getUser();                                 │       │
+│     │ if (!$user) throw AccessDeniedException();               │       │
+│     └──────────────────────────────────────────────────────────┘       │
+│                                                                          │
+│  2. OWNERSHIP VERIFICATION                                               │
+│     ┌──────────────────────────────────────────────────────────┐       │
+│     │ if ($feedback->getUtilisateur() !== $user) {             │       │
+│     │     throw AccessDeniedException();                        │       │
+│     │ }                                                          │       │
+│     └──────────────────────────────────────────────────────────┘       │
+│                                                                          │
+│  3. BUSINESS RULES                                                       │
+│     ┌──────────────────────────────────────────────────────────┐       │
+│     │ if ($feedback->getEtatfeedback() === 'traite') {         │       │
+│     │     // Cannot edit or delete                             │       │
+│     │     throw new Exception('Already processed');            │       │
+│     │ }                                                          │       │
+│     └──────────────────────────────────────────────────────────┘       │
+│                                                                          │
+│  4. CSRF PROTECTION                                                      │
+│     ┌──────────────────────────────────────────────────────────┐       │
+│     │ if (!$this->isCsrfTokenValid('delete'.$id, $token)) {    │       │
+│     │     throw new Exception('Invalid CSRF token');           │       │
+│     │ }                                                          │       │
+│     └──────────────────────────────────────────────────────────┘       │
+│                                                                          │
+│  5. VALIDATION                                                           │
+│     ┌──────────────────────────────────────────────────────────┐       │
+│     │ $errors = $validator->validate($feedback);               │       │
+│     │ if (count($errors) > 0) {                                │       │
+│     │     // Show validation errors                            │       │
+│     │ }                                                          │       │
+│     └──────────────────────────────────────────────────────────┘       │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+TESTING STRATEGY:
+=================
+
+Unit Tests (Future):
+--------------------
+• FeedbackControllerTest
+  - testAddFeedback()
+  - testFeedbackList()
+  - testEditFeedback()
+  - testDeleteFeedback()
+  - testCannotEditProcessedFeedback()
+  - testCannotDeleteProcessedFeedback()
+
+• TraitementControllerTest
+  - testContactList()
+  - testSearchByUser()
+  - testFilterUntreated()
+  - testProcessFeedback()
+  - testEditTraitement()
+  - testDeleteTraitement()
+
+Integration Tests:
+------------------
+• Test complete user journey
+• Test complete admin journey
+• Test interaction with other modules
+• Test database transactions
+
+Manual Tests:
+-------------
+• See CHECKLIST.md for complete testing checklist
+
+
+DEPLOYMENT NOTES:
+=================
+
+Development:
+------------
+✓ Mock user (id=2) is active
+✓ All features work locally
+✓ No authentication required
+
+Staging:
+--------
+⚠ Replace mock user with real authentication
+⚠ Test with real user accounts
+⚠ Verify security settings
+
+Production:
+-----------
+✓ Real authentication only
+✓ No mock users
+✓ Full security enabled
+✓ HTTPS required
+
+
+================================================================================
+END OF ARCHITECTURE DIAGRAM
+================================================================================

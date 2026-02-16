@@ -24,12 +24,28 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
-security:
-    firewalls:
-        main:
-            form_login:
+    App\Service\DeepSeekService:
+        arguments:
+            $apiKey: '%env(DEEPSEEK_API_KEY)%'
+            $httpClient: '@http_client'
+            $requestStack: '@request_stack'  # ← Changé ici
+            $logger: '@logger'
+
+    App\Command\TestDeepSeekCommand:
+        arguments:
+            $apiKey: '%env(DEEPSEEK_API_KEY)%'
+#security:
+    #firewalls:
+        #main:
+            #form_login:
                 # ... autres configs ...
-                remember_me: false   # optionnel
+                #remember_me: false   # optionnel
 
     # Ajoute cette ligne (attention : réduit la sécurité)
-    hide_user_not_found: false
+    #hide_user_not_found: false
+
+    App\Service\OllamaService:
+        arguments:
+            #$httpClient: '@http_client'
+            $logger: '@logger'
+            #$requestStack: '@request_stack'

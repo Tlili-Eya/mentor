@@ -1,26 +1,258 @@
 {% extends 'front/admin/basem.html.twig' %}
 
-{% block title %}Chat IA{% endblock %}
+{% block title %}Assistant IA - Admin{% endblock %}
 
 {% block body %}
-<div class="container">
-    <h1>Chat IA pour Admin</h1>
-    
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card">
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Sidebar admin avec statistiques -->
+        <div class="col-md-3">
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header" style="background: linear-gradient(135deg, #102c59 0%, #1a3a73 100%); color: white;">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Stats IA</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Chatbot IA</h5>
-                    <p class="card-text">Cette fonctionnalité est en cours de développement.</p>
-                    <p>Vous pourrez bientôt interagir avec une IA pour obtenir des conseils pédagogiques.</p>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Conversation en cours</span>
+                        <span class="badge" style="background-color: #102c59; color: white;" id="message-count">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Mode</span>
+                        <span class="badge" style="background-color: #9dbbce; color: #102c59;">Admin</span>
+                    </div>
+                    <hr>
+                    <button id="reset-chat" class="btn btn-sm w-100" style="border: 1px solid #d52e28; color: #d52e28;">
+                        <i class="bi bi-arrow-counterclockwise"></i> Nouvelle conversation
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card shadow border-0">
+                <div class="card-header" style="background-color: #9dbbce; color: #102c59;">
+                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Actions rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn suggestion-btn text-start" data-prompt="Génère un rapport d'activité">
+                            <i class="bi bi-file-text me-2" style="color: #102c59;"></i>
+                            Rapport d'activité
+                        </button>
+                        <button class="btn suggestion-btn text-start" data-prompt="Liste des alertes critiques">
+                            <i class="bi bi-exclamation-triangle me-2" style="color: #d52e28;"></i>
+                            Alertes critiques
+                        </button>
+                        <button class="btn suggestion-btn text-start" data-prompt="Recommandations pour la plateforme">
+                            <i class="bi bi-star me-2" style="color: #102c59;"></i>
+                            Recommandations
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat principal -->
+        <div class="col-md-9">
+            <div class="card shadow border-0">
+                <div class="card-header" style="background: linear-gradient(135deg, #102c59 0%, #1a3a73 100%); color: white;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="bi bi-robot me-2"></i>
+                            Assistant IA MentorAI
+                            <span class="badge ms-2" style="background-color: #9dbbce; color: #102c59;">Admin</span>
+                        </h4>
+                        <button id="clear-history" class="btn btn-sm" style="background-color: #d52e28; color: white;">
+                            <i class="bi bi-trash"></i> Effacer
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Messages -->
+                    <div id="chat-messages" class="mb-3 p-3" style="height: 450px; overflow-y: auto; background-color: #f8fafc; border-radius: 8px;">
+                        <div class="text-center text-muted py-5" id="welcome-message">
+                            <i class="bi bi-chat-dots fs-1 d-block mb-3" style="color: #9dbbce;"></i>
+                            <h5>Bonjour {{ app.user.prenom|default('Admin') }} !</h5>
+                            <p>Je suis votre assistant IA. Comment puis-je vous aider à gérer la plateforme ?</p>
+                        </div>
+                    </div>
                     
-                    <div class="alert alert-info mt-3">
+                    <!-- Zone de saisie -->
+                    <div class="input-group">
+                        <input type="text" id="message-input" class="form-control form-control-lg" 
+                               placeholder="Posez votre question..." 
+                               style="border: 2px solid #9dbbce;">
+                        <button id="send-button" class="btn btn-lg" style="background-color: #102c59; color: white;">
+                            <i class="bi bi-send me-2"></i>Envoyer
+                        </button>
+                    </div>
+                    
+                    <div class="mt-2 small text-muted">
                         <i class="bi bi-info-circle"></i>
-                        Fonctionnalité à venir dans la prochaine mise à jour.
+                        Assistant local • 100% gratuit • Données privées
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messagesDiv = document.getElementById('chat-messages');
+    const input = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const welcomeMessage = document.getElementById('welcome-message');
+    const clearButton = document.getElementById('clear-history');
+    const resetButton = document.getElementById('reset-chat');
+    const messageCount = document.getElementById('message-count');
+    
+    let isLoading = false;
+    let messageCounter = 0;
+
+    // Charger l'historique
+    loadHistory();
+
+    function loadHistory() {
+        fetch('{{ path('app_chat_history') }}')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.history.length > 0) {
+                    welcomeMessage.style.display = 'none';
+                    data.history.forEach(msg => {
+                        addMessage(msg.content, msg.role === 'user');
+                        if (msg.role === 'user') messageCounter++;
+                    });
+                    updateMessageCount();
+                }
+            })
+            .catch(console.error);
+    }
+
+    function addMessage(content, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `mb-3 d-flex ${isUser ? 'justify-content-end' : 'justify-content-start'}`;
+        
+        messageDiv.innerHTML = `
+            <div class="p-3 rounded" style="max-width: 80%; ${isUser ? 'background-color: #102c59; color: white;' : 'background-color: white; border: 1px solid #9dbbce;'}">
+                <small class="d-block ${isUser ? 'text-white-50' : 'text-muted'} mb-1">
+                    ${isUser ? 'Vous' : 'Assistant'}
+                </small>
+                ${content.replace(/\n/g, '<br>')}
+            </div>
+        `;
+        
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function updateMessageCount() {
+        if (messageCount) {
+            messageCount.textContent = messageCounter;
+        }
+    }
+
+    async function sendMessage() {
+        const message = input.value.trim();
+        if (!message || isLoading) return;
+        
+        isLoading = true;
+        sendButton.disabled = true;
+        
+        welcomeMessage.style.display = 'none';
+        addMessage(message, true);
+        messageCounter++;
+        updateMessageCount();
+        input.value = '';
+        
+        const loadingId = 'loading-' + Date.now();
+        messagesDiv.innerHTML += `
+            <div id="${loadingId}" class="mb-3 d-flex justify-content-start">
+                <div class="p-3" style="background-color: white; border: 1px solid #9dbbce; border-radius: 5px;">
+                    <i class="bi bi-three-dots"></i> L'assistant réfléchit...
+                </div>
+            </div>
+        `;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        
+        try {
+            const formData = new FormData();
+            formData.append('message', message);
+            
+            const response = await fetch('{{ path('app_chat_send') }}', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            document.getElementById(loadingId)?.remove();
+            
+            if (data.success && data.response) {
+                addMessage(data.response, false);
+            } else {
+                addMessage('Désolé, une erreur est survenue.', false);
+            }
+        } catch (error) {
+            document.getElementById(loadingId)?.remove();
+            addMessage('Erreur de connexion.', false);
+        } finally {
+            isLoading = false;
+            sendButton.disabled = false;
+        }
+    }
+
+    function resetChat() {
+        if (confirm('Voulez-vous commencer une nouvelle conversation ?')) {
+            fetch('{{ path('app_chat_reset') }}', { method: 'POST' })
+                .then(() => {
+                    messagesDiv.innerHTML = '';
+                    welcomeMessage.style.display = 'block';
+                    messageCounter = 0;
+                    updateMessageCount();
+                });
+        }
+    }
+
+    // Événements
+    sendButton.addEventListener('click', sendMessage);
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+    
+    if (clearButton) clearButton.addEventListener('click', resetChat);
+    if (resetButton) resetButton.addEventListener('click', resetChat);
+    
+    // Suggestions
+    document.querySelectorAll('.suggestion-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            input.value = btn.dataset.prompt;
+            sendMessage();
+        });
+    });
+});
+</script>
+
+<style>
+#chat-messages {
+    scroll-behavior: smooth;
+}
+
+.suggestion-btn {
+    transition: all 0.2s ease;
+    white-space: normal;
+    text-align: left;
+    border: 1px solid #9dbbce !important;
+}
+
+.suggestion-btn:hover {
+    background-color: #f0f4f8;
+    transform: translateX(5px);
+    border-color: #102c59 !important;
+}
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 44, 89, 0.2);
+}
+</style>
 {% endblock %}

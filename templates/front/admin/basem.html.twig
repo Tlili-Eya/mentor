@@ -50,7 +50,10 @@
         <li><a href="{{ path('app_admin_plans') }}">Plans</a></li>
         
         {# Chat IA #}
-        <li><a href="{{ path('app_admin_chat_ia') }}">Chat IA</a></li>
+         <li><a href="{{ path('app_chat') }}" 
+               {% if app.request.get('_route') == 'app_chat' %}class="active"{% endif %}>
+            <i class="bi bi-robot me-1"></i> Assistant IA
+        </a></li>
         <li><a href="{{ path('app_admin_preferences') }}" > Préférences
       <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="background-color: #d52e28; font-size: 0.6rem;">
         New

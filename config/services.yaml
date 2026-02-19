@@ -1,22 +1,24 @@
-# parameters (tu peux garder tes paramètres existants)
+# config/services.yaml
+
 parameters:
     pdp_directory: '%kernel.project_dir%/public/uploads/pdp'
 
-# services (niveau racine)
 services:
-    # Configuration par défaut pour tous les services
+    # Configuration globale (niveau racine – garde-la)
     _defaults:
-        autowire: true      # Injection automatique des dépendances
-        autoconfigure: true # Enregistre automatiquement les contrôleurs, commandes, etc.
+        autowire: true
+        autoconfigure: true
 
-    # Rend tous les contrôleurs (y compris HomeController) auto-détectés comme services
+    # Détection automatique des services (sans déclaration d'IA)
     App\:
         resource: '../src/'
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+            - '../src/Command/'  # garde si tu as des commandes console
 
-    # Déclaration explicite si besoin (optionnel, mais utile pour HomeController)
-    App\Controller\HomeController:
+    # Contrôleurs
+    App\Controller\:
+        resource: '../src/Controller/'
         tags: ['controller.service_arguments']

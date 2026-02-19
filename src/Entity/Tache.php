@@ -30,8 +30,13 @@ class Tache
     private ?string $description = null;
 
     #[ORM\Column(enumType: Etat::class)]
+    
     #[Assert\NotNull(message: "L'état est obligatoire")]
     private ?Etat $etat = null;
+    public function __construct()
+{
+    $this->etat = Etat::Abandonner;
+}
 
 
     #[ORM\ManyToOne(inversedBy: 'tache')]

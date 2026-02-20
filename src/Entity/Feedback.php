@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\FeedbackRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: FeedbackRepository::class)]
 class Feedback
@@ -14,25 +15,51 @@ class Feedback
     #[ORM\Column]
     private ?int $id = null;
 
-   #[ORM\Column(type: Types::TEXT)]
-   private ?string $contenu = null;
+    #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: "Le message ne peut pas être vide.")]
+    #[Assert\Length(
+        min: 10,
+        max: 2000,
+        minMessage: "Le message doit contenir au moins {{ limit }} caractères.",
+        maxMessage: "Le message ne peut pas dépasser {{ limit }} caractères."
+    )]
+    private ?string $contenu = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "La note est obligatoire.")]
+    #[Assert\Range(
+        min: 1,
+        max: 5,
+        notInRangeMessage: "La note doit être entre {{ min }} et {{ max }}."
+    )]
     private ?int $note = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotNull(message: "La date du feedback est obligatoire.")]
     private ?\DateTime $datefeedback = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le type de feedback est obligatoire.")]
+    #[Assert\Choice(
+        choices: ['suggestion', 'probleme', 'satisfaction'],
+        message: "Le type doit être : suggestion, problème ou satisfaction."
+    )]
     private ?string $typefeedback = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "L'état du feedback est obligatoire.")]
+    #[Assert\Choice(
+        choices: ['en_attente', 'traite', 'rejete'],
+        message: "L'état doit être : en_attente, traite ou rejete."
+    )]
     private ?string $etatfeedback = null;
 
     #[ORM\OneToOne(inversedBy: 'feedback', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(name: 'traitement_id')]
     private ?Traitement $traitement = null;
 
     #[ORM\ManyToOne(inversedBy: 'feedback')]
+    #[Assert\NotNull(message: "L'utilisateur est obligatoire.")]
     private ?Utilisateur $utilisateur = null;
 
     public function getId(): ?int
@@ -40,14 +67,14 @@ class Feedback
         return $this->id;
     }
 
-    public function getContenue(): ?string
+    public function getContenu(): ?string
     {
-        return $this->contenue;
+        return $this->contenu;
     }
 
-    public function setContenue(string $contenue): static
+    public function setContenu(string $contenu): static
     {
-        $this->contenue = $contenue;
+        $this->contenu = $contenu;
 
         return $this;
     }

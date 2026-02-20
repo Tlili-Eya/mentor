@@ -24,6 +24,12 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
+    # ✅ Service d'analyse d'émotions Azure
+    App\Service\AzureEmotionAnalysisService:
+        arguments:
+            $azureEndpoint: '%env(AZURE_TEXT_ANALYTICS_ENDPOINT)%'
+            $azureApiKey: '%env(AZURE_TEXT_ANALYTICS_KEY)%'
+
 security:
     firewalls:
         main:

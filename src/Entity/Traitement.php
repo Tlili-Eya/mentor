@@ -26,7 +26,7 @@ class Traitement
     #[ORM\Column(length: 255)]
     private ?string $decision = null;
 
-    #[ORM\OneToOne(mappedBy: 'traitement', cascade: ['persist', 'remove'], orphanRemoval:true)]
+    #[ORM\OneToOne(mappedBy: 'traitement', cascade: ['persist', 'remove'])]
     private ?Feedback $feedback = null;
 
     public function getId(): ?int

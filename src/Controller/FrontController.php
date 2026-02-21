@@ -3,8 +3,12 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 #[Route('/', name: 'front_')]
 class FrontController extends AbstractController
 {
@@ -45,6 +49,67 @@ class FrontController extends AbstractController
     public function pricing(): Response
     {
         return $this->render('front/pricing.html.twig');
+    }
+
+    #[Route('checkout/{plan}', name: 'checkout')]
+    public function checkout(string $plan, UrlGeneratorInterface $generator): Response
+    {
+        \Stripe\Stripe::setApiKey($this->getParameter('stripe_secret_key'));
+
+        $price = 7500;
+        if ($plan === 'business') {
+            $price = 13500;
+        } elseif ($plan === 'plus') {
+            $price = 7500;
+        }
+
+        $session = \Stripe\Checkout\Session::create([
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => 'usd',
+                    'product_data' => [
+                        'name' => ucfirst($plan) . ' Plan Subscription',
+                    ],
+                    'unit_amount' => $price,
+                ],
+                'quantity' => 1,
+            ]],
+            'mode' => 'payment',
+            'success_url' => $generator->generate('front_checkout_success', [], UrlGeneratorInterface::ABSOLUTE_URL) . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => $generator->generate('front_pricing', [], UrlGeneratorInterface::ABSOLUTE_URL),
+        ]);
+
+        return $this->redirect($session->url, 303);
+    }
+
+    #[Route('checkout-success', name: 'checkout_success')]
+    public function checkoutSuccess(Request $request, MailerInterface $mailer): Response
+    {
+        $sessionId = $request->query->get('session_id');
+
+        if ($sessionId) {
+            \Stripe\Stripe::setApiKey($this->getParameter('stripe_secret_key'));
+            
+            try {
+                $session = \Stripe\Checkout\Session::retrieve($sessionId);
+                $customerEmail = $session->customer_details->email;
+                $amountTotal = $session->amount_total / 100;
+
+                if ($customerEmail) {
+                    $email = (new Email())
+                        ->from('MentorAI <hejerh666@gmail.com>')
+                        ->to($customerEmail)
+                        ->subject('Confirmation de votre paiement')
+                        ->html('<p>Merci beaucoup pour votre paiement de ' . $amountTotal . ' dt pour l\'abonnement.</p><p>Votre transaction a &eacute;t&eacute; effectu&eacute;e avec succ&egrave;s.</p>');
+
+                    $mailer->send($email);
+                }
+            } catch (\Exception $e) {
+            }
+        }
+
+        return $this->render('front/checkout_success.html.twig');
     }
 
     #[Route('privacy', name: 'privacy')]

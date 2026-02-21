@@ -55,26 +55,26 @@ class ProjetController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Le projet a été ' . ($activeProject && $activeProject->getId() ? 'mis à jour' : 'créé') . ' avec succès.');
-            return $this->redirectToRoute('front_mes_projets');
+            return $this->redirectToRoute('front_projets', ['id' => $projet->getId()]);
         }
 
-        $resourceForm = null;
-        if ($activeProject && $activeProject->getId()) {
-            $resourceId = $request->query->get('resource_id');
-            $resource = null;
-            
-            if ($resourceId) {
-                $resource = $ressourceRepository->findOneBy(['id' => $resourceId]);
-                if ($resource && $resource->getProjet()->getId() !== $activeProject->getId()) {
-                    $resource = null;
-                }
+        $resourceId = $request->query->get('resource_id');
+        $resource = null;
+        
+        if ($resourceId) {
+            $resource = $ressourceRepository->findOneBy(['id' => $resourceId]);
+            if ($resource && $activeProject && $resource->getProjet()->getId() !== $activeProject->getId()) {
+                $resource = null;
             }
-            
-            if (!$resource) {
-                $resource = new Ressource();
-            }
+        }
+        
+        if (!$resource) {
+            $resource = new Ressource();
+        }
 
-            $resourceForm = $this->createForm(RessourceType::class, $resource);
+        $resourceForm = $this->createForm(RessourceType::class, $resource);
+        
+        if ($activeProject && $activeProject->getId()) {
             $resourceForm->handleRequest($request);
 
             if ($resourceForm->isSubmitted() && $resourceForm->isValid()) {
@@ -116,7 +116,7 @@ class ProjetController extends AbstractController
             'projects' => $projects,
             'activeProject' => $activeProject,
             'projectForm' => $projectForm->createView(),
-            'resourceForm' => $resourceForm ? $resourceForm->createView() : null,
+            'resourceForm' => $resourceForm->createView(),
         ]);
     }
 

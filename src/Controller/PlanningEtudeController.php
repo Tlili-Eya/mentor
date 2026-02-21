@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\PlanningEtude;
 use App\Repository\PlanningEtudeRepository;
+use App\Repository\ProfilApprentissageRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,16 +17,21 @@ final class PlanningEtudeController extends AbstractController
     #[Route('/blog-details', name: 'front_blog_details', methods: ['GET'])]
     public function blogDetails(
         Request $request,
-        PlanningEtudeRepository $planningRepo
+        PlanningEtudeRepository $planningRepo,
+        ProfilApprentissageRepository $profilRepo
     ): Response
     {
         $selectedDate = $this->resolveSelectedDate($request->query->get('date'));
 
         $types = $planningRepo->findDistinctTypesWithColor();
+        
+        // Get the latest personality profile
+        $profile = $profilRepo->findOneBy([], ['id' => 'DESC']);
 
         return $this->render('front/blog-details.html.twig', [
             'selectedDate' => $selectedDate,
             'types'        => $types,
+            'profile'      => $profile,
         ]);
     }
 

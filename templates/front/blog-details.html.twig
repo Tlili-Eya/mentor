@@ -322,7 +322,19 @@
       </nav>
     </div>
   </div>
-
+{# Bloc test de personnalité #}
+<div class="container mt-3">
+    {% if profile and profile.typePers %}
+        <div class="alert alert-info d-flex justify-content-between align-items-center">
+            <span>Votre type de personnalité : <strong>{{ profile.typePers }}</strong></span>
+            <a href="{{ path('personality_test') }}" class="btn btn-sm btn-outline-primary">Refaire le test</a>
+        </div>
+    {% else %}
+        <div class="text-end mb-3">
+            <a href="{{ path('personality_test') }}" class="btn btn-primary">Test de personnalité</a>
+        </div>
+    {% endif %}
+</div>
   <section class="section">
     <div class="container">
       <div id="planning-app"

@@ -70,7 +70,9 @@ class JobRecommendationService
                     'location' => $result['location']['display_name'] ?? 'France',
                     'description' => $result['description'] ?? '',
                     'url' => $result['redirect_url'] ?? '#',
-                    'salary' => isset($result['salary_min']) ? $result['salary_min'] . ' - ' . ($result['salary_max'] ?? '') : 'Sur demande'
+                    'salary' => isset($result['salary_min']) ? $result['salary_min'] . ' - ' . ($result['salary_max'] ?? '') : 'Sur demande',
+                    'latitude' => $result['latitude'] ?? null,
+                    'longitude' => $result['longitude'] ?? null
                 ];
             }
 

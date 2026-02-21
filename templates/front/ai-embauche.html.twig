@@ -148,7 +148,28 @@
 		border: 2px solid var(--color-accent-red) !important;
 		box-shadow: 0 0 30px rgba(213, 46, 40, 0.2) !important;
 	}
-</style>{% endblock %}{% block body %}
+
+	#job-map {
+		height: 450px;
+		width: 100%;
+		border-radius: 24px;
+		border: 1px solid var(--glass-border);
+		margin-bottom: 50px;
+		z-index: 1;
+	}
+
+	.leaflet-popup-content-wrapper {
+		background: var(--color-deep-navy);
+		color: white;
+		border: 1px solid var(--glass-border);
+		backdrop-filter: blur(10px);
+	}
+
+	.leaflet-popup-tip {
+		background: var(--color-deep-navy);
+	}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>{% endblock %}{% block body %}
 <section class="ai-hero-section">
 	<div class="container" data-aos="fade-up">
 		<span class="ai-badge">Intelligence Artificielle</span>
@@ -195,6 +216,13 @@
 				<div id="suggestions-row" class="row"></div>
 			</div>
 
+			<!-- Map Section -->
+			<div id="map-section" class="col-12 mb-5" style="display: none;">
+				<h2 class="h3 fw-bold text-white mb-4">
+					<i class="bi bi-map me-2 text-danger"></i>Géolocalisation des Opportunités</h2>
+				<div id="job-map"></div>
+			</div>
+
 			<!-- Jobs Section -->
 			<div id="jobs-section" class="col-12" style="display: none;">
 				<h2 class="h3 fw-bold text-white mb-4">
@@ -204,8 +232,12 @@
 		</div>
 	</div>
 </div>{% endblock %}{% block javascripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <script>
-	document.getElementById('start-analysis').addEventListener('click', function () {
+	let map = null;
+
+document.getElementById('start-analysis').addEventListener('click', function () {
 const startBtn = this;
 const emptyState = document.getElementById('empty-state');
 const loading = document.getElementById('loading');
@@ -214,6 +246,58 @@ const suggestionsSection = document.getElementById('suggestions-section');
 const suggestionsRow = document.getElementById('suggestions-row');
 const jobsSection = document.getElementById('jobs-section');
 const jobsRow = document.getElementById('jobs-row');
+const mapSection = document.getElementById('map-section');
+
+function initMap(jobs) {
+if (map) {
+map.remove();
+}
+
+const validJobs = jobs.filter(j => j.latitude && j.longitude);
+if (validJobs.length === 0) {
+mapSection.style.display = 'none';
+return;
+}
+
+mapSection.style.display = 'block';
+map = L.map('job-map').setView([
+46.603354, 1.888334
+], 6); // Center of France
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+subdomains: 'abcd',
+maxZoom: 20
+}).addTo(map);
+
+const markerGroup = L.featureGroup();
+
+validJobs.forEach(job => {
+const marker = L.marker([job.latitude, job.longitude]);
+marker.bindPopup(`
+            <div style="font-family: 'Ubuntu', sans-serif;">
+                <h6 style="color: #d52e28; margin-bottom: 5px;">${
+job.title
+}</h6>
+                <p style="margin-bottom: 3px;"><strong>${
+job.company
+}</strong></p>
+                <p style="margin-bottom: 10px; font-size: 0.8rem;">${
+job.location
+}</p>
+                <a href="${
+job.url
+}" target="_blank" style="color: #9dbbce; text-decoration: none; font-weight: bold; font-size: 0.8rem;">Voir l'offre &rarr;</a>
+            </div>
+        `);
+marker.addTo(markerGroup);
+});
+
+markerGroup.addTo(map);
+map.fitBounds(markerGroup.getBounds(), {
+padding: [50, 50]
+});
+}
 
 // UI State
 startBtn.disabled = true;
@@ -222,11 +306,18 @@ emptyState.style.display = 'none';
 loading.style.display = 'flex';
 suggestionsSection.style.display = 'none';
 jobsSection.style.display = 'none';
+mapSection.style.display = 'none';
 suggestionsRow.innerHTML = '';
 jobsRow.innerHTML = '';
 
 // Fetch Recommendations
-fetch('{{ path('api_job_recommendations') }}').then(response => response.json()).then(data => {
+fetch('{{ path('api_job_recommendations') }}').then(response => {
+if (!response.ok) 
+throw new Error('Erreur HTTP: ' + response.status);
+
+return response.json();
+}).then(data => {
+console.log('Données reçues:', data);
 loading.style.display = 'none';
 startBtn.disabled = false;
 startBtn.innerHTML = 'Relancer l\'Analyse IA';
@@ -313,6 +404,9 @@ job.url
         `;
 jobsRow.insertAdjacentHTML('beforeend', card);
 });
+
+// Init Map with coordinates
+initMap(data.jobs);
 } else {
 jobsSection.style.display = 'block';
 jobsRow.innerHTML = `<div class="col-12 text-center py-5"><h4 class="text-white">Aucune offre trouvée.</h4></div>`;
@@ -325,11 +419,13 @@ AOS.refresh();
 
 
 }).catch(error => {
-console.error('Error:', error);
+console.error('Erreur Analyse:', error);
 loading.style.display = 'none';
 startBtn.disabled = false;
 startBtn.innerHTML = 'Réessayer';
-jobsRow.innerHTML = '<div class="col-12 text-center text-danger"><p>Une erreur est survenue lors de l\'analyse.</p></div>';
+jobsRow.innerHTML = `<div class="col-12 text-center text-danger"><p>Une erreur est survenue : ${
+error.message
+}</p></div>`;
 jobsSection.style.display = 'block';
 });
 });

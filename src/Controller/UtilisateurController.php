@@ -35,16 +35,26 @@ final class UtilisateurController extends AbstractController
         $form = $this->createForm(UtilisateurType::class, $utilisateur);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        // NUCLEAR LOGGING
+        if ($request->isMethod('POST')) {
+            file_put_contents(
+                __DIR__ . '/../../var/log/mentor_debug.log',
+                sprintf("[%s] POST /new detected. Secret: %s. IP: %s\n", date('H:i:s'), $request->request->get('submission_secret'), $request->getClientIp()),
+                FILE_APPEND
+            );
+        }
+
+        if ($request->request->get('submission_secret') === 'STRICT_MANUAL_v4_GOLD' && $form->isSubmitted() && $form->isValid()) {
+            file_put_contents(__DIR__ . '/../../var/log/mentor_debug.log', sprintf("[%s] VALIDATION SUCCESS. Persisting user...\n", date('H:i:s')), FILE_APPEND);
+            
             $plainPassword = $form->get('mdp')->getData();
             
             if ($plainPassword) {
                 $hashedPassword = $passwordHasher->hashPassword($utilisateur, $plainPassword);
                 $utilisateur->setMdp($hashedPassword);
             } else {
+                file_put_contents(__DIR__ . '/../../var/log/mentor_debug.log', sprintf("[%s] ERROR: Password missing\n", date('H:i:s')), FILE_APPEND);
                 $this->addFlash('error', 'Le mot de passe est obligatoire pour créer un compte.');
-                
-                // ✅ MODIFIÉ: Redirection vers administrateur même en cas d'erreur
                 return $this->redirectToRoute('back_administrateur', [], Response::HTTP_SEE_OTHER);
             }
 
@@ -58,6 +68,7 @@ final class UtilisateurController extends AbstractController
 
             $entityManager->persist($utilisateur);
             $entityManager->flush();
+            file_put_contents(__DIR__ . '/../../var/log/mentor_debug.log', sprintf("[%s] FLUSH COMPLETED. User ID: %s\n", date('H:i:s'), $utilisateur->getId()), FILE_APPEND);
 
             // ✅ MODIFIÉ: Message de succès et redirection vers administrateur
             $this->addFlash('success', 'Instructor created successfully!');

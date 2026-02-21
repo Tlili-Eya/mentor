@@ -79,8 +79,41 @@ final class BackController extends AbstractController
     #[Route('/administrateur', name: 'administrateur')]
     public function administrateur(UtilisateurRepository $utilisateurRepository): Response
     {
+        $utilisateurs = $utilisateurRepository->findAll();
+        
+        $countActif = 0;
+        $countInactif = 0;
+        $registrations = [];
+
+        foreach ($utilisateurs as $user) {
+            // Status Logic
+            $status = strtolower($user->getStatus() ?? '');
+            if ($status === 'actif') {
+                $countActif++;
+            } elseif ($status === 'desactiver' || $status === 'blocked') {
+                $countInactif++;
+            }
+
+            // Registration Date Logic
+            $date = $user->getDateInscription();
+            if ($date) {
+                $dateString = $date->format('Y-m-d');
+                if (!isset($registrations[$dateString])) {
+                    $registrations[$dateString] = 0;
+                }
+                $registrations[$dateString]++;
+            }
+        }
+
+        // Sort by date
+        ksort($registrations);
+
         return $this->render('back/administrateur.html.twig', [
-            'utilisateurs' => $utilisateurRepository->findAll(),
+            'utilisateurs' => $utilisateurs,
+            'countActif' => $countActif,
+            'countInactif' => $countInactif,
+            'registrationDates' => array_keys($registrations),
+            'registrationCounts' => array_values($registrations),
         ]);
     }
 }

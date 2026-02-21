@@ -392,6 +392,37 @@
       </div>
     </div>
     
+    <!-- User Statistics Charts -->
+    <div class="row mt-4 mb-4">
+        <!-- Status Pie Chart -->
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h5 class="card-title text-center text-primary fw-bold">Statut des utilisateurs</h5>
+                </div>
+                <div class="card-body">
+                    <div style="max-height: 300px; display: flex; justify-content: center;">
+                        <canvas id="userStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Line Chart -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h5 class="card-title text-center text-primary fw-bold">Inscriptions par date</h5>
+                </div>
+                <div class="card-body">
+                    <div style="height: 300px;">
+                        <canvas id="registrationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer info -->
     <div class="d-flex justify-content-between align-items-center mt-3">
       <p class="text-muted mb-0">
@@ -401,6 +432,116 @@
     
   </div>
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('userStatusChart').getContext('2d');
+    
+    const countActif = {{ countActif|default(0) }};
+    const countInactif = {{ countInactif|default(0) }};
+    
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Actif', 'Désactivé'],
+            datasets: [{
+                data: [countActif, countInactif],
+                backgroundColor: [
+                    '#102c59', // Active
+                    '#9dbbce'  // Inactive
+                ],
+                borderColor: [
+                    '#ffffff',
+                    '#ffffff'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            let value = context.raw;
+                            let total = context.chart._metasets[context.datasetIndex].total;
+                            let percentage = Math.round((value / total) * 100) + '%';
+                            return label + value + ' (' + percentage + ')';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Registration Line Chart
+    const ctxReg = document.getElementById('registrationChart').getContext('2d');
+    const registrationDates = {{ registrationDates|json_encode|raw }};
+    const registrationCounts = {{ registrationCounts|json_encode|raw }};
+
+    new Chart(ctxReg, {
+        type: 'line',
+        data: {
+            labels: registrationDates,
+            datasets: [{
+                label: 'Nouvelles Inscriptions',
+                data: registrationCounts,
+                borderColor: '#102c59',
+                backgroundColor: 'rgba(16, 44, 89, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4, // Smooth curves
+                pointBackgroundColor: '#102c59',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+});
+</script>
 
 <!-- Add Instructor Modal -->
 <div class="modal fade" id="addInstructorModal" tabindex="-1" aria-labelledby="addInstructorModalLabel" aria-hidden="true" data-bs-backdrop="static">

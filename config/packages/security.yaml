@@ -22,11 +22,17 @@ security:
             provider: app_user_provider
             user_checker: App\Security\UserChecker
 
-            form_login:
-                login_path: app_login
-                check_path: app_login
-                enable_csrf: true
-                success_handler: App\Security\LoginSuccessHandler
+            # Utilisation de nos deux authentificateurs personnalisés
+            custom_authenticator: 
+                - App\Security\CustomAuthenticator
+                - App\Security\GoogleAuthenticator
+
+            # Désactivation du form_login standard car CustomAuthenticator gère le login maintenant
+            # form_login:
+            #     login_path: app_login
+            #     check_path: app_login
+            #     enable_csrf: true
+            #     success_handler: App\Security\LoginSuccessHandler
 
             logout:
                 path: app_logout
@@ -38,13 +44,14 @@ security:
                 lifetime: 604800
                 path: /
 
-            entry_point: form_login
+            entry_point: App\Security\CustomAuthenticator
 
     # ✅ CORRECTION: Règles d'accès réorganisées
     access_control:
         # Pages publiques (AVANT la règle générale)
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/logout$, roles: PUBLIC_ACCESS }
+        - { path: ^/connect/google, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
         - { path: ^/utilisateur/new$, roles: PUBLIC_ACCESS }
         

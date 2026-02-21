@@ -426,6 +426,11 @@
                         </a>
                     </div>
 
+                    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+
+                    <!-- hCaptcha Widget -->
+                    <div class="h-captcha" data-sitekey="{{ hCaptchaSiteKey }}" style="margin-bottom: 20px; display: flex; justify-content: center;"></div>
+
                     <!-- CSRF Token -->
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
@@ -434,6 +439,102 @@
                         <i class="fas fa-sign-in-alt"></i>
                         <span>Se connecter</span>
                     </button>
+
+                    <!-- OR Separator -->
+                    <div style="display: flex; align-items: center; margin: 20px 0;">
+                        <div style="flex-grow: 1; height: 1px; background-color: #ccc;"></div>
+                        <span style="padding: 0 10px; color: #666; font-size: 0.9em;">OU</span>
+                        <div style="flex-grow: 1; height: 1px; background-color: #ccc;"></div>
+                    </div>
+
+                    <!-- Google Button Static -->
+                    <a href="{{ path('connect_google') }}" class="btn-google-static">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo">
+                        <span>Se connecter avec Google</span>
+                    </a>
+                    <!-- Séparateur -->
+<div style="display: flex; align-items: center; margin: 20px 0;">
+    <div style="flex-grow: 1; height: 1px; background-color: #ccc;"></div>
+    <span style="padding: 0 10px; color: #666; font-size: 0.9em;">OU</span>
+    <div style="flex-grow: 1; height: 1px; background-color: #ccc;"></div>
+</div>
+
+<!-- Bouton Passkey -->
+<button type="button" id="passkeyBtn" onclick="showPasskeyQR()" class="btn-login" style="background: linear-gradient(135deg, #0a3d62, #102c59);">
+    <i class="fas fa-fingerprint"></i>
+    <span>Se connecter avec Passkey</span>
+</button>
+
+<!-- Modal QR Code -->
+<div id="qrModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:20px; text-align:center; max-width:350px;">
+        <h3 style="color:#102c59; margin-bottom:15px;">📱 Scannez avec votre téléphone</h3>
+        <img id="qrImage" src="" style="width:250px; height:250px; border-radius:10px;">
+        <p style="color:#666; margin-top:15px; font-size:0.9rem;">Puis validez avec Face ID sur votre téléphone</p>
+        <p id="qrStatus" style="color:#102c59; font-weight:600; margin-top:10px;">⏳ En attente...</p>
+        <button onclick="closeQR()" style="margin-top:15px; padding:10px 25px; background:#d52e28; color:white; border:none; border-radius:10px; cursor:pointer;">Annuler</button>
+    </div>
+</div>
+
+<script>
+let statusInterval;
+
+function showPasskeyQR() {
+    document.getElementById('qrImage').src = '/webauthn/login/qr?' + Date.now();
+    document.getElementById('qrModal').style.display = 'flex';
+    document.getElementById('qrStatus').textContent = '⏳ En attente...';
+    
+    statusInterval = setInterval(async () => {
+        const res = await fetch('/webauthn/login/status');
+        const data = await res.json();
+        
+        if (data.status === 'confirmed') {
+            clearInterval(statusInterval);
+            document.getElementById('qrStatus').textContent = '✅ Connecté !';
+            setTimeout(() => window.location.href = '/home', 1000);
+        }
+    }, 2000);
+}
+
+function closeQR() {
+    clearInterval(statusInterval);
+    document.getElementById('qrModal').style.display = 'none';
+}
+</script>
+
+                    <style>
+                        .btn-google-static {
+                            width: 100%;
+                            padding: 16px;
+                            background: linear-gradient(135deg, #102c59 0%, #0a1a36 100%);
+                            border: none;
+                            border-radius: 12px;
+                            color: white;
+                            font-size: 1.05rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 10px;
+                            text-decoration: none;
+                        }
+
+                        .btn-google-static img {
+                            width: 24px;
+                            height: 24px;
+                            background-color: white;
+                            border-radius: 50%;
+                            padding: 2px;
+                        }
+
+                        .btn-google-static:hover {
+                            background: linear-gradient(135deg, #0a1a36 0%, #102c59 100%);
+                            color: white;
+                            box-shadow: 0 4px 12px rgba(16, 44, 89, 0.3);
+                        }
+                    </style>
                 </form>
             </div>
 

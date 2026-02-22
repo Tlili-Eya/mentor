@@ -1,85 +1,103 @@
 <?php
+
 namespace App\Controller;
+
 use App\Entity\Objectif;
 use App\Entity\Utilisateur;
 use App\Enum\Statutobj;
 use App\Repository\ObjectifRepository;
+use App\Repository\UtilisateurRepository;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\IOFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
+#[Route('/admin', name: 'back_')]
 class BackObjectifController extends AbstractController
 {
-    #[Route('/admin/events', name: 'back_events', methods: ['GET'])]
-public function index(ObjectifRepository $repo, Request $request): Response
-{
-    // Filtre par titre
-    $titre = trim($request->query->get('titre', ''));
+    /**
+     * Liste tous les objectifs (ou filtrés par utilisateur)
+     */
+    #[Route('/events', name: 'events', methods: ['GET'])]
+    public function index(
+        ObjectifRepository $objectifRepo,
+        UtilisateurRepository $utilisateurRepo,
+        Request $request
+    ): Response {
+        $titre = trim($request->query->get('titre', ''));
+        $utilisateurId = $request->query->getInt('utilisateurId', 0);
 
-    $queryBuilder = $repo->createQueryBuilder('o');
+        $queryBuilder = $objectifRepo->createQueryBuilder('o');
 
-    if ($titre !== '') {
-        $queryBuilder->andWhere('o.titre LIKE :titre')
-            ->setParameter('titre', '%' . $titre . '%');
-    }
-
-    // Tri
-    $sort = $request->query->get('sort', 'datedebut');
-    $orderBy = match ($sort) {
-        'titre'     => 'titre',
-        'datefin'   => 'datefin',
-        'statut'    => 'statut',
-        default     => 'datedebut',
-    };
-
-    $queryBuilder->orderBy('o.' . $orderBy, 'ASC');
-
-    $objectifs = $queryBuilder->getQuery()->getResult();
-
-    // Compteurs
-    $total = count($objectifs);
-    $atteints = 0;
-    $enCours = 0;
-    $abandonnes = 0;
-
-    foreach ($objectifs as $objectif) {
-        $statut = $objectif->getStatut()?->value;
-
-        if ($statut === Statutobj::Atteint->value) {
-            $atteints++;
-        } elseif ($statut === Statutobj::EnCours->value) {
-            $enCours++;
-        } elseif ($statut === Statutobj::Abandonner->value) {
-            $abandonnes++;
+        // Filtre par titre
+        if ($titre !== '') {
+            $queryBuilder->andWhere('o.titre LIKE :titre')
+                ->setParameter('titre', '%' . $titre . '%');
         }
+
+        // Filtre par utilisateur (quand on clique sur "Voir les objectifs")
+        if ($utilisateurId > 0) {
+            $queryBuilder->andWhere('o.utilisateur = :utilisateur')
+                ->setParameter('utilisateur', $utilisateurId);
+        }
+
+        // Tri
+        $sort = $request->query->get('sort', 'datedebut');
+        $orderBy = match ($sort) {
+            'titre'     => 'titre',
+            'datefin'   => 'datefin',
+            'statut'    => 'statut',
+            default     => 'datedebut',
+        };
+
+        $queryBuilder->orderBy('o.' . $orderBy, 'ASC');
+
+        $objectifs = $queryBuilder->getQuery()->getResult();
+
+        // Compteurs
+        $total = count($objectifs);
+        $atteints = $enCours = $abandonnes = 0;
+
+        foreach ($objectifs as $objectif) {
+            $statut = $objectif->getStatut()?->value;
+            if ($statut === Statutobj::Atteint->value) {
+                $atteints++;
+            } elseif ($statut === Statutobj::EnCours->value) {
+                $enCours++;
+            } elseif ($statut === Statutobj::Abandonner->value) {
+                $abandonnes++;
+            }
+        }
+
+        // Récupérer l'utilisateur si filtré (pour afficher son nom)
+        $utilisateur = null;
+        if ($utilisateurId > 0) {
+            $utilisateur = $utilisateurRepo->find($utilisateurId);
+        }
+
+        return $this->render('back/events.html.twig', [
+            'objectifs'     => $objectifs,
+            'total'         => $total,
+            'atteints'      => $atteints,
+            'enCours'       => $enCours,
+            'abandonnes'    => $abandonnes,
+            'utilisateur'   => $utilisateur,
+            'utilisateurId' => $utilisateurId,
+        ]);
     }
 
-    // 🔴 FORCER LES VARIABLES POUR TEST
-    $variables = [
-        'objectifs'  => $objectifs,
-        'total'      => $total,
-        'atteints'   => $atteints,
-        'enCours'    => $enCours,
-        'abandonnes' => $abandonnes,
-    ];
-    
-    // 🔴 DUMP POUR VÉRIFIER
-    dump('VARIABLES ENVOYÉES:', $variables);
-    
-    return $this->render('back/events.html.twig', $variables);
-}
-    
-    // 📊 Export Excel ADMIN (tous les objectifs)
-   #[Route('/admin/events/export/excel', name: 'back_events_export_excel')]
-public function exportExcel(ObjectifRepository $repo): Response
-{
+    /**
+     * Export Excel de tous les objectifs
+     */
+    #[Route('/events/export/excel', name: 'events_export_excel')]
+    public function exportExcel(ObjectifRepository $repo): Response
+    {
         $objectifs = $repo->findAll();
 
         $spreadsheet = new Spreadsheet();
@@ -93,8 +111,8 @@ public function exportExcel(ObjectifRepository $repo): Response
         $sheet->setCellValue('F1', 'Statut');
 
         $row = 2;
-        foreach ($objectifs as $objectif) {
-            $sheet->setCellValue('A'.$row, $row - 1);
+        foreach ($objectifs as $i => $objectif) {
+            $sheet->setCellValue('A'.$row, $i + 1);
             $sheet->setCellValue('B'.$row, 'PPD' . $objectif->getId());
             $sheet->setCellValue('C'.$row, $objectif->getTitre());
             $sheet->setCellValue('D'.$row, $objectif->getDatedebut()?->format('d/m/Y') ?? '');
@@ -114,10 +132,12 @@ public function exportExcel(ObjectifRepository $repo): Response
         return $response;
     }
 
-    // 📄 Export Word ADMIN
-    #[Route('/admin/events/export/word', name: 'back_events_export_word')]
-public function exportWord(ObjectifRepository $repo): Response
-{
+    /**
+     * Export Word de tous les objectifs
+     */
+    #[Route('/events/export/word', name: 'events_export_word')]
+    public function exportWord(ObjectifRepository $repo): Response
+    {
         $objectifs = $repo->findAll();
 
         $phpWord = new PhpWord();
@@ -157,10 +177,12 @@ public function exportWord(ObjectifRepository $repo): Response
         return $response;
     }
 
-    // 🔎 Détail objectif (lecture seule)
-    #[Route('/admin/events/{id}', name: 'back_events_show', methods: ['GET'])]
-public function show(?Objectif $objectif): Response
-{
+    /**
+     * Détail d'un objectif
+     */
+    #[Route('/events/{id}', name: 'events_show', methods: ['GET'])]
+    public function show(?Objectif $objectif): Response
+    {
         if (!$objectif) {
             $this->addFlash('danger', 'Objectif introuvable.');
             return $this->redirectToRoute('back_events');
@@ -170,15 +192,14 @@ public function show(?Objectif $objectif): Response
             'objectif' => $objectif,
         ]);
     }
-    #[Route('/admin/utilisateur/{id}/objectifs', name: 'back_utilisateur_objectifs', methods: ['GET'])]
-public function objectifsUtilisateur(Utilisateur $utilisateur): Response
-{
-    $objectifs = $utilisateur->getObjectifs(); // ou $objectifRepository->findBy(['utilisateur' => $utilisateur])
+    #[Route('/objectifs-utilisateurs', name: 'objectif_utilisateur', methods: ['GET'])]
+public function utilisateursObjectifs(
+    UtilisateurRepository $utilisateurRepo
+): Response {
+    $utilisateurs = $utilisateurRepo->findAll(); // ou findBy([], ['nom' => 'ASC']) pour trier
 
-    return $this->render('back/objectif_utilisateur_show.html.twig', [
-        'utilisateur' => $utilisateur,
-        'objectifs'   => $objectifs,
+    return $this->render('back/objectifs_utilisateurs.html.twig', [
+        'utilisateurs' => $utilisateurs,
     ]);
 }
-
 }

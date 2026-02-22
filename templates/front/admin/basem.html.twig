@@ -26,6 +26,122 @@
   <link rel="stylesheet" href="{{ asset('assets/css/main.css') }}">
 
   {% block stylesheets %}{% endblock %}
+
+  <style>
+    /* Bridge User Preferences with Global CSS Variables */
+    :root {
+      --main-font-size: 16px;
+      --main-line-height: 1.5;
+    }
+
+    body {
+      font-size: var(--main-font-size);
+      line-height: var(--main-line-height);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Dark Mode Implementation */
+    body.dark-mode {
+      --background-color: #0c111d !important;
+      --surface-color: #1e293b !important;
+      --default-color: #f1f5f9 !important;
+      --heading-color: #f8fafc !important;
+      --nav-dropdown-background-color: #1e293b !important;
+      --nav-dropdown-color: #cbd5e1 !important;
+      --nav-dropdown-hover-color: #38bdf8 !important;
+      --nav-mobile-background-color: #1e293b !important;
+    }
+    
+    body.dark-mode {
+      background-color: var(--background-color) !important;
+      color: var(--default-color) !important;
+    }
+
+    body.dark-mode .card, 
+    body.dark-mode .header, 
+    body.dark-mode .footer,
+    body.dark-mode .section,
+    body.dark-mode section {
+      background-color: var(--surface-color) !important;
+      color: var(--default-color) !important;
+    }
+
+    body.dark-mode .header {
+        --background-color: #1e293b !important;
+    }
+
+    /* High Contrast Mode */
+    body.high-contrast {
+      --background-color: #000000 !important;
+      --surface-color: #111111 !important;
+      --default-color: #ffffff !important;
+      --heading-color: #ffff00 !important;
+      --accent-color: #00ff00 !important;
+    }
+
+    body.high-contrast * {
+        border-color: #ffffff !important;
+    }
+
+    /* Dyslexic Mode */
+    body.dyslexic-mode {
+      --default-font: 'OpenDyslexic', sans-serif !important;
+      --heading-font: 'OpenDyslexic', sans-serif !important;
+    }
+    
+    body.dyslexic-mode {
+        font-family: var(--default-font) !important;
+    }
+
+    /* Navbar Active Styling */
+    .navmenu ul li a.active {
+      color: #ffffff !important;
+      position: relative;
+    }
+
+    .navmenu ul li a.active::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: #ffffff;
+      border-radius: 2px;
+    }
+
+    /* Admin Premium UI System */
+    .toast-container { z-index: 2000; }
+    .premium-toast-admin {
+        background: rgba(15, 23, 42, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(56, 189, 248, 0.2) !important;
+        border-radius: 1rem !important;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4) !important;
+        color: #f1f5f9 !important;
+    }
+    .toast-progress {
+        position: absolute; bottom: 0; left: 0; height: 3px;
+        background: rgba(255, 255, 255, 0.1); width: 100%;
+    }
+    .toast-progress-inner {
+        height: 100%; width: 100%; border-bottom-left-radius: 1rem;
+        animation: toast-progress-anim linear forwards;
+    }
+    @keyframes toast-progress-anim { from { width: 100%; } to { width: 0%; } }
+    
+    .bg-admin-danger { background: rgba(220, 53, 69, 0.2); color: #ff6b6b; }
+    .bg-admin-success { background: rgba(25, 135, 84, 0.2); color: #51cf66; }
+    .bg-admin-info { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+    .bg-admin-warning { background: rgba(255, 193, 7, 0.2); color: #fcc419; }
+
+    .modal-admin-premium {
+        background: rgba(15, 23, 42, 0.98);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(56, 189, 248, 0.2) !important;
+        color: #f1f5f9;
+    }
+  </style>
 </head>
 
 <body>
@@ -34,42 +150,43 @@
 <header id="header" class="header d-flex align-items-center sticky-top">
   <div class="container-fluid container-xl position-relative d-flex align-items-center">
 
-    <a href="{{ path('app_home') }}" class="logo d-flex align-items-center me-auto">
+    <a href="{{ path('app_home') }}" class="logo d-flex align-items-center">
       <img src="{{ asset('assets/img/123.png') }}" alt="MentorAI Logo">
     </a>
 
-    <nav id="navmenu" class="navmenu">
+    {# Navigation Menu #}
+    <nav id="navmenu" class="navmenu mx-auto">
       <ul>
-        {# Dashboard enseignant #}
-        <li><a href="{{ path('app_admin_dashboard') }}">Dashboard</a></li>
-        
-        {# Articles pédagogiques #}
-        <li><a href="{{ path('app_admin_articles') }}">Articles</a></li>
-        
-        {# Plans #}
-        <li><a href="{{ path('app_admin_plans') }}">Plans</a></li>
-        
-        {# Chat IA #}
-         <li><a href="{{ path('app_chat') }}" 
-               {% if app.request.get('_route') == 'app_chat' %}class="active"{% endif %}>
+        <li><a href="{{ path('app_admin_dashboard') }}" {% if app.request.get('_route') == 'app_admin_dashboard' %}class="active"{% endif %}>Dashboard</a></li>
+        <li><a href="{{ path('app_admin_articles') }}" {% if app.request.get('_route') == 'app_admin_articles' %}class="active"{% endif %}>Articles</a></li>
+        <li><a href="{{ path('app_admin_plans') }}" {% if app.request.get('_route') == 'app_admin_plans' %}class="active"{% endif %}>Plans</a></li>
+         <li><a href="{{ path('app_chat') }}" {% if app.request.get('_route') == 'app_chat' %}class="active"{% endif %}>
             <i class="bi bi-robot me-1"></i> Assistant IA
         </a></li>
-        <li><a href="{{ path('app_admin_preferences') }}" > Préférences
-      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="background-color: #d52e28; font-size: 0.6rem;">
-        New
-      </span>
-    </a></li>
+        <li><a href="{{ path('app_admin_preferences') }}" {% if app.request.get('_route') == 'app_admin_preferences' %}class="active"{% endif %}> Préférences
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="background-color: #d52e28; font-size: 0.6rem;">New</span>
+        </a></li>
+      </ul>
+    </nav>
   
-    <a class="btn-getstarted" href="{{ path('app_plan_actions_index') }}"> Back Office</a>
-
-    {# Boutons de connexion/déconnexion #}
-    <div class="d-flex align-items-center">
+    {# User Actions Group #}
+    <div class="d-flex align-items-center ms-auto gap-2">
       {% if app.user %}
-        <span class="me-3 text-white">Bonjour, {{ app.user.nom ?? app.user.email }}</span>
-        <a class="btn-getstarted" href="{{ path('app_logout') }}">Déconnexion</a>
+        <div class="user-profile-pill d-none d-lg-flex align-items-center me-3 px-3 py-1 rounded-pill" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s ease;">
+            <div class="avatar-mini rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px; background-color: #d52e28; color: white; font-size: 0.7rem; font-weight: bold;">
+                {{ app.user.prenom|first|upper|default('A') }}
+            </div>
+            <span class="text-white small fw-medium">Bonjour, <span class="fw-bold">{{ app.user.prenom ?? app.user.nom ?? 'Admin' }}</span></span>
+        </div>
         
-      {% else %}
-        {# <a class="btn-getstarted" href="{{ path('app_login') }}">Connexion</a> #}
+        <div class="auth-buttons d-flex gap-2">
+            <a class="btn-getstarted m-0 d-flex align-items-center" href="{{ path('app_plan_actions_index') }}" style="padding: 8px 18px; white-space: nowrap;">
+                <i class="bi bi-speedometer2 me-1"></i> Back Office
+            </a>
+            <a class="btn-getstarted m-0 d-flex align-items-center" href="{{ path('app_logout') }}" style="padding: 8px 18px; border-color: rgba(255,255,255,0.3);">
+                <i class="bi bi-box-arrow-right me-1"></i> 
+            </a>
+        </div>
       {% endif %}
     </div>
 
@@ -83,8 +200,8 @@
 
 <!-- ======= FOOTER ======= -->
 <footer id="footer" class="footer accent-background">
-  <div class="container text-center">
-    <p>© {{ "now"|date("Y") }} MentorAI. All Rights Reserved.</p>
+  <div class="container text-center py-4">
+    <p class="mb-0">© {{ "now"|date("Y") }} MentorAI. All Rights Reserved.</p>
   </div>
 </footer>
 
@@ -96,6 +213,44 @@
 <!-- Preloader -->
 <div id="preloader"></div>
 
+<!-- Admin Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="mentorAdminToast" class="toast premium-toast-admin border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+        <div class="d-flex p-3">
+            <div class="toast-icon-box me-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi fs-5"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="toast-title mb-1 fw-bold text-white">System Message</h6>
+                <div class="toast-message small text-info opacity-75"></div>
+            </div>
+            <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-progress">
+            <div class="toast-progress-inner"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Confirm Modal -->
+<div class="modal fade" id="mentorAdminConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden modal-admin-premium">
+            <div class="modal-body text-center p-4">
+                <div class="confirm-icon-box mb-3 rounded-circle d-inline-flex align-items-center justify-content-center mx-auto" style="width: 70px; height: 70px;">
+                    <i class="bi fs-2"></i>
+                </div>
+                <h5 class="confirm-title fw-bold mb-2 text-white">Security Action</h5>
+                <p class="confirm-message text-secondary small mb-0"></p>
+            </div>
+            <div class="modal-footer border-0 p-3 pt-0 d-flex gap-2">
+                <button type="button" class="btn btn-dark btn-sm rounded-pill flex-grow-1 border-secondary" data-bs-dismiss="modal">Abort</button>
+                <button type="button" id="mentor-admin-confirm-btn" class="btn btn-info btn-sm rounded-pill flex-grow-1 fw-bold">Execute</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Vendor JS -->
 <script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('assets/vendor/aos/aos.js') }}"></script>
@@ -104,6 +259,144 @@
 
 <!-- Main JS -->
 <script src="{{ asset('assets/js/main.js') }}"></script>
+
+<!-- Preferences Application Script -->
+<script>
+  (function() {
+    try {
+      const prefs = {{ app.user ? app.user.preferences|json_encode|raw : '{}' }};
+      if (prefs && Object.keys(prefs).length > 0) {
+        const root = document.documentElement;
+        
+        // Color Variables - Apply to root for global effect
+        if (prefs.primaryColor) {
+            root.style.setProperty('--heading-color', prefs.primaryColor);
+            root.style.setProperty('--nav-hover-color', prefs.primaryColor);
+        }
+        if (prefs.secondaryColor) {
+            root.style.setProperty('--accent-color', prefs.secondaryColor);
+            root.style.setProperty('--nav-dropdown-hover-color', prefs.secondaryColor);
+        }
+        
+        // Font Size
+        if (prefs.fontSize) {
+          const sizes = { 'small': '14px', 'medium': '16px', 'large': '18px', 'x-large': '20px' };
+          root.style.setProperty('--main-font-size', sizes[prefs.fontSize] || '16px');
+        }
+        
+        // Line Height
+        if (prefs.lineHeight) root.style.setProperty('--main-line-height', prefs.lineHeight);
+        
+        // Modes - Apply classes to body
+        if (prefs.darkMode) document.body.classList.add('dark-mode');
+        if (prefs.highContrast) document.body.classList.add('high-contrast');
+        if (prefs.dyslexicMode) document.body.classList.add('dyslexic-mode');
+        
+        // Zoom
+        if (prefs.zoom) {
+            document.body.style.zoom = prefs.zoom + '%';
+            // Fallback for browsers that don't support zoom or handle it differently
+            if (!('zoom' in document.body.style)) {
+                document.body.style.transform = `scale(${prefs.zoom / 100})`;
+                document.body.style.transformOrigin = 'top center';
+            }
+        }
+        
+        // Container Width
+        if (prefs.containerWidth) {
+          const containers = document.querySelectorAll('.container');
+          containers.forEach(c => {
+            if (prefs.containerWidth === 'wide') c.style.setProperty('max-width', '1400px', 'important');
+            else if (prefs.containerWidth === 'full') c.style.setProperty('max-width', '100%', 'important');
+          });
+        }
+
+        // Reduced Motion
+        if (prefs.reducedMotion) {
+            root.style.setProperty('--aos-duration', '0ms');
+            const style = document.createElement('style');
+            style.innerHTML = '* { transition-duration: 0.1s !important; animation-duration: 0.1s !important; }';
+            document.head.appendChild(style);
+        }
+      }
+    } catch (e) {
+      console.error('Error applying preferences:', e);
+    }
+  })();
+
+  // Admin MentorUI Global Helpers
+  window.MentorUI = {
+    toast: function(type, title, message) {
+        const toastEl = document.getElementById('mentorAdminToast');
+        if (!toastEl) return;
+        
+        const iconBox = toastEl.querySelector('.toast-icon-box');
+        const icon = iconBox.querySelector('i');
+        const titleEl = toastEl.querySelector('.toast-title');
+        const messageEl = toastEl.querySelector('.toast-message');
+        const progressInner = toastEl.querySelector('.toast-progress-inner');
+        
+        iconBox.className = 'toast-icon-box me-3 rounded-circle d-flex align-items-center justify-content-center';
+        progressInner.style.animation = 'none';
+        
+        const configs = {
+            success: { class: 'bg-admin-success', icon: 'bi-shield-check', color: '#51cf66' },
+            danger: { class: 'bg-admin-danger', icon: 'bi-shield-exclamation', color: '#ff6b6b' },
+            warning: { class: 'bg-admin-warning', icon: 'bi-shield-lock', color: '#fcc419' },
+            info: { class: 'bg-admin-info', icon: 'bi-shield-shaded', color: '#38bdf8' }
+        };
+        
+        const config = configs[type] || configs.info;
+        
+        iconBox.classList.add(config.class);
+        icon.className = 'bi fs-5 ' + config.icon;
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        progressInner.style.backgroundColor = config.color;
+        
+        const toast = new bootstrap.Toast(toastEl);
+        void progressInner.offsetWidth; 
+        progressInner.style.animation = 'toast-progress-anim 5s linear forwards';
+        toast.show();
+    },
+    
+    confirm: function(options) {
+        const modalEl = document.getElementById('mentorAdminConfirmModal');
+        if (!modalEl) return;
+        
+        const iconBox = modalEl.querySelector('.confirm-icon-box');
+        const icon = iconBox.querySelector('i');
+        const titleEl = modalEl.querySelector('.confirm-title');
+        const messageEl = modalEl.querySelector('.confirm-message');
+        const confirmBtn = document.getElementById('mentor-admin-confirm-btn');
+        
+        const type = options.type || 'info';
+        const configs = {
+            info: { box: 'bg-admin-info', icon: 'bi-terminal', btn: 'btn-info' },
+            danger: { box: 'bg-admin-danger', icon: 'bi-cpu-fill', btn: 'btn-danger' },
+            warning: { box: 'bg-admin-warning', icon: 'bi-shield-fill-exclamation', btn: 'btn-warning' }
+        };
+        
+        const config = configs[type] || configs.info;
+        
+        iconBox.className = 'confirm-icon-box mb-3 rounded-circle d-inline-flex align-items-center justify-content-center mx-auto ' + config.box;
+        icon.className = 'bi fs-2 ' + config.icon;
+        titleEl.textContent = options.title || 'Execute Command';
+        messageEl.textContent = options.message || 'Confirm authorization ?';
+        confirmBtn.className = 'btn btn-sm rounded-pill flex-grow-1 ' + config.btn;
+        confirmBtn.textContent = options.confirmText || 'Run';
+        
+        const modal = new bootstrap.Modal(modalEl);
+        const handleConfirm = () => {
+            if (options.onConfirm) options.onConfirm();
+            modal.hide();
+            confirmBtn.removeEventListener('click', handleConfirm);
+        };
+        confirmBtn.addEventListener('click', handleConfirm);
+        modal.show();
+    }
+  };
+</script>
 
 {% block javascripts %}{% endblock %}
 </body>

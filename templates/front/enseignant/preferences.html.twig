@@ -12,6 +12,28 @@
         </div>
     </div>
     
+    <!-- Modal de confirmation de réinitialisation -->
+    <div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                <div class="modal-header border-0 bg-light" style="border-radius: 15px 15px 0 0;">
+                    <h5 class="modal-title fw-bold" id="resetModalLabel" style="color: #102c59;">
+                        <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Confirmation
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <p class="mb-0 fs-5" style="color: #1a3a73;">Êtes-vous sûr de vouloir réinitialiser toutes vos préférences ?</p>
+                    <p class="text-muted small mt-2">Cette action remettra tous les paramètres par défaut.</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center pb-4">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" style="border-radius: 10px;">Annuler</button>
+                    <button type="button" id="confirm-reset-btn" class="btn btn-danger px-4" style="border-radius: 10px; background-color: #d52e28;">Réinitialiser</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Messages flash -->
     <div id="flash-message" class="alert d-none" role="alert"></div>
     
@@ -296,6 +318,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const readingMode = document.getElementById('reading-mode');
     const reducedMotion = document.getElementById('reduced-motion');
     const resetBtn = document.getElementById('reset-btn');
+    const confirmResetBtn = document.getElementById('confirm-reset-btn');
+    const resetModal = new bootstrap.Modal(document.getElementById('resetModal'));
     const preview = document.getElementById('live-preview');
     const flashMessage = document.getElementById('flash-message');
     
@@ -447,30 +471,80 @@ document.addEventListener('DOMContentLoaded', function() {
                 reducedMotion: reducedMotion ? reducedMotion.checked : false
             };
             
+            // 1. Sauvegarde locale pour effet immédiat
             localStorage.setItem('userPreferences', JSON.stringify(preferences));
-            console.log('💾 Préférences sauvegardées:', preferences);
             
-            // Afficher message de succès
-            if (flashMessage) {
-                flashMessage.className = 'alert alert-success alert-dismissible fade show';
-                flashMessage.innerHTML = '<i class="bi bi-check-circle me-2"></i>Préférences enregistrées avec succès ! <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-                flashMessage.classList.remove('d-none');
-                
-                setTimeout(() => {
-                    flashMessage.classList.add('d-none');
-                }, 3000);
-            }
+            // 2. Sauvegarde serveur pour persistance par compte
+            fetch('{{ path('app_preferences_save') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(preferences)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('💾 Préférences sauvegardées sur le serveur');
+                    if (flashMessage) {
+                        flashMessage.className = 'alert alert-success alert-dismissible fade show';
+                        flashMessage.innerHTML = '<i class="bi bi-check-circle me-2"></i>Préférences enregistrées avec succès ! <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                        flashMessage.classList.remove('d-none');
+                        setTimeout(() => flashMessage.classList.add('d-none'), 3000);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('❌ Erreur sauvegarde serveur:', error);
+            });
+
+            // Appliquer globalement
+            applyPreferences(preferences);
+            
         } catch (error) {
             console.error('❌ Erreur dans savePreferences:', error);
         }
     }
     
+    // Fonction globale d'application (utile pour toutes les pages)
+    function applyPreferences(prefs) {
+        const root = document.documentElement;
+        
+        // Classes de mode
+        document.body.classList.toggle('dark-mode', prefs.darkMode);
+        document.body.classList.toggle('high-contrast', prefs.highContrast);
+        document.body.classList.toggle('dyslexic-mode', prefs.dyslexicMode);
+        document.body.classList.toggle('reading-mode', prefs.readingMode);
+        
+        // CSS Variables
+        root.style.setProperty('--primary-color', prefs.primaryColor);
+        root.style.setProperty('--secondary-color', prefs.secondaryColor);
+        root.style.setProperty('--main-font-size', prefs.fontSize === 'small' ? '14px' : (prefs.fontSize === 'large' ? '18px' : (prefs.fontSize === 'x-large' ? '20px' : '16px')));
+        root.style.setProperty('--main-line-height', prefs.lineHeight);
+        
+        // Zoom
+        document.body.style.zoom = prefs.zoom + '%';
+        
+        // Container
+        const containers = document.querySelectorAll('.container');
+        containers.forEach(c => {
+            if (prefs.containerWidth === 'wide') c.style.maxWidth = '1400px';
+            else if (prefs.containerWidth === 'full') c.style.maxWidth = '100%';
+            else c.style.maxWidth = '';
+        });
+    }
+    
     // Charger les préférences
     function loadPreferences() {
         try {
-            const saved = localStorage.getItem('userPreferences');
-            if (saved) {
-                const prefs = JSON.parse(saved);
+            // Priorité 1: Données transmises par le serveur (Twig)
+            const serverPrefs = {{ app.user.preferences|json_encode|raw }};
+            // Priorité 2: LocalStorage
+            const localPrefs = JSON.parse(localStorage.getItem('userPreferences'));
+            
+            const prefs = serverPrefs && Object.keys(serverPrefs).length > 0 ? serverPrefs : localPrefs;
+            
+            if (prefs) {
                 console.log('📂 Préférences chargées:', prefs);
                 
                 if (fontSize) fontSize.value = prefs.fontSize || 'medium';
@@ -485,6 +559,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (dyslexicMode) dyslexicMode.checked = prefs.dyslexicMode || false;
                 if (readingMode) readingMode.checked = prefs.readingMode || false;
                 if (reducedMotion) reducedMotion.checked = prefs.reducedMotion || false;
+                
+                applyPreferences(prefs);
             }
         } catch (error) {
             console.error('❌ Erreur dans loadPreferences:', error);
@@ -496,36 +572,39 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Réinitialiser les préférences
     function resetPreferences() {
-        if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes vos préférences ?')) {
-            localStorage.removeItem('userPreferences');
+        localStorage.removeItem('userPreferences');
+        
+        // Valeurs par défaut
+        if (fontSize) fontSize.value = 'medium';
+        if (fontFamily) fontFamily.value = 'default';
+        if (lineHeight) lineHeight.value = '1.5';
+        if (primaryColor) primaryColor.value = '#102c59';
+        if (secondaryColor) secondaryColor.value = '#d52e28';
+        if (highContrast) highContrast.checked = false;
+        if (darkMode) darkMode.checked = false;
+        if (zoom) zoom.value = '100';
+        if (containerWidth) containerWidth.value = 'normal';
+        if (dyslexicMode) dyslexicMode.checked = false;
+        if (readingMode) readingMode.checked = false;
+        if (reducedMotion) reducedMotion.checked = false;
+        
+        updateValues();
+        updatePreview();
+        
+        // Optionnel : enregistrer les valeurs par défaut sur le serveur aussi
+        savePreferences();
+
+        if (flashMessage) {
+            flashMessage.className = 'alert alert-info alert-dismissible fade show';
+            flashMessage.innerHTML = '<i class="bi bi-info-circle me-2"></i>Préférences réinitialisées <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+            flashMessage.classList.remove('d-none');
             
-            // Valeurs par défaut
-            if (fontSize) fontSize.value = 'medium';
-            if (fontFamily) fontFamily.value = 'default';
-            if (lineHeight) lineHeight.value = '1.5';
-            if (primaryColor) primaryColor.value = '#102c59';
-            if (secondaryColor) secondaryColor.value = '#d52e28';
-            if (highContrast) highContrast.checked = false;
-            if (darkMode) darkMode.checked = false;
-            if (zoom) zoom.value = '100';
-            if (containerWidth) containerWidth.value = 'normal';
-            if (dyslexicMode) dyslexicMode.checked = false;
-            if (readingMode) readingMode.checked = false;
-            if (reducedMotion) reducedMotion.checked = false;
-            
-            updateValues();
-            updatePreview();
-            
-            if (flashMessage) {
-                flashMessage.className = 'alert alert-info alert-dismissible fade show';
-                flashMessage.innerHTML = '<i class="bi bi-info-circle me-2"></i>Préférences réinitialisées <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-                flashMessage.classList.remove('d-none');
-                
-                setTimeout(() => {
-                    flashMessage.classList.add('d-none');
-                }, 3000);
-            }
+            setTimeout(() => {
+                flashMessage.classList.add('d-none');
+            }, 3000);
         }
+        
+        resetModal.hide();
     }
     
     // Attacher les événements avec vérification d'existence
@@ -537,7 +616,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (resetBtn) {
-        resetBtn.addEventListener('click', resetPreferences);
+        resetBtn.addEventListener('click', function() {
+            resetModal.show();
+        });
+    }
+
+    if (confirmResetBtn) {
+        confirmResetBtn.addEventListener('click', resetPreferences);
     }
     
     // Événements pour l'aperçu en direct

@@ -1,385 +1,350 @@
 {% extends 'front/admin/basem.html.twig' %}
 
-{% block title %}Tableau de bord | MentorAI{% endblock %}
+{% block title %}Supervision & Décisions Stratégiques | MentorAI{% endblock %}
 
 {% block body %}
-<div class="container-fluid" style="background-color: #f8f9fa; min-height: 100vh;">
-    <!-- Header avec bouton rafraîchir -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-4 px-4">
-        <h1 class="h3 mb-0" style="color: #102c59;">Tableau de bord Admin</h1>
-        <a href="{{ path('app_admin_dashboard') }}" class="btn" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-            <i class="bi bi-arrow-clockwise"></i> Rafraîchir
-        </a>
-    </div>
-
-    <div class="px-4">
-        <div class="row">
-            <!-- Stats Cards -->
-            <div class="col-md-3 mb-4">
-                <div class="card shadow border-0" style="border-top: 4px solid #102c59;">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title mb-0" style="color: #102c59;">Articles Pédagogiques</h6>
-                                <h2 class="mb-0" style="color: #102c59;">{{ total_articles|default(0) }}</h2>
-                                <small style="color: #666;">Articles publiés</small>
-                            </div>
-                            <i class="bi bi-journal-text fs-1" style="color: #9dbbce;"></i>
-                        </div>
-                        <a href="{{ path('app_admin_articles') }}" class="stretched-link text-decoration-none">
-                            <small style="color: #102c59;">Voir tous <i class="bi bi-arrow-right"></i></small>
-                        </a>
+<!-- Premium Dashboard Hero (Compact version) -->
+<div class="dashboard-hero position-relative overflow-hidden" style="background: #102c59; padding: 80px 0 70px 0;">
+    <!-- Tech background decorations -->
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background-image: radial-gradient(circle at 10% 20%, rgba(157, 187, 206, 0.1) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(213, 46, 40, 0.05) 0%, transparent 40%);"></div>
+    <div class="glow-sphere position-absolute" style="width: 500px; height: 500px; background: radial-gradient(circle, rgba(157, 187, 206, 0.12) 0%, transparent 70%); top: -200px; right: -100px; filter: blur(80px); animation: pulse-glow 10s infinite alternate;"></div>
+    
+    <div class="container-fluid px-lg-5 position-relative z-index-2">
+        <div class="row align-items-center">
+            <div class="col-lg-8" data-aos="fade-right">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge py-2 px-3 rounded-pill fw-bold text-uppercase me-3 shadow-glow-palette" style="font-size: 0.65rem; letter-spacing: 1.2px; background: #9dbbce; color: #102c59;">ADMIN CONSOLE V2.0</span>
+                    <div class="live-indicator d-flex align-items-center bg-white bg-opacity-5 rounded-pill py-2 px-2 border border-success border-opacity-20 shadow-sm">
+                        <span class="pulse-dot-green me-2"></span>
+                        <span class="text-success fw-bold" style="font-size: 0.68rem; letter-spacing: 0.5px;">Live Monitoring</span>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-md-3 mb-4">
-                <div class="card shadow border-0" style="border-top: 4px solid #102c59;">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title mb-0" style="color: #102c59;">Plans Pédagogiques</h6>
-                                <h2 class="mb-0" style="color: #102c59;">{{ plans_pedagogiques|default(0) }}</h2>
-                                <small style="color: #666;">Plans d'action</small>
-                            </div>
-                            <i class="bi bi-clipboard-check fs-1" style="color: #9dbbce;"></i>
-                        </div>
-                        <a href="{{ path('app_admin_plans') }}?categorie=PEDAGOGIQUE" class="stretched-link text-decoration-none">
-                            <small style="color: #102c59;">Voir tous <i class="bi bi-arrow-right"></i></small>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 mb-4">
-                <div class="card shadow border-0" style="border-top: 4px solid #102c59;">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title mb-0" style="color: #102c59;">Plans Administratifs</h6>
-                                <h2 class="mb-0" style="color: #102c59;">{{ plans_administratifs|default(0) }}</h2>
-                                <small style="color: #666;">Plans administratifs</small>
-                            </div>
-                            <i class="bi bi-folder-check fs-1" style="color: #9dbbce;"></i>
-                        </div>
-                        <a href="{{ path('app_admin_plans') }}?categorie=ADMINISTRATIVE" class="stretched-link text-decoration-none">
-                            <small style="color: #102c59;">Voir tous <i class="bi bi-arrow-right"></i></small>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 mb-4">
-                <div class="card shadow border-0" style="border-top: 4px solid #d52e28;">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title mb-0" style="color: #102c59;">Total Plans</h6>
-                                <h2 class="mb-0" style="color: #d52e28;">{{ (plans_pedagogiques|default(0) + plans_administratifs|default(0)) }}</h2>
-                                <small style="color: #666;">Tous les plans</small>
-                            </div>
-                            <i class="bi bi-files fs-1" style="color: #d52e28;"></i>
-                        </div>
-                        <a href="{{ path('app_admin_plans') }}" class="stretched-link text-decoration-none">
-                            <small style="color: #102c59;">Voir tous <i class="bi bi-arrow-right"></i></small>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Graphiques et tableaux -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card shadow border-0">
-                    <div class="card-header border-0 d-flex justify-content-between align-items-center" style="background-color: #f8f9fa; border-bottom: 2px solid #9dbbce;">
-                        <h5 class="mb-0" style="color: #102c59;">Répartition des Plans d'Actions</h5>
-                        <a href="{{ path('app_admin_dashboard') }}" class="btn btn-sm" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="plansChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6">
-                <div class="card shadow border-0">
-                    <div class="card-header border-0 d-flex justify-content-between align-items-center" style="background-color: #f8f9fa; border-bottom: 2px solid #9dbbce;">
-                        <h5 class="mb-0" style="color: #102c59;">Navigation Rapide</h5>
-                        <a href="{{ path('app_admin_dashboard') }}" class="btn btn-sm" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-                            <i class="bi bi-house"></i>
-                        </a>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="list-group list-group-flush">
-                            <a href="{{ path('app_admin_articles') }}" class="list-group-item list-group-item-action border-0 py-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #102c59;">
-                                        <i class="bi bi-journal-text text-white"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1" style="color: #102c59;">Gérer les articles</h6>
-                                        <small style="color: #666;">Créer, modifier ou publier des articles</small>
-                                    </div>
-                                    <i class="bi bi-arrow-right" style="color: #9dbbce;"></i>
-                                </div>
-                            </a>
-                            
-                            <a href="{{ path('app_admin_plans') }}" class="list-group-item list-group-item-action border-0 py-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #9dbbce;">
-                                        <i class="bi bi-clipboard-check" style="color: #102c59;"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1" style="color: #102c59;">Voir les plans d'action</h6>
-                                        <small style="color: #666;">Consulter tous les plans pédagogiques et administratifs</small>
-                                    </div>
-                                    <i class="bi bi-arrow-right" style="color: #9dbbce;"></i>
-                                </div>
-                            </a>
-                            
-                            <a href="{{ path('app_admin_chat_ia') }}" class="list-group-item list-group-item-action border-0 py-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #d52e28;">
-                                        <i class="bi bi-robot text-white"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1" style="color: #102c59;">Assistant IA</h6>
-                                        <small style="color: #666;">Obtenir de l'aide pour créer des plans ou articles</small>
-                                    </div>
-                                    <i class="bi bi-arrow-right" style="color: #9dbbce;"></i>
-                                </div>
-                            </a>
-                            
-                            <a href="{{ path('app_admin_reclamations') }}" class="list-group-item list-group-item-action border-0 py-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #102c59;">
-                                        <i class="bi bi-megaphone text-white"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1" style="color: #102c59;">Réclamations & Feedback</h6>
-                                        <small style="color: #666;">Consulter les retours et suggestions</small>
-                                    </div>
-                                    <i class="bi bi-arrow-right" style="color: #9dbbce;"></i>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Informations supplémentaires -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card shadow border-0">
-                    <div class="card-header border-0 d-flex justify-content-between align-items-center" style="background-color: #f8f9fa; border-bottom: 2px solid #9dbbce;">
-                        <h5 class="mb-0" style="color: #102c59;">Résumé des Statistiques</h5>
-                        <a href="{{ path('app_admin_dashboard') }}" class="btn btn-sm" style="background-color: #102c59; border-color: #102c59; color: white;">
-                            <i class="bi bi-graph-up"></i> Vue détaillée
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <div class="row text-center">
-                            <div class="col-md-4 mb-3">
-                                <div class="p-3 border rounded" style="border-color: #9dbbce !important;">
-                                    <h3 style="color: #102c59;">{{ total_articles|default(0) }}</h3>
-                                    <p class="mb-0" style="color: #666;">Articles Pédagogiques</p>
-                                    <a href="{{ path('app_admin_articles') }}" class="btn btn-sm mt-2" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-                                        Voir <i class="bi bi-arrow-right"></i>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="p-3 border rounded" style="border-color: #9dbbce !important;">
-                                    <h3 style="color: #102c59;">{{ plans_pedagogiques|default(0) }}</h3>
-                                    <p class="mb-0" style="color: #666;">Plans Pédagogiques</p>
-                                    <a href="{{ path('app_admin_plans') }}?categorie=PEDAGOGIQUE" class="btn btn-sm mt-2" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-                                        Voir <i class="bi bi-arrow-right"></i>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="p-3 border rounded" style="border-color: #9dbbce !important;">
-                                    <h3 style="color: #102c59;">{{ plans_administratifs|default(0) }}</h3>
-                                    <p class="mb-0" style="color: #666;">Plans Administratifs</p>
-                                    <a href="{{ path('app_admin_plans') }}?categorie=ADMINISTRATIVE" class="btn btn-sm mt-2" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-                                        Voir <i class="bi bi-arrow-right"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Pied de page avec lien de retour au dashboard -->
-                        <div class="text-center mt-4 pt-3 border-top" style="border-color: #9dbbce !important;">
-                            <p class="mb-2" style="color: #666;">
-                                <i class="bi bi-info-circle me-1" style="color: #102c59;"></i>
-                                Dernière mise à jour: {{ "now"|date("d/m/Y H:i") }}
-                            </p>
-                            <a href="{{ path('app_admin_dashboard') }}" class="btn" style="background-color: #102c59; border-color: #102c59; color: white;">
-                                <i class="bi bi-arrow-clockwise me-1"></i> Actualiser le tableau de bord
-                            </a>
-                        </div>
-                    </div>
+                
+                <h1 class="display-3 fw-extrabold mb-2 tracking-tighter text-white line-height-1">
+                    Supervision & <br>
+                    <span class="text-gradient-palette" style="background: linear-gradient(90deg, #9dbbce 0%, #ffffff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Décisions Stratégiques</span>
+                </h1>
+                
+                <p class="lead text-white text-opacity-75 mb-4 fs-5 fw-medium" style="max-width: 600px; line-height: 1.5;">
+                    Pilotez l'excellence académique avec l'intelligence <span class="fw-bold" style="color: #9dbbce;">MentorAI</span>.
+                </p>
+                
+                <div class="d-flex flex-wrap gap-4">
+                    <a href="{{ path('app_chat') }}" class="btn btn-palette-primary btn-lg px-5 py-3 rounded-3 fw-bold shadow-glow-palette transition-all hover-scale-sm d-flex align-items-center" style="background: #9dbbce; color: #102c59; border: none;">
+                        <i class="bi bi-terminal-fill me-2 fs-5"></i> Accès Console IA
+                    </a>
+                    <a href="{{ path('app_admin_plans') }}" class="btn btn-outline-light btn-lg px-5 py-3 rounded-3 transition-all hover-bg-palette-soft fw-bold">
+                        Supervision des Plans
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<div class="container-fluid px-lg-5 mt-n5 position-relative z-index-10">
+    <!-- Floating KPI Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3" data-aos="zoom-in" data-aos-delay="100">
+            <div class="card border-0 shadow-2xl glass-card rounded-4 h-100 overflow-hidden stat-hover">
+                <div class="card-body p-4 border-top border-4" style="border-top-color: #9dbbce !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="icon-box bg-opacity-10 rounded-3 p-3" style="background-color: rgba(157, 187, 206, 0.1); color: #9dbbce;">
+                            <i class="bi bi-cpu-fill fs-3"></i>
+                        </div>
+                        <span class="small fw-bold" style="color: #9dbbce;">Analyse active</span>
+                    </div>
+                    <h6 class="text-muted fw-bold text-uppercase small mb-1">Stress Global</h6>
+                    <h2 class="fw-extrabold mb-0">{{ stats.stress_global|default(35) }}%</h2>
+                    <div class="progress mt-3 bg-white bg-opacity-10" style="height: 4px;">
+                        <div class="progress-bar" style="width: {{ stats.stress_global|default(35) }}%; background-color: #9dbbce;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3" data-aos="zoom-in" data-aos-delay="200">
+            <div class="card border-0 shadow-2xl glass-card rounded-4 h-100 overflow-hidden stat-hover">
+                <div class="card-body p-4 border-top border-4" style="border-top-color: #102c59 !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="icon-box bg-opacity-10 rounded-3 p-3" style="background-color: rgba(16, 44, 89, 0.1); color: #102c59;">
+                            <i class="bi bi-graph-up-arrow fs-3"></i>
+                        </div>
+                        <span class="small fw-bold" style="color: #102c59;">Optimale</span>
+                    </div>
+                    <h6 class="text-muted fw-bold text-uppercase small mb-1">Réussite Prédite</h6>
+                    <h2 class="fw-extrabold mb-0">{{ stats.success_rate_predicted|default(72) }}%</h2>
+                    <div class="progress mt-3 bg-white bg-opacity-10" style="height: 4px;">
+                        <div class="progress-bar" style="width: {{ stats.success_rate_predicted|default(72) }}%; background-color: #102c59;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3" data-aos="zoom-in" data-aos-delay="300">
+            <div class="card border-0 shadow-2xl glass-card rounded-4 h-100 overflow-hidden stat-hover">
+                <div class="card-body p-4 border-top border-4" style="border-top-color: #d52e28 !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="icon-box bg-opacity-10 rounded-3 p-3" style="background-color: rgba(213, 46, 40, 0.1); color: #d52e28;">
+                            <i class="bi bi-lightning-fill fs-3"></i>
+                        </div>
+                        <span class="badge rounded-pill px-2 pulse-dot-red" style="background-color: #d52e28;">{{ stats.alertes_ia }} actives</span>
+                    </div>
+                    <h6 class="text-muted fw-bold text-uppercase small mb-1">Alertes IA</h6>
+                    <h2 class="fw-extrabold mb-0" style="color: #d52e28;">{{ stats.alertes_ia|default(0) }}</h2>
+                    <div class="small text-muted mt-2">Nécessite une supervision immédiate</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3" data-aos="zoom-in" data-aos-delay="400">
+            <div class="card border-0 shadow-2xl glass-card rounded-4 h-100 overflow-hidden stat-hover">
+                <div class="card-body p-4 border-top border-4" style="border-top-color: #9dbbce !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="icon-box bg-opacity-10 rounded-3 p-3" style="background-color: rgba(157, 187, 206, 0.1); color: #9dbbce;">
+                            <i class="bi bi-people-fill fs-3"></i>
+                        </div>
+                        <span class="small fw-bold" style="color: #9dbbce;">Expertises</span>
+                    </div>
+                    <h6 class="text-muted fw-bold text-uppercase small mb-1">Retours Experts</h6>
+                    <h2 class="fw-extrabold mb-0">{{ teacherExpertises|length }}</h2>
+                    <div class="small text-muted mt-2">Derniers feedbacks enregistrés</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <!-- Analytics Central -->
+        <div class="col-lg-8" data-aos="fade-up">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100">
+                <div class="card-header bg-white border-bottom py-4 px-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">Radar Étudiant & Points de Friction</h5>
+                        <p class="text-muted small mb-0">Données agrégées sous la charte MentorAI</p>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-light text-dark border">Journalier</button>
+                        <button class="btn btn-sm btn-dark" style="background-color: #102c59; border-color: #102c59;">Hebdomadaire</button>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-7">
+                            <div class="table-responsive rounded-3 border">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3 border-0 small text-uppercase text-muted">Alerte IA</th>
+                                            <th class="border-0 small text-uppercase text-muted text-center">Niveau</th>
+                                            <th class="pe-3 border-0 text-end small text-uppercase text-muted">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for alerte in alertesCritiques %}
+                                        <tr class="alert-row cursor-pointer" data-bs-toggle="modal" data-bs-target="#alertDetailModal" 
+                                            data-content="{{ alerte.contenu|escape('html_attr') }}" 
+                                            data-date="{{ alerte.updatedAt|date('d/m/Y à H:i')|escape('html_attr') }}"
+                                            data-type="{{ alerte.typeSortie.value|default('ALERTE')|escape('html_attr') }}">
+                                            <td class="ps-3 py-3">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="pulse-dot-red me-2"></span>
+                                                    <span class="fw-bold small">{{ alerte.contenu|slice(0, 45) }}...</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge rounded-pill" style="background-color: rgba(213, 46, 40, 0.1); color: #d52e28; border: 1px solid rgba(213, 46, 40, 0.2);">CRITIQUE</span>
+                                            </td>
+                                            <td class="pe-3 text-end small text-muted">{{ alerte.updatedAt|date('d/m H:i') }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="h-100 p-4 rounded-4 bg-light border d-flex flex-column justify-content-center">
+                                <h6 class="fw-bold mb-4 text-center">Répartition des Actions</h6>
+                                <div style="height: 220px;">
+                                    <canvas id="distributionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Teacher Expertises -->
+        <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100" style="border-top: 4px solid #102c59 !important;">
+                <div class="card-header bg-white border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Expertises Terrain</h5>
+                    <span class="badge rounded-pill" style="background-color: rgba(16, 44, 89, 0.1); color: #102c59;">Enseignant</span>
+                </div>
+                <div class="card-body p-0 overflow-auto custom-scrollbar" style="max-height: 550px;">
+                    <div class="list-group list-group-flush">
+                        {% for exp in teacherExpertises %}
+                        <div class="list-group-item p-4 border-0 border-bottom hover-bg-light transition-all position-relative">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-2 shadow-sm" style="width: 32px; height: 32px; font-size: 0.7rem; background-color: #102c59;">
+                                    {{ exp.feedbackAuteur ? exp.feedbackAuteur.prenom|slice(0, 1) : 'E' }}
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 small">{{ exp.feedbackAuteur ? exp.feedbackAuteur.prenom ~ ' ' ~ exp.feedbackAuteur.nom : 'Enseignant' }}</h6>
+                                    <small class="text-muted" style="font-size: 0.65rem;">{{ exp.feedbackDate|date('d M, H:i') }}</small>
+                                </div>
+                            </div>
+                            <h6 class="fw-bold mb-2 small" style="color: #102c59;">{{ exp.decision|slice(0, 50) }}...</h6>
+                            <div class="p-3 rounded-3 bg-white border shadow-inner">
+                                <p class="text-muted small mb-0 fst-italic">"{{ exp.feedbackEnseignant|slice(0, 150) }}..."</p>
+                            </div>
+                            <a href="{{ path('app_admin_plan_detail', {id: exp.id}) }}" class="stretched-link"></a>
+                        </div>
+                        {% else %}
+                        <div class="p-5 text-center text-muted">Aun retour terrain disponible</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer bg-light py-3 d-grid">
+                    <a href="{{ path('app_admin_plans') }}" class="btn btn-sm fw-bold border-0" style="color: #102c59;">Consulter tout le flux <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
+
+.line-height-1 { line-height: 1.1; }
+.tracking-tighter { letter-spacing: -0.05em; }
+.shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); }
+
+/* Theme Styles */
+.shadow-glow-palette { box-shadow: 0 0 25px rgba(157, 187, 206, 0.4); }
+.hover-bg-palette-soft:hover { background-color: rgba(157, 187, 206, 0.1); color: #ffffff !important; }
+
+/* Components */
+.glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
+.stat-hover { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.stat-hover:hover { transform: translateY(-12px); z-index: 10; }
+
+.icon-box { transition: transform 0.3s ease; }
+.stat-hover:hover .icon-box { transform: scale(1.1) rotate(5deg); }
+
+.pulse-dot-green { width: 10px; height: 10px; background: #198754; border-radius: 50%; box-shadow: 0 0 0 rgba(25, 135, 84, 0.4); animation: pulse-green 2s infinite; }
+@keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(25, 135, 84, 0); } 100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); } }
+
+.pulse-dot-red { position: relative; display: inline-block; width: 8px; height: 8px; background: #d52e28; border-radius: 50%; margin-right: 8px; }
+.pulse-dot-red::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: #d52e28; animation: pulse-red 1.5s infinite; opacity: 0.6; }
+@keyframes pulse-red { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2.5); opacity: 0; } }
+
+/* Animations */
+@keyframes pulse-glow { from { opacity: 0.1; transform: scale(1); } to { opacity: 0.15; transform: scale(1.1); } }
+
+.custom-scrollbar::-webkit-scrollbar { width: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+.mt-n5 { margin-top: -4rem !important; }
+.z-index-10 { z-index: 10; }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
 <script>
-    // Graphique des plans avec la charte de couleurs
-    const ctx = document.getElementById('plansChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: ['Plans Pédagogiques', 'Plans Administratifs'],
-            datasets: [{
-                data: [
-                    {{ plans_pedagogiques|default(0) }},
-                    {{ plans_administratifs|default(0) }}
-                ],
-                backgroundColor: [
-                    '#102c59', // Bleu marine pour pédagogique
-                    '#9dbbce'  // Bleu clair pour administratif
-                ],
-                borderColor: '#ffffff',
-                borderWidth: 2,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: '#102c59',
-                        font: {
-                            size: 14,
-                            weight: '500'
-                        },
-                        padding: 20
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(16, 44, 89, 0.9)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            label += context.raw;
-                            label += ' plans';
-                            return label;
-                        }
-                    }
+    document.addEventListener('DOMContentLoaded', function() {
+        AOS.init({ duration: 800, once: true });
+
+        const ctx = document.getElementById('distributionChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'polarArea',
+            data: {
+                labels: ['Pédagogique', 'Admin', 'Stratégique'],
+                datasets: [{
+                    data: [
+                        {{ stats.plans_pedagogiques|default(0) }}, 
+                        {{ stats.plans_administratifs|default(0) }},
+                        {{ stats.plans_strategiques|default(1) }}
+                    ],
+                    backgroundColor: [
+                        'rgba(157, 187, 206, 0.7)',
+                        'rgba(16, 44, 89, 0.7)',
+                        'rgba(213, 46, 40, 0.7)'
+                    ],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, font: { size: 10 } } }
                 }
             }
-        }
+        });
     });
 
-    // Auto-refresh optionnel toutes les 5 minutes
-    setTimeout(function() {
-        window.location.href = "{{ path('app_admin_dashboard') }}";
-    }, 300000); // 5 minutes = 300000 ms
-
-    // Animation des cartes
-    document.addEventListener('DOMContentLoaded', function() {
-        const cards = document.querySelectorAll('.card');
-        
-        cards.forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-5px)';
-                this.style.boxShadow = '0 15px 30px rgba(16, 44, 89, 0.15)';
-            });
+    // Alert Modal Logic - Robust Version
+    document.querySelectorAll('.alert-row').forEach(row => {
+        row.addEventListener('click', function() {
+            // Extraction des données depuis l'élément cliqué
+            const content = this.getAttribute('data-content');
+            const date = this.getAttribute('data-date');
+            const type = this.getAttribute('data-type');
             
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = '';
-                this.style.boxShadow = '';
-            });
-        });
-
-        // Animation des liens de navigation
-        const navLinks = document.querySelectorAll('.list-group-item');
-        navLinks.forEach(link => {
-            link.addEventListener('mouseenter', function() {
-                this.style.backgroundColor = '#f0f4f8';
-                this.style.borderLeft = '3px solid #102c59';
-            });
+            // Mise à jour des éléments de la modal
+            const modalContent = document.getElementById('modalAlertContent');
+            const modalDate = document.getElementById('modalAlertDate');
+            const modalBadge = document.getElementById('modalAlertBadge');
             
-            link.addEventListener('mouseleave', function() {
-                this.style.backgroundColor = '';
-                this.style.borderLeft = '';
-            });
+            if (modalContent) modalContent.textContent = content;
+            if (modalDate) modalDate.textContent = date;
+            if (modalBadge) modalBadge.textContent = type;
         });
     });
 </script>
 
+<!-- Alert Detail Modal -->
+<div class="modal fade" id="alertDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-2xl overflow-hidden rounded-4">
+            <div class="modal-header border-0 p-4" style="background: #102c59;">
+                <div class="d-flex align-items-center">
+                    <div class="icon-box bg-white bg-opacity-10 text-white rounded-3 p-2 me-3">
+                        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-white mb-0">Détails de l'Alerte IA</h5>
+                        <small class="text-white text-opacity-75" id="modalAlertDate"></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <div class="mb-3">
+                    <span id="modalAlertBadge" class="badge rounded-pill px-3 py-2 fw-bold shadow-sm" style="background-color: #d52e28; color: white;"></span>
+                </div>
+                <div class="p-4 rounded-4 bg-white border shadow-sm">
+                    <p id="modalAlertContent" class="text-dark mb-0 fs-5 lh-base"></p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 bg-light">
+                <button type="button" class="btn btn-dark w-100 py-3 rounded-3 fw-bold transition-all hover-scale-sm" data-bs-dismiss="modal" style="background: #102c59; border: none;">
+                    J'ai pris connaissance
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-.card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(16, 44, 89, 0.15) !important;
-}
-
-.list-group-item {
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
-}
-
-.list-group-item:hover {
-    background-color: #f0f4f8 !important;
-    border-left: 3px solid #102c59;
-}
-
-.stretched-link::after {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 1;
-    content: "";
-}
-
-.btn {
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(16, 44, 89, 0.2);
-    opacity: 0.95;
-}
-
-.bi {
-    transition: transform 0.3s ease;
-}
-
-.list-group-item:hover .bi-arrow-right {
-    transform: translateX(3px);
-}
-
-.rounded-circle {
-    transition: transform 0.3s ease;
-}
-
-.list-group-item:hover .rounded-circle {
-    transform: scale(1.1);
-}
+.cursor-pointer { cursor: pointer; }
+.alert-row:hover { background-color: rgba(157, 187, 206, 0.05) !important; }
+.hover-scale-sm:hover { transform: scale(1.02); }
 </style>
 {% endblock %}
+

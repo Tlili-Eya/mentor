@@ -1,369 +1,91 @@
-{# templates/front/enseignant/plan_feedback.html.twig #}
-{% extends 'basem.html.twig' %}
+{% extends 'front/enseignant/basem.html.twig' %}
 
-{% block title %}{% if plan.feedback %}Modifier le feedback{% else %}Ajouter un feedback{% endif %} - {{ plan.decision }}{% endblock %}
+{% block title %}Donner mon Feedback | MentorAI{% endblock %}
 
-{% block content %}
-<div class="container mt-5">
+{% block body %}
+<div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- En-tête -->
-            <div class="text-center mb-5">
-                <nav aria-label="breadcrumb" class="mb-4">
-                    <ol class="breadcrumb justify-content-center">
-                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
-                        <li class="breadcrumb-item"><a href="{{ path('app_enseignant_plans') }}">Plans d'action</a></li>
-                        <li class="breadcrumb-item"><a href="{{ path('app_enseignant_plan_detail', {'id': plan.id}) }}">{{ plan.decision|slice(0, 30) }}...</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">
-                            {% if plan.feedback %}Modifier le feedback{% else %}Ajouter un feedback{% endif %}
-                        </li>
-                    </ol>
-                </nav>
-                
-                <h1 class="display-5 fw-bold mb-3">
-                    {% if plan.feedback %}
-                        <i class="bi bi-pencil-square me-2"></i>Modifier votre feedback
-                    {% else %}
-                        <i class="bi bi-chat-left-text me-2"></i>Ajouter un feedback
-                    {% endif %}
-                </h1>
-                
-                <p class="lead text-muted">
-                    Partagez votre avis sur ce plan d'action. Votre feedback aide à améliorer 
-                    la qualité des décisions pédagogiques et administratives.
-                </p>
-                
-                <div class="alert alert-info d-flex align-items-center" role="alert">
-                    <i class="bi bi-info-circle-fill me-3 fs-4"></i>
-                    <div>
-                        <strong>Feedback constructif</strong> - Votre avis sera partagé avec les administrateurs 
-                        pour améliorer continuellement nos processus.
-                    </div>
+            <!-- Header section -->
+            <div class="d-flex align-items-center mb-4" data-aos="fade-down">
+                <a href="{{ path('app_enseignant_plan_detail', {id: plan.id}) }}" class="btn btn-link text-decoration-none p-0 me-3">
+                    <i class="bi bi-arrow-left-circle fs-2 text-primary"></i>
+                </a>
+                <div>
+                    <h1 class="h3 fw-bold mb-0 text-dark">Expertise Terrain</h1>
+                    <p class="text-muted mb-0">Évaluez l'efficacité du plan pour <strong>{{ plan.decision }}</strong></p>
                 </div>
             </div>
 
-            <!-- Formulaire de feedback -->
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-gradient-primary text-white py-4">
-                    <h2 class="h4 mb-0 text-center">
-                        <i class="bi bi-chat-square-text me-2"></i>
-                        Formulaire de feedback
-                    </h2>
-                </div>
-                <div class="card-body p-4 p-md-5">
-                    <!-- Informations sur le plan -->
-                    <div class="alert alert-light border mb-4">
-                        <div class="row align-items-center">
-                            <div class="col-md-2 text-center">
-                                <i class="bi bi-clipboard-check fs-1 text-primary"></i>
-                            </div>
-                            <div class="col-md-10">
-                                <h5 class="mb-1">Plan concerné :</h5>
-                                <h4 class="text-primary mb-0">{{ plan.decision }}</h4>
-                                <p class="mb-0">
-                                    {% if plan.sortieAI and plan.sortieAI.categorieSortie %}
-                                        <span class="badge bg-secondary me-2">{{ plan.sortieAI.categorieSortie.value }}</span>
-                                    {% endif %}
-                                    
-                                    {% if plan.createdAt %}
-                                        <span class="badge bg-info me-2">Créé le {{ plan.createdAt|date('d/m/Y') }}</span>
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </div>
+            <!-- Plan Summary Card -->
+            <div class="card border-0 shadow-lg mb-4 rounded-4 overflow-hidden" data-aos="fade-up">
+                <div class="card-header bg-soft-primary border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center px-2">
+                        <span class="badge bg-primary rounded-pill">Rappel du Plan</span>
+                        <small class="text-primary fw-bold">{{ plan.date|date('d/m/Y') }}</small>
                     </div>
+                </div>
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">{{ plan.decision }}</h5>
+                    <p class="text-muted mb-0 small">{{ plan.description|nl2br }}</p>
+                </div>
+            </div>
 
-                    {{ form_start(form, {'attr': {'id': 'feedbackForm', 'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
-                        
-                        <!-- Champ feedback -->
+            <!-- Feedback Form Card -->
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                <div class="card-body p-5">
+                    <form method="POST">
                         <div class="mb-4">
-                            <h4 class="mb-4 border-bottom pb-2">
-                                <i class="bi bi-chat-left-text me-2"></i>
-                                Votre feedback
-                            </h4>
-                            
-                            <div class="mb-3">
-                                {{ form_label(form.feedback, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                                {{ form_widget(form.feedback, {
-                                    'attr': {
-                                        'class': 'form-control form-control-lg',
-                                        'rows': 8,
-                                        'placeholder': 'Partagez vos observations, suggestions, ou questions concernant ce plan d\'action...'
-                                    }
-                                }) }}
-                                <div class="form-text">
-                                    Soyez constructif et spécifique. Votre feedback peut porter sur :
-                                    <ul class="mb-0">
-                                        <li>La pertinence des décisions prises</li>
-                                        <li>La clarté des tâches définies</li>
-                                        <li>La faisabilité des échéances</li>
-                                        <li>Les ressources mises à disposition</li>
-                                    </ul>
-                                </div>
-                                {{ form_errors(form.feedback) }}
+                            <label class="form-label fw-bold text-dark h6 mb-3">
+                                <i class="bi bi-chat-left-text me-2 text-success"></i>Votre observation pédagogique
+                            </label>
+                            <textarea name="feedback" class="form-control rounded-4 p-3 border-light shadow-sm" rows="6" 
+                                      placeholder="Comment ce plan a-t-il été reçu ? Quels sont les progrès observés ?" required>{{ plan.feedbackEnseignant }}</textarea>
+                            <div class="form-text mt-2">Votre feedback sera visible par l'administration pour ajuster les prochaines décisions.</div>
+                        </div>
+
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark h6 mb-3">
+                                    <i class="bi bi-check-circle me-2 text-primary"></i>État d'avancement
+                                </label>
+                                <select name="statut" class="form-select rounded-pill p-3 border-light shadow-sm">
+                                    <option value="EN_COURS" {% if plan.statut.value == 'EN_COURS' %}selected{% endif %}>En cours d'exécution</option>
+                                    <option value="FINI" {% if plan.statut.value == 'FINI' %}selected{% endif %}>Terminé (Objectif atteint)</option>
+                                    <option value="REJETE" {% if plan.statut.value == 'REJETE' %}selected{% endif %}>Non applicable / Rejeté</option>
+                                </select>
                             </div>
                         </div>
 
-                        <!-- Suggestions d'amélioration -->
-                        <div class="mb-4">
-                            <h4 class="mb-4 border-bottom pb-2">
-                                <i class="bi bi-lightbulb me-2"></i>
-                                Suggestions d'amélioration (optionnel)
-                            </h4>
-                            
-                            <div class="mb-3">
-                                {{ form_label(form.suggestions, null, {'label_attr': {'class': 'form-label'}}) }}
-                                {{ form_widget(form.suggestions, {
-                                    'attr': {
-                                        'class': 'form-control',
-                                        'rows': 4,
-                                        'placeholder': 'Avez-vous des suggestions concrètes pour améliorer ce plan ?'
-                                    }
-                                }) }}
-                                {{ form_errors(form.suggestions) }}
-                            </div>
-                        </div>
-
-                        <!-- Évaluation -->
-                        <div class="mb-4">
-                            <h4 class="mb-4 border-bottom pb-2">
-                                <i class="bi bi-star me-2"></i>
-                                Évaluation globale
-                            </h4>
-                            
-                            <div class="mb-3">
-                                {{ form_label(form.note, null, {'label_attr': {'class': 'form-label'}}) }}
-                                <div class="rating-stars">
-                                    {% for i in 5..1 %}
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" 
-                                                   type="radio" 
-                                                   name="{{ form.note.vars.full_name }}" 
-                                                   id="note{{ i }}" 
-                                                   value="{{ i }}"
-                                                   {% if form.note.vars.value == i %}checked{% endif %}>
-                                            <label class="form-check-label star-label" for="note{{ i }}">
-                                                {% for j in 1..i %}
-                                                    <i class="bi bi-star-fill"></i>
-                                                {% endfor %}
-                                                {% for j in (i+1)..5 %}
-                                                    <i class="bi bi-star"></i>
-                                                {% endfor %}
-                                            </label>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                                {{ form_errors(form.note) }}
-                            </div>
-                        </div>
-
-                        <!-- Confidentialité -->
-                        <div class="mb-4">
-                            <h4 class="mb-4 border-bottom pb-2">
-                                <i class="bi bi-shield me-2"></i>
-                                Confidentialité
-                            </h4>
-                            
-                            <div class="mb-3">
-                                <div class="form-check">
-                                    {{ form_widget(form.confidentiel, {
-                                        'attr': {'class': 'form-check-input'}
-                                    }) }}
-                                    {{ form_label(form.confidentiel, null, {
-                                        'label_attr': {'class': 'form-check-label'}
-                                    }) }}
-                                    <div class="form-text">
-                                        Si coché, votre feedback ne sera visible que par les administrateurs.
-                                    </div>
-                                </div>
-                                {{ form_errors(form.confidentiel) }}
-                            </div>
-                        </div>
-
-                        <!-- Boutons d'action -->
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg px-5 me-md-3">
-                                <i class="bi bi-send-check me-2"></i>
-                                {% if plan.feedback %}Mettre à jour{% else %}Envoyer le feedback{% endif %}
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-end pt-4 border-top">
+                            <a href="{{ path('app_enseignant_plan_detail', {id: plan.id}) }}" class="btn btn-light rounded-pill px-5 py-3 fw-bold">Annuler</a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-lg">
+                                <i class="bi bi-send-check me-2"></i>Enregistrer mon Expertise
                             </button>
-                            
-                            <a href="{{ path('app_enseignant_plan_detail', {'id': plan.id}) }}" 
-                               class="btn btn-outline-secondary btn-lg px-5">
-                                <i class="bi bi-arrow-left me-2"></i>Annuler
-                            </a>
                         </div>
-
-                    {{ form_end(form) }}
-                </div>
-            </div>
-
-            <!-- Informations complémentaires -->
-            <div class="mt-5">
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body text-center">
-                                <i class="bi bi-shield-check text-success fs-1 mb-3"></i>
-                                <h5 class="card-title">Confidentialité</h5>
-                                <p class="card-text">Votre feedback est traité avec la plus grande confidentialité.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body text-center">
-                                <i class="bi bi-hand-thumbs-up text-primary fs-1 mb-3"></i>
-                                <h5 class="card-title">Constructif</h5>
-                                <p class="card-text">Un feedback constructif aide à améliorer nos processus.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body text-center">
-                                <i class="bi bi-graph-up text-warning fs-1 mb-3"></i>
-                                <h5 class="card-title">Impact</h5>
-                                <p class="card-text">Votre avis contribue à l'amélioration continue.</p>
-                            </div>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block javascripts %}
-{{ parent() }}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('feedbackForm');
-        
-        // Validation personnalisée
-        form.addEventListener('submit', function(e) {
-            let isValid = true;
-            
-            // Validation du champ feedback
-            const feedback = document.getElementById('{{ form.feedback.vars.id }}');
-            if (!feedback.value.trim()) {
-                showAlert('Le champ feedback est obligatoire.', 'warning');
-                feedback.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                feedback.classList.remove('is-invalid');
-            }
-            
-            if (!isValid) {
-                e.preventDefault();
-                // Scroll vers le premier champ en erreur
-                const firstError = document.querySelector('.is-invalid');
-                if (firstError) {
-                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            } else {
-                // Afficher un message de confirmation
-                showAlert('Envoi du feedback en cours...', 'info');
-            }
-        });
-        
-        // Style des étoiles
-        const starInputs = document.querySelectorAll('.rating-stars input[type="radio"]');
-        starInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                // Mettre à jour l'affichage des étoiles
-                const value = this.value;
-                starInputs.forEach(star => {
-                    const label = star.nextElementSibling;
-                    if (star.value <= value) {
-                        label.classList.add('text-warning');
-                    } else {
-                        label.classList.remove('text-warning');
-                    }
-                });
-            });
-        });
-        
-        // Initialiser l'affichage des étoiles
-        const checkedStar = document.querySelector('.rating-stars input[type="radio"]:checked');
-        if (checkedStar) {
-            checkedStar.dispatchEvent(new Event('change'));
-        }
-        
-        function showAlert(message, type = 'info') {
-            // Supprimer les alertes existantes
-            const existingAlert = document.querySelector('.custom-alert');
-            if (existingAlert) {
-                existingAlert.remove();
-            }
-            
-            // Créer la nouvelle alerte
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} custom-alert alert-dismissible fade show position-fixed`;
-            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
-            
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            
-            document.body.appendChild(alertDiv);
-            
-            // Auto-dismiss après 5 secondes
-            setTimeout(() => {
-                if (alertDiv.parentNode) {
-                    const bsAlert = new bootstrap.Alert(alertDiv);
-                    bsAlert.close();
-                }
-            }, 5000);
-        }
-    });
-</script>
 
 <style>
-    .rating-stars .star-label {
-        cursor: pointer;
-        font-size: 1.5rem;
-        color: #dee2e6;
-        transition: color 0.2s;
+    .bg-soft-primary {
+        background-color: rgba(16, 44, 89, 0.05);
     }
-    
-    .rating-stars .star-label:hover,
-    .rating-stars .star-label.text-warning {
-        color: #ffc107 !important;
+    .form-control:focus, .form-select:focus {
+        border-color: #102c59;
+        box-shadow: 0 0 0 0.25rem rgba(16, 44, 89, 0.1);
     }
-    
-    .rating-stars input[type="radio"] {
-        display: none;
-    }
-    
-    .rating-stars .form-check-inline {
-        margin-right: 0.5rem;
-    }
-    
-    .form-control-lg {
-        border-radius: 10px;
-        padding: 1rem 1.25rem;
-    }
-    
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-    }
-    
-    .needs-validation .form-control:invalid,
-    .needs-validation .form-control.is-invalid {
-        border-color: #dc3545;
-        padding-right: calc(1.5em + 0.75rem);
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: right calc(0.375em + 0.1875rem) center;
-        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-    }
-    
-    .needs-validation .form-control:invalid:focus,
-    .needs-validation .form-control.is-invalid:focus {
-        border-color: #dc3545;
-        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+    textarea::placeholder {
+        font-style: italic;
+        opacity: 0.6;
     }
 </style>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script>
+    AOS.init({ duration: 800, once: true });
+</script>
 {% endblock %}

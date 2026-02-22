@@ -21,6 +21,9 @@ class PlanActions
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\ManyToOne]
+    private ?Utilisateur $etudiant = null;
+
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "La décision est obligatoire")]
     #[Assert\Length(
@@ -67,6 +70,9 @@ class PlanActions
     #[ORM\ManyToOne]
     private ?Utilisateur $feedbackAuteur = null;
 
+    #[ORM\ManyToOne(inversedBy: 'plansCrees')]
+    private ?Utilisateur $auteur = null;
+
  /**
      * @var Collection<int, ReferenceArticle>
      */
@@ -85,6 +91,17 @@ class PlanActions
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getEtudiant(): ?Utilisateur
+    {
+        return $this->etudiant;
+    }
+
+    public function setEtudiant(?Utilisateur $etudiant): static
+    {
+        $this->etudiant = $etudiant;
+        return $this;
     }
 
     public function getDecision(): ?string
@@ -232,5 +249,21 @@ class PlanActions
         $this->articles->removeElement($article);
 
         return $this;
+    }
+
+    public function getAuteur(): ?Utilisateur
+    {
+        return $this->auteur;
+    }
+
+    public function setAuteur(?Utilisateur $auteur): static
+    {
+        $this->auteur = $auteur;
+        return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->decision ?? 'Plan d\'action sans titre';
     }
 }

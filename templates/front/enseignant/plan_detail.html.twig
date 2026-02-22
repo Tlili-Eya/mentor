@@ -157,32 +157,72 @@
             
             <!-- Sortie AI -->
             {% if plan.sortieAI %}
-                <div class="mb-4">
+                <div class="mb-5">
                     <div class="d-flex align-items-center mb-3">
                         <div style="width: 40px; height: 40px; background-color: #d52e28; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
-                            <i class="bi bi-arrow-right-circle" style="color: white; font-size: 1.2rem;"></i>
+                            <i class="bi bi-robot" style="color: white; font-size: 1.2rem;"></i>
                         </div>
                         <h3 style="color: #102c59; margin: 0; border-bottom: 2px solid #d52e28; padding-bottom: 0.5rem; flex-grow: 1;">
-                            Sortie AI
+                            Analyse MentorAI Source
                         </h3>
                     </div>
-                    <div class="p-4 rounded" style="background-color: rgba(213, 46, 40, 0.05); border: 1px solid rgba(213, 46, 40, 0.2);">
-                        <div class="d-flex mb-3">
-                            {% if plan.sortieAI.categorieSortie %}
-                                <span class="badge me-2" style="background-color: #d52e28; color: white;">
-                                    <i class="bi bi-funnel me-1"></i>{{ plan.sortieAI.categorieSortie }}
-                                </span>
-                            {% endif %}
-                            <span class="badge" style="background-color: #9dbbce; color: #102c59;">
-                                <i class="bi bi-ai me-1"></i>Généré par IA
-                            </span>
+                    <div class="p-4 rounded position-relative overflow-hidden" style="background-color: rgba(213, 46, 40, 0.03); border: 1px solid rgba(213, 46, 40, 0.1);">
+                        <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                            <i class="bi bi-cpu fs-1"></i>
                         </div>
-                        <p class="mb-0" style="color: #5a6c7d; line-height: 1.8; font-size: 1.05rem;">
+                        <p class="mb-0" style="color: #5a6c7d; line-height: 1.8; font-size: 1.05rem; position: relative; z-index: 2;">
                             {{ plan.sortieAI.contenu|nl2br }}
                         </p>
                     </div>
                 </div>
             {% endif %}
+
+            <!-- PROPOSITION 2 : FEEDBACK COLLABORATIF -->
+            <div class="mb-5 pt-3">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width: 40px; height: 40px; background-color: #198754; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                        <i class="bi bi-chat-left-dots" style="color: white; font-size: 1.2rem;"></i>
+                    </div>
+                    <h3 style="color: #102c59; margin: 0; border-bottom: 2px solid #198754; padding-bottom: 0.5rem; flex-grow: 1;">
+                        Expertise Terrain (Feedback Instructeur)
+                    </h3>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background-color: #f8fafc; border: 1px dashed rgba(25, 135, 84, 0.3) !important;">
+                    <div class="card-body p-4">
+                        {% if plan.feedbackEnseignant %}
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="avatar-sm me-3">
+                                    <img src="https://ui-avatars.com/api/?name=Instructeur&background=198754&color=fff" class="rounded-circle" style="width: 40px; height: 40px;">
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color: #102c59;">Votre observation pédagogique</h6>
+                                    <small class="text-muted">Posté le {{ plan.feedbackDate|date('d/m/Y') }}</small>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-white rounded-3 shadow-sm mb-3">
+                                <p class="mb-0" style="color: #5a6c7d; font-style: italic;">"{{ plan.feedbackEnseignant }}"</p>
+                            </div>
+                            <div class="text-end">
+                                <a href="{{ path('app_enseignant_plan_feedback', {id: plan.id}) }}" class="btn btn-sm btn-outline-success rounded-pill px-4">
+                                    <i class="bi bi-pencil me-1"></i> Actualiser mon avis
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <div class="mb-3 text-muted opacity-50">
+                                    <i class="bi bi-chat-square-quote fs-1"></i>
+                                </div>
+                                <h5 class="fw-bold" style="color: #102c59;">Votre expertise est attendue</h5>
+                                <p class="text-muted small mb-4">L'administration a besoin de votre retour sur l'efficacité de ce plan en classe.</p>
+                                <a href="{{ path('app_enseignant_plan_feedback', {id: plan.id}) }}" class="btn btn-success btn-lg rounded-pill px-5 shadow-sm">
+                                    <i class="bi bi-plus-circle me-2"></i> Ajouter mon Feedback Terrain
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
             
             <!-- Informations supplémentaires -->
             <div class="row mt-5">

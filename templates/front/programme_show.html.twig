@@ -262,14 +262,26 @@
 
 	<!-- Motivation Banner -->
 	{% if programme.motivation|length > 0 %}
-		{% set dernier = programme.motivation|sort((a,b) => b.dategeneratiomm <=> a.dategeneratiomm)|first %}
-		<div class="motivation-banner" data-aos="fade-up">
-			<i class="bi bi-quote quote-icon"></i>
-			<h5 class="fw-bold text-uppercase small mb-2" style="color: var(--accent-color); letter-spacing: 1px;">Le mot du mentor</h5>
-			<p class="fs-5 mb-1 text-dark fw-medium" style="white-space: pre-line;">"{{ dernier.messagemotivant|default('Chaque pas compte. Continuez ainsi !') }}"</p>
-			<small class="text-muted italic">{{ dernier.dategeneratiomm|date('d/m/Y H:i') }}</small>
-		</div>
-	{% endif %}
+    {# On prend le message avec l'ID le plus grand = le plus récent #}
+    {% set dernierMessage = programme.motivation|sort((a, b) => b.id <=> a.id)|first %}
+    
+    <div class="motivation-banner" data-aos="fade-up">
+        <i class="bi bi-quote quote-icon"></i>
+        <h5 class="fw-bold text-uppercase small mb-2" style="color: var(--accent-color); letter-spacing: 1px;">
+            Le mot du mentor
+        </h5>
+        <p class="fs-5 mb-1 text-dark fw-medium" style="white-space: pre-line;">
+            "{{ dernierMessage.messagemotivant }}"
+        </p>
+        <small class="text-muted italic">
+            {{ dernierMessage.dategeneratiomm|date('d/m/Y') }}
+        </small>
+    </div>
+{% else %}
+    <div class="alert alert-light mt-4 text-center py-4">
+        Aucun message motivant pour le moment
+    </div>
+{% endif %}
 
 	<!-- Stats Cards -->
 	<div class="row g-4 mb-5">
@@ -336,10 +348,19 @@
 	<!-- Tasks Section -->
 	<div class="task-list-header" data-aos="fade-up">
 		<h2 class="fw-bold text-primary mb-0">
-			<i class="bi bi-list-task me-2"></i>Vos Étapes de Réussite</h2>
-		<button type="button" class="btn btn-new-task" data-bs-toggle="modal" data-bs-target="#addTacheModal">
-			<i class="bi bi-plus-lg me-2"></i>Ajouter une tâche
-		</button>
+			<i class="bi bi-list-task me-2"></i>Vos Étapes de Réussite
+		</h2>
+		<div class="d-flex gap-3">
+			<button type="button" class="btn btn-new-task" data-bs-toggle="modal" data-bs-target="#addTacheModal">
+				<i class="bi bi-plus-lg me-2"></i>Ajouter une tâche
+			</button>
+			<form method="post" action="{{ path('front_programme_generate_ai', {id: programme.id}) }}">
+				<input type="hidden" name="_token" value="{{ csrf_token('generate_ai_' ~ programme.id) }}">
+				<button type="submit" class="btn btn-new-task" style="background-color: var(--accent-color);">
+					<i class="bi bi-robot me-2"></i>Donne-moi un programme
+				</button>
+			</form>
+		</div>
 	</div>
 
 	<div class="row">

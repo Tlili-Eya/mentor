@@ -26,13 +26,32 @@
     </div>
    
     
+
+    <!-- Séparation Logique : Onglets -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="nav nav-pills bg-light p-2 rounded-4 shadow-sm d-inline-flex border">
+                <a class="nav-link rounded-3 px-4 py-2 {{ scope == 'strategic' ? 'active shadow-lg' : 'text-muted' }}" 
+                   style="{{ scope == 'strategic' ? 'background: #102c59; color: white !important;' : '' }}"
+                   href="{{ path('app_admin_plans', {scope: 'strategic'}) }}">
+                    <i class="bi bi-shield-check me-2"></i>Mes Plans Stratégiques
+                </a>
+                <a class="nav-link rounded-3 px-4 py-2 {{ scope == 'pedagogical' ? 'active shadow-lg' : 'text-muted' }}" 
+                   style="{{ scope == 'pedagogical' ? 'background: #102c59; color: white !important;' : '' }}"
+                   href="{{ path('app_admin_plans', {scope: 'pedagogical'}) }}">
+                    <i class="bi bi-mortarboard me-2"></i>Suivi Pédagogique (Enseignants)
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Liste des plans -->
     <div class="row">
         {% if plans|length > 0 %}
             {% for plan in plans %}
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 border-0 shadow-sm hover-lift" 
-                         style="border-top: 4px solid {% if plan.sortieAI and plan.sortieAI.categorieSortie %}{% if plan.sortieAI.categorieSortie.value == 'PEDAGOGIQUE' %}#102c59{% elseif plan.sortieAI.categorieSortie.value == 'ADMINISTRATIVE' %}#9dbbce{% else %}#d52e28{% endif %}{% else %}#cccccc{% endif %};">
+                         style="border-top: 4px solid {% if plan.sortieAI and plan.sortieAI.categorieSortie %}{% if plan.sortieAI.categorieSortie == 'PEDAGOGIQUE' %}#102c59{% elseif plan.sortieAI.categorieSortie == 'ADMINISTRATIVE' %}#9dbbce{% else %}#d52e28{% endif %}{% else %}#cccccc{% endif %};">
                         <div class="card-body">
                             <!-- Titre -->
                             <h5 class="card-title mb-3" style="color: #102c59; line-height: 1.4;">
@@ -43,18 +62,15 @@
                             <div class="mb-3">
                                 {% if plan.sortieAI and plan.sortieAI.categorieSortie %}
                                     <span class="badge" style="
-                                        {% if plan.sortieAI.categorieSortie.value == 'PEDAGOGIQUE' %} 
+                                         {% if plan.sortieAI.categorieSortie == 'PEDAGOGIQUE' %} 
                                             background-color: #102c59; color: white;
-                                        {% elseif plan.sortieAI.categorieSortie.value == 'ADMINISTRATIVE' %} 
+                                        {% elseif plan.sortieAI.categorieSortie == 'ADMINISTRATIVE' %} 
                                             background-color: #9dbbce; color: #102c59;
                                         {% else %} 
                                             background-color: #d52e28; color: white;
                                         {% endif %}
                                     ">
-                                        {{ plan.sortieAI.categorieSortie.value }}
-
-
-
+                                        {{ plan.sortieAI.categorieSortie }}
                                     </span>
                                 {% endif %}
                 
@@ -79,33 +95,41 @@
                             <p class="card-text mb-4" style="color: #5a6c7d; line-height: 1.6;">
                                 {{ plan.description|striptags|slice(0, 120) }}...
                             </p>
-                            <!-- Articles liés - À AJOUTER ICI -->
-{% if plan.articles|length > 0 %}
-    <div class="mb-3">
-        <h6 style="color: #102c59; font-size: 0.9rem; font-weight: 600;">
-            <i class="bi bi-journal-text me-1" style="color: #d52e28;"></i>
-            Articles liés ({{ plan.articles|length }})
-        </h6>
-        <ul class="list-unstyled small">
-            {% for article in plan.articles|slice(0, 3) %}
-                <li class="mb-1">
-                    <i class="bi bi-dot me-1" style="color: #d52e28;"></i>
-                    <span style="color: #102c59;">{{ article.titre|slice(0, 30) }}{% if article.titre|length > 30 %}...{% endif %}</span>
-                    <span class="badge" style="background-color: {{ article.published ? '#28a745' : '#ffc107' }}; color: white; font-size: 0.6rem; margin-left: 5px;">
-                        {{ article.published ? 'Pub' : 'Br' }}
-                    </span>
-                </li>
-            {% endfor %}
-            {% if plan.articles|length > 3 %}
-                <li class="text-muted">+ {{ plan.articles|length - 3 }} autre(s)</li>
-            {% endif %}
-        </ul>
-    </div>
-{% else %}
-    <p class="text-muted small mb-3">
-        <i class="bi bi-info-circle me-1"></i>Aucun article lié
-    </p>
-{% endif %}
+                            <!-- Articles liés au Plan -->
+                            {% if plan.articles|length > 0 %}
+                                <div class="mb-2">
+                                    <h6 style="color: #102c59; font-size: 0.85rem; font-weight: 600;">
+                                        <i class="bi bi-journal-check me-1 text-success"></i>
+                                        Actions ({{ plan.articles|length }})
+                                    </h6>
+                                    <ul class="list-unstyled small mb-1">
+                                        {% for article in plan.articles|slice(0, 2) %}
+                                            <li class="text-truncate" title="{{ article.titre }}">
+                                                <i class="bi bi-dot" style="color: #d52e28;"></i>
+                                                {{ article.titre|slice(0, 35) }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+                            <!-- Ressources IA (SortieAI) -->
+                            {% if plan.sortieAI and plan.sortieAI.articles|length > 0 %}
+                                <div class="mb-3 p-2 rounded" style="background: rgba(157, 187, 206, 0.1);">
+                                    <h6 style="color: #102c59; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        <i class="bi bi-robot me-1" style="color: #102c59;"></i>
+                                        Ressources IA
+                                    </h6>
+                                    <ul class="list-unstyled mb-0" style="font-size: 0.8rem;">
+                                        {% for article in plan.sortieAI.articles %}
+                                            <li class="text-truncate">
+                                                <i class="bi bi-link-45deg"></i>
+                                                <a href="#" class="text-decoration-none" style="color: #102c59;">{{ article.titre }}</a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
                             <!-- Date et ID -->
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
@@ -198,7 +222,8 @@
                                'page': currentPage-1, 
                                'search': search, 
                                'categorie': categorie,
-                               'statut': statut
+                               'statut': statut,
+                               'scope': scope
                            }) }}"
                            style="color: #102c59; border-color: #9dbbce;">
                             <i class="bi bi-chevron-left"></i> Précédent
@@ -214,7 +239,8 @@
                                    'page': page, 
                                    'search': search, 
                                    'categorie': categorie,
-                                   'statut': statut
+                                   'statut': statut,
+                                   'scope': scope
                                }) }}"
                                style="{{ page == currentPage ? 'background-color: #102c59; border-color: #102c59; color: white;' : 'color: #102c59; border-color: #9dbbce;' }}">
                                 {{ page }}
@@ -230,7 +256,8 @@
                                'page': currentPage+1, 
                                'search': search, 
                                'categorie': categorie,
-                               'statut': statut
+                               'statut': statut,
+                               'scope': scope
                            }) }}"
                            style="color: #102c59; border-color: #9dbbce;">
                             Suivant <i class="bi bi-chevron-right"></i>

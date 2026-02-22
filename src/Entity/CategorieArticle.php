@@ -150,4 +150,9 @@ class CategorieArticle
 
         return $this;
     }
+
+    public function __toString(): string
+    {
+        return $this->nomCategorie ?? 'Sans catégorie';
+    }
 }

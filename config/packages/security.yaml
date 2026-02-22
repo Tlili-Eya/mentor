@@ -14,9 +14,10 @@ security:
 
     role_hierarchy:
         ROLE_ADMINISTRATEUR: [ROLE_ADMINM, ROLE_ADMIN, ROLE_ENSEIGNANT]
-        ROLE_ADMINM: [ROLE_ADMIN]
+        ROLE_ADMINM: [ROLE_ADMIN, ROLE_ENSEIGNANT]
         ROLE_ENSEIGNANT: [ROLE_USER]
         ROLE_ADMIN: [ROLE_USER]
+
 
     firewalls:
         dev:
@@ -59,5 +60,5 @@ security:
         - { path: ^/adminm, roles: ROLE_ADMINM }
         # Routes utilisateur connecté
         - { path: ^/utilisateur, roles: IS_AUTHENTICATED_FULLY }
-        
-        # ⚠️ IMPORTANT: PAS de règle générale ^/ car elle bloquerait tout
+        - { path: ^/chat, roles: [ROLE_ADMINM, ROLE_ENSEIGNANT] }
+

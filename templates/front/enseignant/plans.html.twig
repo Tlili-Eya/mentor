@@ -31,9 +31,9 @@
                     <div class="card h-100 border-0 shadow-sm hover-lift" 
                          style="border-top: 4px solid 
                          {% if plan.sortieAI and plan.sortieAI.categorieSortie %}
-                            {% if plan.sortieAI.categorieSortie == 'PEDAGOGIQUE' or plan.sortieAI.categorieSortie.value == 'PEDAGOGIQUE' %}
+                            {% if plan.sortieAI.categorieSortie == 'PEDAGOGIQUE' %}
                                 #102c59
-                            {% elseif plan.sortieAI.categorieSortie == 'ADMINISTRATIVE' or plan.sortieAI.categorieSortie.value == 'ADMINISTRATIVE' %}
+                            {% elseif plan.sortieAI.categorieSortie == 'ADMINISTRATIVE' %}
                                 #9dbbce
                             {% else %}
                                 #d52e28
@@ -51,19 +51,15 @@
                             <div class="mb-3">
                                 {% if plan.sortieAI and plan.sortieAI.categorieSortie %}
                                     <span class="badge" style="
-                                        {% if plan.sortieAI.categorieSortie == 'PEDAGOGIQUE' or plan.sortieAI.categorieSortie.value == 'PEDAGOGIQUE' %}
+                                        {% if plan.sortieAI.categorieSortie == 'PEDAGOGIQUE' %}
                                             background-color: #102c59; color: white;
-                                        {% elseif plan.sortieAI.categorieSortie == 'ADMINISTRATIVE' or plan.sortieAI.categorieSortie.value == 'ADMINISTRATIVE' %}
+                                        {% elseif plan.sortieAI.categorieSortie == 'ADMINISTRATIVE' %}
                                             background-color: #9dbbce; color: #102c59;
                                         {% else %}
                                             background-color: #d52e28; color: white;
                                         {% endif %}
                                     ">
-                                        {% if plan.sortieAI.categorieSortie.value is defined %}
-                                            {{ plan.sortieAI.categorieSortie.value }}
-                                        {% else %}
-                                            {{ plan.sortieAI.categorieSortie }}
-                                        {% endif %}
+                                        {{ plan.sortieAI.categorieSortie }}
                                     </span>
                                 {% endif %}
                                 

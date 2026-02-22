@@ -1,227 +1,231 @@
 {% extends 'front/enseignant/basem.html.twig' %}
 
-{% block title %}Tableau de bord | MentorAI{% endblock %}
+{% block title %}Espace Enseignant | MentorAI{% endblock %}
 
 {% block body %}
-<div class="container-fluid" style="background-color: #f8f9fa; min-height: 100vh;">
-    <!-- Header avec bouton rafraîchir -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-4 px-4">
-        <h1 class="h3 mb-0" style="color: #102c59;">Tableau de bord Enseignant</h1>
-        <a href="{{ path('app_enseignant_dashboard') }}" class="btn" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-            <i class="bi bi-arrow-clockwise"></i> Rafraîchir
-        </a>
+<!-- Hero Section -->
+<div class="dashboard-hero py-5 mb-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, #102c59 0%, #0a1c3a 100%); color: white; border-radius: 0 0 3rem 3rem; box-shadow: 0 10px 30px rgba(16, 44, 89, 0.2);">
+    <div class="container position-relative z-index-2">
+        <div class="row align-items-center">
+            <div class="col-lg-8" data-aos="fade-right">
+                <span class="badge mb-3 py-2 px-3 rounded-pill fw-bold text-uppercase" style="background-color: #d52e28; font-size: 0.75rem; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(213, 46, 40, 0.3);">Espace Pédagogique</span>
+                <h1 class="display-4 fw-bold mb-3 text-white">Bonjour, <span style="color: #9dbbce;">{{ app.user.prenom|default('Cher Enseignant') }}</span></h1>
+                <p class="lead mb-4" style="max-width: 600px; color: rgba(255,255,255,0.85);">Optimisez votre enseignement avec l'intelligence artificielle. MentorAI analyse vos classes et suggère des plans d'action personnalisés.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{{ path('app_chat') }}" class="btn btn-primary btn-lg px-4 rounded-pill fw-bold shadow-lg border-0" style="background-color: #d52e28; transition: all 0.3s ease;">
+                        <i class="bi bi-robot me-2"></i>Assistant IA
+                    </a>
+                    <a href="{{ path('app_enseignant_plans') }}" class="btn btn-outline-light btn-lg px-4 rounded-pill" style="border-color: rgba(255,255,255,0.3); backdrop-filter: blur(5px);">
+                        <i class="bi bi-layers me-2"></i>Mes Plans
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-center" data-aos="fade-left">
+                <div class="glass-stat-card p-4 rounded-4 position-relative overflow-hidden" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+                    <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                        <i class="bi bi-book display-1"></i>
+                    </div>
+                    <div class="position-relative z-index-2">
+                        <span class="d-block display-3 fw-bold mb-0" style="color: #9dbbce;">{{ stats.total_articles|default(0) }}</span>
+                        <span class="text-uppercase fw-bold opacity-75" style="font-size: 0.9rem; letter-spacing: 3px;">Ressources Publiées</span>
+                        <hr class="my-3 opacity-25">
+                        <div class="d-flex justify-content-around">
+                            <div>
+                                <small class="d-block opacity-50">Actifs</small>
+                                <span class="fw-bold">{{ stats.plans_pedagogiques|default(0) }}</span>
+                            </div>
+                            <div class="border-start opacity-25"></div>
+                            <div>
+                                <small class="d-block opacity-50">Actions</small>
+                                <span class="fw-bold">{{ (stats.plans_pedagogiques|default(0) + stats.plans_administratifs|default(0)) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Decorative background elements -->
+    <div class="position-absolute top-0 end-0 opacity-10 mt-n5 me-n5 translate-middle-y">
+        <div class="rounded-circle" style="width: 500px; height: 500px; background: radial-gradient(circle, #9dbbce 0%, transparent 70%);"></div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Metrics Cards -->
+    <div class="row g-4 mb-5 mt-n4">
+        <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+            <div class="metric-card card border-0 shadow-lg h-100 overflow-hidden" style="border-radius: 1.5rem;">
+                <div class="card-body p-4 text-center">
+                    <div class="icon-shape rounded-circle p-3 mx-auto mb-3" style="background-color: rgba(213, 46, 40, 0.1); color: #d52e28; width: 60px; height: 60px;">
+                        <i class="bi bi-robot fs-3"></i>
+                    </div>
+                    <h2 class="fw-bold mb-0" style="color: #102c59;">{{ stats.alertes_ia }}</h2>
+                    <p class="text-muted small text-uppercase fw-bold mb-0">Alertes IA</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
+            <div class="metric-card card border-0 shadow-lg h-100 overflow-hidden" style="border-radius: 1.5rem;">
+                <div class="card-body p-4 text-center">
+                    <div class="icon-shape rounded-circle p-3 mx-auto mb-3" style="background-color: rgba(16, 44, 89, 0.1); color: #102c59; width: 60px; height: 60px;">
+                        <i class="bi bi-clipboard-check fs-3"></i>
+                    </div>
+                    <h2 class="fw-bold mb-0" style="color: #102c59;">{{ stats.plans_pedagogiques }}</h2>
+                    <p class="text-muted small text-uppercase fw-bold mb-0">Plans Pédag.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+            <div class="metric-card card border-0 shadow-lg h-100 overflow-hidden" style="border-radius: 1.5rem;">
+                <div class="card-body p-4 text-center">
+                    <div class="icon-shape rounded-circle p-3 mx-auto mb-3" style="background-color: rgba(157, 187, 206, 0.2); color: #102c59; width: 60px; height: 60px;">
+                        <i class="bi bi-chat-dots fs-3"></i>
+                    </div>
+                    <h2 class="fw-bold mb-0" style="color: #102c59;">{{ pendingFeedbackPlans|length }}</h2>
+                    <p class="text-muted small text-uppercase fw-bold mb-0">Feedbacks Dus</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3" data-aos="fade-up" data-aos-delay="400">
+            <div class="metric-card card border-0 shadow-lg h-100 overflow-hidden" style="border-radius: 1.5rem;">
+                <div class="card-body p-4 text-center">
+                    <div class="icon-shape rounded-circle p-3 mx-auto mb-3" style="background-color: rgba(25, 135, 84, 0.1); color: #198754; width: 60px; height: 60px;">
+                        <i class="bi bi-journal-text fs-3"></i>
+                    </div>
+                    <h2 class="fw-bold mb-0" style="color: #102c59;">{{ stats.total_articles }}</h2>
+                    <p class="text-muted small text-uppercase fw-bold mb-0">Ressources</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="px-4">
-        <div class="row">
-            <!-- Stats Cards -->
-            <div class="col-md-3 mb-4">
-                <div class="card shadow border-0" style="border-top: 4px solid #102c59;">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title mb-0" style="color: #102c59;">Articles Pédagogiques</h6>
-                                <h2 class="mb-0" style="color: #102c59;">{{ total_articles|default(0) }}</h2>
-                                <small style="color: #666;">Articles publiés</small>
-                            </div>
-                            <i class="bi bi-journal-text fs-1" style="color: #9dbbce;"></i>
-                        </div>
-                        <a href="{{ path('app_enseignant_articles') }}" class="stretched-link text-decoration-none">
-                            <small style="color: #102c59;">Voir tous <i class="bi bi-arrow-right"></i></small>
-                        </a>
-                    </div>
+    <div class="row g-4">
+        <!-- PROPOSITION 3: RADAR ÉTUDIANT -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-lg h-100 overflow-hidden" style="border-radius: 1.5rem;">
+                <div class="card-header border-0 bg-white py-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-radar me-2 text-danger"></i> Radar Psychosocial (Priorités)</h5>
+                    <span class="badge rounded-pill px-3 py-2" style="background-color: #d52e28;">Action Requise</span>
                 </div>
-            </div>
-            
-            <div class="col-md-3 mb-4">
-                <div class="card shadow border-0" style="border-top: 4px solid #102c59;">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title mb-0" style="color: #102c59;">Plans Pédagogiques</h6>
-                                <h2 class="mb-0" style="color: #102c59;">{{ plans_pedagogiques|default(0) }}</h2>
-                                <small style="color: #666;">Plans d'action</small>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for student in radarStudents %}
+                        <div class="list-group-item px-4 py-3 border-light hover-bg-light transition-all">
+                            <div class="d-flex align-items-center">
+                                <div class="position-relative me-3">
+                                    <img src="{{ student.pdp_url|default('https://ui-avatars.com/api/?name=' ~ student.prenom ~ '+' ~ student.nom ~ '&background=random') }}" class="rounded-circle border border-2 border-white shadow-sm" style="width: 45px; height: 45px; object-fit: cover;">
+                                    {% if student.alerts_count > 0 %}
+                                    <span id="student-alert-{{ student.id }}" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-2 border-white pulse-danger-soft" style="font-size: 0.6rem;">
+                                         ⚡
+                                     </span>
+                                     {% endif %}
+                                 </div>
+                                 <div class="flex-grow-1">
+                                     <h6 class="mb-0 fw-bold">{{ student.prenom }} {{ student.nom }}</h6>
+                                     <small class="text-muted">Humeur : {{ student.avg_mood|default(5)|round(1) }}/10</small>
+                                 </div>
+                                 <div class="text-end">
+                                     {% if student.avg_mood < 4 %}
+                                         <span class="badge rounded-pill bg-soft-danger text-danger border border-danger border-opacity-25 px-2 py-1">Critique</span>
+                                     {% elseif student.avg_mood < 6 %}
+                                         <span class="badge rounded-pill bg-soft-warning text-warning border border-warning border-opacity-25 px-2 py-1">Vigilance</span>
+                                     {% else %}
+                                         <span class="badge rounded-pill bg-soft-success text-success border border-success border-opacity-25 px-2 py-1">Stable</span>
+                                     {% endif %}
+                                     <button onclick="treatAlert({{ student.id }}, this)" class="btn btn-sm btn-outline-primary rounded-pill ms-2" title="Traiter les alertes"><i class="bi bi-eye"></i></button>
+                                 </div>
                             </div>
-                            <i class="bi bi-clipboard-check fs-1" style="color: #9dbbce;"></i>
                         </div>
-                        <a href="{{ path('app_enseignant_plans') }}?categorie=PEDAGOGIQUE" class="stretched-link text-decoration-none">
-                            <small style="color: #102c59;">Voir tous <i class="bi bi-arrow-right"></i></small>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 mb-4">
-                <div class="card shadow border-0" style="border-top: 4px solid #102c59;">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title mb-0" style="color: #102c59;">Plans Administratifs</h6>
-                                <h2 class="mb-0" style="color: #102c59;">{{ plans_administratifs|default(0) }}</h2>
-                                <small style="color: #666;">Plans administratifs</small>
-                            </div>
-                            <i class="bi bi-folder-check fs-1" style="color: #9dbbce;"></i>
-                        </div>
-                        <a href="{{ path('app_enseignant_plans') }}?categorie=ADMINISTRATIVE" class="stretched-link text-decoration-none">
-                            <small style="color: #102c59;">Voir tous <i class="bi bi-arrow-right"></i></small>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 mb-4">
-                <div class="card shadow border-0" style="border-top: 4px solid #d52e28;">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="card-title mb-0" style="color: #102c59;">Total Plans</h6>
-                                <h2 class="mb-0" style="color: #d52e28;">{{ (plans_pedagogiques|default(0) + plans_administratifs|default(0)) }}</h2>
-                                <small style="color: #666;">Tous les plans</small>
-                            </div>
-                            <i class="bi bi-files fs-1" style="color: #d52e28;"></i>
-                        </div>
-                        <a href="{{ path('app_enseignant_plans') }}" class="stretched-link text-decoration-none">
-                            <small style="color: #102c59;">Voir tous <i class="bi bi-arrow-right"></i></small>
-                        </a>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Graphiques et tableaux -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card shadow border-0">
-                    <div class="card-header border-0 d-flex justify-content-between align-items-center" style="background-color: #f8f9fa; border-bottom: 2px solid #9dbbce;">
-                        <h5 class="mb-0" style="color: #102c59;">Répartition des Plans d'Actions</h5>
-                        <a href="{{ path('app_enseignant_dashboard') }}" class="btn btn-sm" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="plansChart"></canvas>
-                    </div>
+        
+        <!-- PROPOSITION 2: COLLABORATION (FEEDBACKS) -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-lg h-100 overflow-hidden" style="border-radius: 1.5rem;">
+                <div class="card-header border-0 bg-white py-4 px-4">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-people me-2 text-primary"></i> Hub de Collaboration</h5>
+                    <p class="text-muted small mb-0 mt-1">Actions administratives nécessitant votre avis expert.</p>
                 </div>
-            </div>
-            
-            <div class="col-md-6">
-                <div class="card shadow border-0">
-                    <div class="card-header border-0 d-flex justify-content-between align-items-center" style="background-color: #f8f9fa; border-bottom: 2px solid #9dbbce;">
-                        <h5 class="mb-0" style="color: #102c59;">Navigation Rapide</h5>
-                        <a href="{{ path('app_enseignant_dashboard') }}" class="btn btn-sm" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-                            <i class="bi bi-house"></i>
-                        </a>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="list-group list-group-flush">
-                            <a href="{{ path('app_enseignant_articles') }}" class="list-group-item list-group-item-action border-0 py-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #102c59;">
-                                        <i class="bi bi-journal-text text-white"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1" style="color: #102c59;">Gérer les articles</h6>
-                                        <small style="color: #666;">Créer, modifier ou publier des articles</small>
-                                    </div>
-                                    <i class="bi bi-arrow-right" style="color: #9dbbce;"></i>
-                                </div>
-                            </a>
-                            
-                            <a href="{{ path('app_enseignant_plans') }}" class="list-group-item list-group-item-action border-0 py-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #9dbbce;">
-                                        <i class="bi bi-clipboard-check" style="color: #102c59;"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1" style="color: #102c59;">Voir les plans d'action</h6>
-                                        <small style="color: #666;">Consulter tous les plans pédagogiques et administratifs</small>
-                                    </div>
-                                    <i class="bi bi-arrow-right" style="color: #9dbbce;"></i>
-                                </div>
-                            </a>
-                            
-                            <a href="{{ path('app_enseignant_chat_ia') }}" class="list-group-item list-group-item-action border-0 py-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #d52e28;">
-                                        <i class="bi bi-robot text-white"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1" style="color: #102c59;">Assistant IA</h6>
-                                        <small style="color: #666;">Obtenir de l'aide pour créer des plans ou articles</small>
-                                    </div>
-                                    <i class="bi bi-arrow-right" style="color: #9dbbce;"></i>
-                                </div>
-                            </a>
-                            
-                            <a href="{{ path('app_enseignant_reclamations') }}" class="list-group-item list-group-item-action border-0 py-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #102c59;">
-                                        <i class="bi bi-megaphone text-white"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1" style="color: #102c59;">Réclamations & Feedback</h6>
-                                        <small style="color: #666;">Consulter les retours et suggestions</small>
-                                    </div>
-                                    <i class="bi bi-arrow-right" style="color: #9dbbce;"></i>
-                                </div>
+                <div class="card-body px-4">
+                    {% if pendingFeedbackPlans is empty %}
+                        <div class="text-center py-5">
+                            <div class="mb-3 opacity-25">
+                                <i class="bi bi-check2-circle fs-1 text-success"></i>
+                            </div>
+                            <p class="text-muted">Tout est à jour. Aucun feedback en attente.</p>
+                        </div>
+                    {% else %}
+                        {% for plan in pendingFeedbackPlans %}
+                        <div class="p-3 mb-3 rounded-4 border border-light position-relative hover-shadow-sm transition-all" style="background-color: #f8fafc;">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-soft-primary text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1" style="font-size: 0.65rem;">
+                                    {{ plan.categorie.value|default('ADMIN') }}
+                                </span>
+                                <small class="text-muted">{{ plan.date|date('d/m') }}</small>
+                            </div>
+                            <h6 class="fw-bold mb-2">{{ plan.decision|length > 40 ? plan.decision|slice(0, 40) ~ '...' : plan.decision }}</h6>
+                            <p class="text-muted small mb-3 line-clamp-2">{{ plan.description|striptags }}</p>
+                            <a href="{{ path('app_enseignant_plan_feedback', {id: plan.id}) }}" class="btn btn-sm btn-primary w-100 rounded-pill">
+                                <i class="bi bi-plus-circle me-1"></i> Donner mon Feedback
                             </a>
                         </div>
-                    </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </div>
-
-        <!-- Informations supplémentaires -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card shadow border-0">
-                    <div class="card-header border-0 d-flex justify-content-between align-items-center" style="background-color: #f8f9fa; border-bottom: 2px solid #9dbbce;">
-                        <h5 class="mb-0" style="color: #102c59;">Résumé des Statistiques</h5>
-                        <a href="{{ path('app_enseignant_dashboard') }}" class="btn btn-sm" style="background-color: #102c59; border-color: #102c59; color: white;">
-                            <i class="bi bi-graph-up"></i> Vue détaillée
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <div class="row text-center">
-                            <div class="col-md-4 mb-3">
-                                <div class="p-3 border rounded" style="border-color: #9dbbce !important;">
-                                    <h3 style="color: #102c59;">{{ total_articles|default(0) }}</h3>
-                                    <p class="mb-0" style="color: #666;">Articles Pédagogiques</p>
-                                    <a href="{{ path('app_enseignant_articles') }}" class="btn btn-sm mt-2" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-                                        Voir <i class="bi bi-arrow-right"></i>
-                                    </a>
+    </div>
+        
+        <!-- Activity Timeline -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-lg h-100 overflow-hidden" style="border-radius: 1.5rem;">
+                <div class="card-header border-0 bg-white py-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2 text-danger"></i> Plans Récents</h5>
+                    <a href="{{ path('app_enseignant_plans') }}" class="btn btn-link btn-sm text-decoration-none fw-bold" style="color: #102c59;">Tout voir</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="px-4 pb-4">
+                        {% if recentPlans is empty %}
+                            <div class="text-center py-5">
+                                <div class="mb-3 opacity-25">
+                                    <i class="bi bi-clipboard-x fs-1"></i>
                                 </div>
+                                <p class="text-muted">Aucune activité récente.</p>
+                                <a href="{{ path('app_chat') }}" class="btn btn-sm px-4 rounded-pill text-white" style="background-color: #102c59;">Générer un plan</a>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="p-3 border rounded" style="border-color: #9dbbce !important;">
-                                    <h3 style="color: #102c59;">{{ plans_pedagogiques|default(0) }}</h3>
-                                    <p class="mb-0" style="color: #666;">Plans Pédagogiques</p>
-                                    <a href="{{ path('app_enseignant_plans') }}?categorie=PEDAGOGIQUE" class="btn btn-sm mt-2" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-                                        Voir <i class="bi bi-arrow-right"></i>
-                                    </a>
-                                </div>
+                        {% else %}
+                            <div class="timeline-custom mt-2">
+                                {% for plan in recentPlans %}
+                                    <div class="timeline-item position-relative ps-4 pb-4 border-start border-2 border-light last-border-none">
+                                        <div class="timeline-marker position-absolute rounded-circle" style="width: 12px; height: 12px; left: -7px; top: 0; background-color: {{ (plan.categorie.value ?? '') == 'PEDAGOGIQUE' ? '#102c59' : '#d52e28' }};"></div>
+                                        <div class="timeline-content">
+                                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                                <h6 class="mb-0 fw-bold">{{ plan.decision|length > 35 ? plan.decision|slice(0, 35) ~ '...' : plan.decision }}</h6>
+                                                <span class="badge rounded-pill small" style="background-color: {{ (plan.statut.name ?? '') == 'Fini' ? 'rgba(25,135,84,0.1)' : 'rgba(255,193,7,0.1)' }}; color: {{ (plan.statut.name ?? '') == 'Fini' ? '#198754' : '#ffc107' }}; border: 1px solid currentColor;">
+                                                    {{ plan.statut.value|default('Inconnu') }}
+                                                </span>
+                                            </div>
+                                            <div class="d-flex align-items-center text-muted small">
+                                                <i class="bi bi-calendar3 me-2"></i> {{ plan.date|date('d M Y') }}
+                                                <span class="mx-2">•</span>
+                                                <span class="text-uppercase fw-bold" style="font-size: 0.65rem; color: {{ (plan.categorie.value ?? '') == 'PEDAGOGIQUE' ? '#102c59' : '#d52e28' }};">
+                                                    {{ plan.categorie ? plan.categorie.getLabel() : 'Non classé' }}
+                                                </span>
+                                            </div>
+                                            <a href="{{ path('app_enseignant_plan_detail', {id: plan.id}) }}" class="stretched-link"></a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="p-3 border rounded" style="border-color: #9dbbce !important;">
-                                    <h3 style="color: #102c59;">{{ plans_administratifs|default(0) }}</h3>
-                                    <p class="mb-0" style="color: #666;">Plans Administratifs</p>
-                                    <a href="{{ path('app_enseignant_plans') }}?categorie=ADMINISTRATIVE" class="btn btn-sm mt-2" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
-                                        Voir <i class="bi bi-arrow-right"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Pied de page avec lien de retour au dashboard -->
-                        <div class="text-center mt-4 pt-3 border-top" style="border-color: #9dbbce !important;">
-                            <p class="mb-2" style="color: #666;">
-                                <i class="bi bi-info-circle me-1" style="color: #102c59;"></i>
-                                Dernière mise à jour: {{ "now"|date("d/m/Y H:i") }}
-                            </p>
-                            <a href="{{ path('app_enseignant_dashboard') }}" class="btn" style="background-color: #102c59; border-color: #102c59; color: white;">
-                                <i class="bi bi-arrow-clockwise me-1"></i> Actualiser le tableau de bord
-                            </a>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -231,155 +235,128 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Graphique des plans avec la charte de couleurs
-    const ctx = document.getElementById('plansChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: ['Plans Pédagogiques', 'Plans Administratifs'],
-            datasets: [{
-                data: [
-                    {{ plans_pedagogiques|default(0) }},
-                    {{ plans_administratifs|default(0) }}
-                ],
-                backgroundColor: [
-                    '#102c59', // Bleu marine pour pédagogique
-                    '#9dbbce'  // Bleu clair pour administratif
-                ],
-                borderColor: '#ffffff',
-                borderWidth: 2,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: '#102c59',
-                        font: {
-                            size: 14,
-                            weight: '500'
-                        },
-                        padding: 20
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(16, 44, 89, 0.9)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.label || '';
-                            if (label) {
-                                label += ': ';
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('plansChart').getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pédagogique', 'Administratif'],
+                datasets: [{
+                    data: [{{ plans_pedagogiques|default(0) }}, {{ plans_administratifs|default(0) }}],
+                    backgroundColor: ['#102c59', '#9dbbce'],
+                    borderColor: '#ffffff',
+                    borderWidth: 4,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                cutout: '75%',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: {
+                                size: 12,
+                                weight: 'bold'
                             }
-                            label += context.raw;
-                            label += ' plans';
-                            return label;
                         }
                     }
                 }
             }
-        }
-    });
-
-    // Auto-refresh optionnel toutes les 5 minutes
-    setTimeout(function() {
-        window.location.href = "{{ path('app_enseignant_dashboard') }}";
-    }, 300000); // 5 minutes = 300000 ms
-
-    // Animation des cartes
-    document.addEventListener('DOMContentLoaded', function() {
-        const cards = document.querySelectorAll('.card');
-        
-        cards.forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-5px)';
-                this.style.boxShadow = '0 15px 30px rgba(16, 44, 89, 0.15)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = '';
-                this.style.boxShadow = '';
-            });
-        });
-
-        // Animation des liens de navigation
-        const navLinks = document.querySelectorAll('.list-group-item');
-        navLinks.forEach(link => {
-            link.addEventListener('mouseenter', function() {
-                this.style.backgroundColor = '#f0f4f8';
-                this.style.borderLeft = '3px solid #102c59';
-            });
-            
-            link.addEventListener('mouseleave', function() {
-                this.style.backgroundColor = '';
-                this.style.borderLeft = '';
-            });
         });
     });
 </script>
 
 <style>
-.card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(16, 44, 89, 0.15) !important;
-}
-
-.list-group-item {
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
-}
-
-.list-group-item:hover {
-    background-color: #f0f4f8 !important;
-    border-left: 3px solid #102c59;
-}
-
-.stretched-link::after {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 1;
-    content: "";
-}
-
-.btn {
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(16, 44, 89, 0.2);
-    opacity: 0.95;
-}
-
-.bi {
-    transition: transform 0.3s ease;
-}
-
-.list-group-item:hover .bi-arrow-right {
-    transform: translateX(3px);
-}
-
-.rounded-circle {
-    transition: transform 0.3s ease;
-}
-
-.list-group-item:hover .rounded-circle {
-    transform: scale(1.1);
-}
+    .metric-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    .metric-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+    }
+    .icon-shape {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .hero-stats-circle {
+        width: 180px;
+        height: 180px;
+        border: 6px solid rgba(157, 187, 206, 0.3);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 30px rgba(157, 187, 206, 0.2);
+    }
+    .timeline-custom .timeline-item:last-child {
+        border-left-color: transparent !important;
+    }
+    .pulse-danger-soft {
+        animation: pulse-danger-soft 2s infinite;
+    }
+    @keyframes pulse-danger-soft {
+        0% { transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 0 0 rgba(213, 46, 40, 0.7); }
+        70% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 10px rgba(213, 46, 40, 0); }
+        100% { transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 0 0 rgba(213, 46, 40, 0); }
+    }
+    .transition-all {
+        transition: all 0.3s ease !important;
+    }
+    .hover-bg-light:hover {
+        background-color: rgba(16, 44, 89, 0.03) !important;
+    }
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .z-index-2 { z-index: 2; }
 </style>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script>
+    function treatAlert(studentId, btn) {
+        if (!confirm('Souhaitez-vous marquer cette alerte comme traitée ?')) return;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        
+        fetch(`/enseignant/treat-alerts/${studentId}`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const badge = document.querySelector(`#student-alert-${studentId}`);
+                if (badge) {
+                    badge.style.transition = 'all 0.5s ease';
+                    badge.style.opacity = '0';
+                    setTimeout(() => badge.remove(), 500);
+                }
+                btn.innerHTML = '<i class="bi bi-check-lg text-success"></i>';
+                btn.classList.replace('btn-outline-primary', 'btn-outline-success');
+                MentorUI.toast('success', 'Radar', 'Alerte traitée avec succès.');
+            }
+        })
+        .catch(error => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-eye"></i>';
+            MentorUI.toast('danger', 'Erreur', 'Impossible de traiter l\'alerte.');
+        });
+    }
+</script>
+<script>
+    AOS.init({ duration: 800, once: true });
+</script>
 {% endblock %}

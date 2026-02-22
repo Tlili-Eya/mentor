@@ -227,6 +227,138 @@
 		border-radius: 15px;
 		border: 2px dashed #e1e8ef;
 	}
+	/* Chatbot Widget Styles */
+	.chatbot-widget {
+		position: fixed;
+		bottom: 30px;
+		right: 30px;
+		z-index: 1000;
+	}
+
+	.chatbot-toggle {
+		width: 60px;
+		height: 60px;
+		background: var(--primary-color);
+		color: white;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 24px;
+		cursor: pointer;
+		box-shadow: 0 5px 15px rgba(16, 44, 89, 0.3);
+		transition: all 0.3s;
+	}
+
+	.chatbot-toggle:hover {
+		transform: scale(1.1);
+	}
+
+	.chatbot-window {
+		position: absolute;
+		bottom: 80px;
+		right: 0;
+		width: 350px;
+		height: 500px;
+		background: white;
+		border-radius: 20px;
+		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		opacity: 0;
+		pointer-events: none;
+		transform: translateY(20px);
+		transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+	}
+
+	.chatbot-window.open {
+		opacity: 1;
+		pointer-events: all;
+		transform: translateY(0);
+	}
+
+	.chatbot-header {
+		background: var(--primary-color);
+		color: white;
+		padding: 15px 20px;
+		font-weight: bold;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.chatbot-messages {
+		flex-grow: 1;
+		padding: 20px;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		background: var(--bg-light);
+	}
+
+	.chat-message {
+		max-width: 85%;
+		padding: 10px 15px;
+		border-radius: 15px;
+		font-size: 0.9rem;
+		line-height: 1.4;
+	}
+
+	.chat-message.bot {
+		background: white;
+		color: var(--primary-color);
+		align-self: flex-start;
+		border-bottom-left-radius: 5px;
+		box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+	}
+
+	.chat-message.user {
+		background: var(--secondary-color);
+		color: var(--primary-color);
+		font-weight: 500;
+		align-self: flex-end;
+		border-bottom-right-radius: 5px;
+	}
+
+	.chatbot-input {
+		padding: 15px;
+		background: white;
+		border-top: 1px solid #eee;
+		display: flex;
+		gap: 10px;
+	}
+
+	.chatbot-input input {
+		flex-grow: 1;
+		border: 1px solid #ddd;
+		border-radius: 20px;
+		padding: 8px 15px;
+		outline: none;
+	}
+
+	.chatbot-input input:focus {
+		border-color: var(--secondary-color);
+	}
+
+	.chatbot-input button {
+		background: var(--primary-color);
+		color: white;
+		border: none;
+		border-radius: 50%;
+		width: 40px;
+		height: 40px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: background 0.3s;
+	}
+
+	.chatbot-input button:hover {
+		background: var(--accent-color);
+	}
 </style>{% endblock %}{% block body %}
 <div class="page-title-banner">
 	<div class="container text-center" data-aos="fade-up">
@@ -456,6 +588,29 @@
 		</div>
 	</div>
 </div>
+<!-- Chatbot UI -->
+<div class="chatbot-widget">
+	<div class="chatbot-window" id="chatbotWindow">
+		<div class="chatbot-header">
+			<span>
+				<i class="bi bi-robot me-2"></i>Assistant MentorAI</span>
+			<i class="bi bi-x-lg" style="cursor:pointer" onclick="toggleChat()"></i>
+		</div>
+		<div class="chatbot-messages" id="chatMessages">
+			<div class="chat-message bot">Salut ! Je suis ton assistant IA. Que cherches-tu à créer comme projet aujourd'hui ? Je peux te proposer des idées, des ressources et t'aider à remplir le formulaire.</div>
+		</div>
+		<div class="chatbot-input">
+			<input type="text" id="chatInput" placeholder="Écris un message..." onkeypress="handleEnter(event)">
+			<button onclick="sendMessage()">
+				<i class="bi bi-send-fill"></i>
+			</button>
+		</div>
+	</div>
+	<div class="chatbot-toggle" onclick="toggleChat()">
+		<i class="bi bi-chat-dots-fill"></i>
+	</div>
+</div>
+
 <script>
 	function confirmDelete(url, projectName) {
 const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
@@ -477,4 +632,163 @@ bootstrap.Tab.getInstance(resourcesTab) ?. show() || new bootstrap.Tab(resources
 }
 }
 });
+
+// --- Chatbot Logic ---
+let chatHistory = [{
+role: "system",
+content: `Tu es un assistant IA sur le site MentorAI. Ton unique rôle est d'aider l'utilisateur à créer un projet académique ou professionnel, en lui proposant des idées de projets et des ressources. 
+RÈGLES STRICTES :
+1. TU NE DOIS RÉPONDRE À AUCUNE QUESTION HORS DU SUJET des projets informatiques, académiques ou professionnels. Si on te pose une question hors sujet (ex: météo, cuisine, blagues...), réponds poliment et fermement que tu es là uniquement pour parler de la création de projets sur MentorAI et recadre la discussion.
+2. Lorsque tu proposes une idée de projet, attends TOUJOURS que l'utilisateur dise qu'il l'accepte ou la CONFIRME avant d'envoyer un code JSON.
+3. SI ET SEULEMENT SI l'utilisateur dit explicitement qu'il valide, accepte ou "confirme" l'idée de projet (ex: "je confirme", "oui on part là dessus", "j'accepte cette idée"), ALORS tu DOIS inclure à la fin de ta réponse un bloc JSON EXACTEMENT sous ce format :
+\`\`\`json
+{
+	"fill_form": true,
+	"titre": "Le titre du projet",
+	"type": "Type du projet (Web, Mobile, Data, etc...)",
+	"description": "Une description claire et détaillée du projet et de ses objectifs.",
+	"technologies": "Les technologies (EX: PHP, Symfony, React)"
+}
+\`\`\`
+NE METS CE BLOC JSON SOUS AUCUN PRÉTEXTE SI L'UTILISATEUR N'A PAS DIT QU'IL CONFIRME L'IDÉE. N'invente pas un format différent, respecte strictement la structure JSON. Sois convivial, mais respecte impérativement ces règles.`
+}];
+
+function toggleChat() {
+document.getElementById('chatbotWindow').classList.toggle('open');
+}
+
+function handleEnter(e) {
+if (e.key === 'Enter') {
+sendMessage();
+}
+}
+
+async function sendMessage() {
+const inputField = document.getElementById('chatInput');
+const message = inputField.value.trim();
+if (! message) 
+return;
+
+
+appendMessage('user', message);
+inputField.value = '';
+
+chatHistory.push({role: "user", content: message});
+
+appendMessage('bot', '<i class="bi bi-three-dots"></i>');
+const msgsContainer = document.getElementById('chatMessages');
+const loadingMsg = msgsContainer.lastChild;
+
+try {
+const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'Authorization': 'Bearer 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'
+},
+body: JSON.stringify(
+{model: "llama-3.1-8b-instant", messages: chatHistory}
+)
+});
+
+const data = await response.json();
+msgsContainer.removeChild(loadingMsg);
+
+if (data.choices && data.choices.length > 0) {
+const aiMessage = data.choices[0].message.content;
+chatHistory.push({role: "assistant", content: aiMessage});
+
+// Parse json block
+const jsonRegex = /\`\`\`json\n([\s\S]*?)\n\`\`\`/i;
+const match = aiMessage.match(jsonRegex);
+
+let displayMessage = aiMessage;
+if (match) {
+try {
+const projectData = JSON.parse(match[1]);
+if (projectData.fill_form) {
+fillForm(projectData);
+displayMessage = displayMessage.replace(match[0], '<br><span class="badge bg-success py-2 px-3 fw-bold text-wrap"><i class="bi bi-check-circle me-1"></i> Formulaire pré-rempli avec les informations du projet !</span><br>');
+}
+} catch (e) {
+console.error("Erreur parsing JSON:", e);
+}
+}
+
+// Basic markdown formatting
+displayMessage = displayMessage.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+displayMessage = displayMessage.replace(/\n/g, '<br>');
+
+appendMessage('bot', displayMessage);
+} else {
+const errorMsg = data.error && data.error.message ? data.error.message : "Je n'ai pas pu générer de réponse.";
+appendMessage('bot', "Erreur API : " + errorMsg);
+}
+} catch (error) {
+if (msgsContainer.contains(loadingMsg)) 
+msgsContainer.removeChild(loadingMsg);
+
+appendMessage('bot', "Désolé, une erreur de connexion à l'IA est survenue. " + error.message);
+console.error(error);
+}
+}
+
+function appendMessage(sender, text) {
+const msgsContainer = document.getElementById('chatMessages');
+const msgDiv = document.createElement('div');
+msgDiv.className = `chat-message ${sender}`;
+msgDiv.innerHTML = text;
+msgsContainer.appendChild(msgDiv);
+msgsContainer.scrollTop = msgsContainer.scrollHeight;
+}
+
+function fillForm(data) {
+const titreInput = document.querySelector('[name$="[titre]"]');
+const typeInput = document.querySelector('[name$="[type]"]');
+const descInput = document.querySelector('[name$="[description]"]');
+const techInput = document.querySelector('[name$="[technologies]"]');
+
+if (titreInput) 
+titreInput.value = data.titre || '';
+
+if (typeInput) {
+if (typeInput.options) { // Try to find a matching option
+let found = false;
+Array.from(typeInput.options).forEach(opt => {
+if (opt.text.toLowerCase().includes(data.type.toLowerCase()) || (data.type.toLowerCase().includes(opt.value.toLowerCase()) && opt.value !== "")) {
+typeInput.value = opt.value;
+found = true;
+}
+});
+if (! found && typeInput.options.length > 0) { // Fallback to first non-empty option if no match
+typeInput.value = typeInput.options[1] ? typeInput.options[1].value : typeInput.options[0].value;
+}
+} else {
+typeInput.value = data.type || '';
+}
+}
+if (descInput) 
+descInput.value = data.description || '';
+
+if (techInput) 
+techInput.value = data.technologies || '';
+
+
+const infoTab = document.getElementById('info-tab');
+if (infoTab) 
+infoTab.click();
+
+
+const formSection = document.getElementById('project-form-section');
+if (formSection) {
+formSection.scrollIntoView({behavior: 'smooth'});
+
+// Highlight the form to show it was updated
+formSection.style.transition = 'box-shadow 0.5s ease-in-out';
+formSection.style.boxShadow = '0 0 25px var(--accent-color)';
+setTimeout(() => {
+formSection.style.boxShadow = '0 10px 30px rgba(16, 44, 89, 0.08)';
+}, 3000);
+}
+}
 </script>{% endblock %}

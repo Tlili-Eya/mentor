@@ -10,10 +10,10 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/admin', name: 'back_')]
 final class BackController extends AbstractController
 {
-    #[Route('/', name: 'home')]
-    public function home(): Response
+    #[Route('/dashboard', name: 'dashboard')]
+    public function dashboard(): Response
     {
-        return $this->render('back/home.html.twig');
+        return $this->render('back/dashboard.html.twig');
     }
 
     #[Route('/about', name: 'about')]
@@ -39,7 +39,35 @@ final class BackController extends AbstractController
     #[Route('/pricing', name: 'pricing')]
     public function pricing(): Response
     {
-        return $this->render('back/pricing.html.twig');
+        $stripeSecretKey = $this->getParameter('stripe_secret_key');
+        $transactions = [];
+
+        if ($stripeSecretKey) {
+            \Stripe\Stripe::setApiKey($stripeSecretKey);
+            try {
+                // Fetch PaymentIntents as they represent modern transactions
+                $paymentIntents = \Stripe\PaymentIntent::all(['limit' => 100]);
+                foreach ($paymentIntents->data as $intent) {
+                    $transactions[] = [
+                        'id' => $intent->id,
+                        'amount' => $intent->amount / 100, // Stripe uses cents
+                        'currency' => strtoupper($intent->currency),
+                        'status' => $intent->status,
+                        'email' => $intent->receipt_email ?? ($intent->customer ? 'Customer ID: ' . $intent->customer : 'N/A'),
+                        'created' => (new \DateTime())->setTimestamp($intent->created)->format('d/m/Y H:i'),
+                        'description' => $intent->description ?? 'No description'
+                    ];
+                }
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Erreur Stripe: ' . $e->getMessage());
+            }
+        } else {
+            $this->addFlash('warning', 'Clé secrète Stripe non configurée.');
+        }
+
+        return $this->render('back/pricing.html.twig', [
+            'transactions' => $transactions,
+        ]);
     }
 
     #[Route('/blog', name: 'blog')]

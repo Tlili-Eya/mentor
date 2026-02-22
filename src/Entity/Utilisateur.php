@@ -48,6 +48,9 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 20, options: ['default' => 'actif'])]
     private ?string $status = 'actif';
 
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $preferences = [];
+
     /**
      * @var Collection<int, CategorieArticle>
      */
@@ -84,6 +87,18 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Parcours::class, mappedBy: 'utilisateur')]
     private Collection $parcours;
 
+    /**
+     * @var Collection<int, Conversation>
+     */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Conversation::class, orphanRemoval: true)]
+    private Collection $conversations;
+
+    /**
+     * @var Collection<int, PlanActions>
+     */
+    #[ORM\OneToMany(targetEntity: PlanActions::class, mappedBy: 'auteur')]
+    private Collection $plansCrees;
+
     public function __construct()
     {
         $this->categorieArticles = new ArrayCollection();
@@ -92,6 +107,8 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
         $this->feedback = new ArrayCollection();
         $this->objectifs = new ArrayCollection();
         $this->parcours = new ArrayCollection();
+        $this->conversations = new ArrayCollection();
+        $this->plansCrees = new ArrayCollection();
     }
 
     // ==================== MÉTHODES POUR UserInterface ====================
@@ -254,6 +271,17 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->status = $status;
 
+        return $this;
+    }
+
+    public function getPreferences(): ?array
+    {
+        return $this->preferences ?? [];
+    }
+
+    public function setPreferences(?array $preferences): static
+    {
+        $this->preferences = $preferences;
         return $this;
     }
 
@@ -424,5 +452,70 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
             }
         }
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Conversation>
+     */
+    public function getConversations(): Collection
+    {
+        return $this->conversations;
+    }
+
+    public function addConversation(Conversation $conversation): static
+    {
+        if (!$this->conversations->contains($conversation)) {
+            $this->conversations->add($conversation);
+            $conversation->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeConversation(Conversation $conversation): static
+    {
+        if ($this->conversations->removeElement($conversation)) {
+            // set the owning side to null (unless already changed)
+            if ($conversation->getUser() === $this) {
+                $conversation->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PlanActions>
+     */
+    public function getPlansCrees(): Collection
+    {
+        return $this->plansCrees;
+    }
+
+    public function addPlansCree(PlanActions $plan): static
+    {
+        if (!$this->plansCrees->contains($plan)) {
+            $this->plansCrees->add($plan);
+            $plan->setAuteur($this);
+        }
+        return $this;
+    }
+
+    public function removePlansCree(PlanActions $plan): static
+    {
+        if ($this->plansCrees->removeElement($plan)) {
+            if ($plan->getAuteur() === $this) {
+                $plan->setAuteur(null);
+            }
+        }
+        return $this;
+    }
+
+    public function __toString(): string
+    {
+        if ($this->nom || $this->prenom) {
+            return trim(($this->prenom ?? '') . ' ' . ($this->nom ?? ''));
+        }
+        return $this->email ?? 'Utilisateur inconnu';
     }
 }

@@ -70,11 +70,20 @@
         </select>
       </div>
       <div class="col-md-2">
+        <select name="statut" class="form-select">
+          <option value="">Tous les status</option>
+          <option value="NOUVEAU" {{ statut == 'NOUVEAU' ? 'selected' : '' }}>Nouveau</option>
+          <option value="PLANIFIE" {{ statut == 'PLANIFIE' ? 'selected' : '' }}>Planifié</option>
+          <option value="IGNORE" {{ statut == 'IGNORE' ? 'selected' : '' }}>Ignoré</option>
+        </select>
+      </div>
+      <div class="col-md-2">
         <select name="sort" class="form-select">
           <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Date création</option>
           <option value="cible" {% if sortBy == 'cible' %}selected{% endif %}>Cible</option>
           <option value="typeSortie" {% if sortBy == 'typeSortie' %}selected{% endif %}>Type</option>
           <option value="criticite" {% if sortBy == 'criticite' %}selected{% endif %}>Criticité</option>
+          <option value="statut" {% if sortBy == 'statut' %}selected{% endif %}>Status</option>
         </select>
       </div>
       <div class="col-md-1">
@@ -93,9 +102,9 @@
                 <th>#</th>
                 <th>Type</th>
                 <th>Cible</th>
-                <th>Catégorie</th>
                 <th>Criticité</th>
                 <th>Contenu</th>
+                <th class="text-center">Traitement</th>
                 <th>Date</th>
                 <th class="text-end">Actions</th>
               </tr>
@@ -115,29 +124,54 @@
                     {% endif %}
                   </td>
                   <td>{{ sortie.cible.value }}</td>
-                  <td>{{ sortie.categorieSortie.value }}</td>
                   <td>
                     {% if sortie.criticite.value == 'ELEVE' %}
-                      <span class="badge bg-danger">ÉLEVÉ</span>
+                      <span class="badge bg-danger pulse-danger-soft">ÉLEVÉ</span>
                     {% elseif sortie.criticite.value == 'MOYEN' %}
                       <span class="badge bg-warning text-dark">MOYEN</span>
                     {% else %}
                       <span class="badge bg-secondary">FAIBLE</span>
                     {% endif %}
                   </td>
-                  <td>{{ sortie.contenu|length > 50 ? sortie.contenu|slice(0, 50) ~ '...' : sortie.contenu }}</td>
+                  <td title="{{ sortie.contenu }}">{{ sortie.contenu|length > 40 ? sortie.contenu|slice(0, 40) ~ '...' : sortie.contenu }}</td>
+                  <td class="text-center">
+                    {% set statut = sortie.statut %}
+                    <span class="badge rounded-pill bg-soft-{{ statut.getColor() }} text-{{ statut.getColor() }} border border-{{ statut.getColor() }} border-opacity-25 shadow-sm">
+                        <i class="bi bi-{{ statut.value == 'PLANIFIE' ? 'check-circle-fill' : (statut.value == 'IGNORE' ? 'dash-circle' : 'plus-circle') }} me-1"></i>
+                        {{ statut.getLabel() }}
+                    </span>
+                  </td>
                   <td>{{ sortie.createdAt|date('d/m/Y') }}</td>
                   <td class="text-end">
-                    {# GARDER SEULEMENT VOIR ET SUPPRIMER - PAS DE MODIFIER #}
-                    <a href="{{ path('app_sortie_ai_show', {id: sortie.id}) }}" class="btn btn-sm btn-outline-info me-1" title="Voir détails">
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <form method="post" action="{{ path('app_sortie_ai_delete', {id: sortie.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette sortie IA ?');">
-                      <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ sortie.id) }}">
-                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </form>
+                    <div class="btn-group">
+                        <a href="{{ path('app_sortie_ai_show', {id: sortie.id}) }}" class="btn btn-sm btn-outline-info" title="Voir détails">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        
+                        {% if sortie.statut.value == 'NOUVEAU' %}
+                            <a href="{{ path('app_plan_actions_new', {from_sortie: sortie.id}) }}" class="btn btn-sm btn-primary" title="Transformer en Plan d'Action">
+                                <i class="bi bi-lightning-fill"></i> Agir
+                            </a>
+                            <form method="post" action="{{ path('app_sortie_ai_ignore', {id: sortie.id}) }}" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Ignorer cette alerte">
+                                    <i class="bi bi-slash-circle"></i>
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        <form id="delete-form-{{ sortie.id }}" method="post" action="{{ path('app_sortie_ai_delete', {id: sortie.id}) }}" style="display:inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ sortie.id) }}">
+                        <button type="button" class="btn btn-sm btn-outline-danger shadow-none" title="Supprimer" 
+                                onclick="MentorUI.confirm({
+                                    type: 'danger',
+                                    title: 'Supprimer Sortie IA',
+                                    message: 'Voulez-vous vraiment supprimer cette sortie IA ?',
+                                    onConfirm: () => document.getElementById('delete-form-{{ sortie.id }}').submit()
+                                })">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        </form>
+                    </div>
                   </td>
                 </tr>
               {% else %}
@@ -159,19 +193,19 @@
         <ul class="pagination justify-content-center">
           {% if currentPage > 1 %}
             <li class="page-item">
-              <a class="page-link" href="{{ path('app_sortie_ai_index', {page: currentPage - 1, search: search, sort: sortBy, order: order, cible: cible, type: typeSortie, criticite: criticite}) }}">Précédent</a>
+              <a class="page-link" href="{{ path('app_sortie_ai_index', {page: currentPage - 1, search: search, sort: sortBy, order: order, cible: cible, type: typeSortie, criticite: criticite, statut: statut}) }}">Précédent</a>
             </li>
           {% endif %}
 
           {% for i in 1..totalPages %}
             <li class="page-item {% if i == currentPage %}active{% endif %}">
-              <a class="page-link" href="{{ path('app_sortie_ai_index', {page: i, search: search, sort: sortBy, order: order, cible: cible, type: typeSortie, criticite: criticite}) }}">{{ i }}</a>
+              <a class="page-link" href="{{ path('app_sortie_ai_index', {page: i, search: search, sort: sortBy, order: order, cible: cible, type: typeSortie, criticite: criticite, statut: statut}) }}">{{ i }}</a>
             </li>
           {% endfor %}
 
           {% if currentPage < totalPages %}
             <li class="page-item">
-              <a class="page-link" href="{{ path('app_sortie_ai_index', {page: currentPage + 1, search: search, sort: sortBy, order: order, cible: cible, type: typeSortie, criticite: criticite}) }}">Suivant</a>
+              <a class="page-link" href="{{ path('app_sortie_ai_index', {page: currentPage + 1, search: search, sort: sortBy, order: order, cible: cible, type: typeSortie, criticite: criticite, statut: statut}) }}">Suivant</a>
             </li>
           {% endif %}
         </ul>
@@ -181,4 +215,20 @@
   </div>
 </section>
 
+
+<style>
+    .bg-soft-success { background-color: rgba(25, 135, 84, 0.1); }
+    .bg-soft-secondary { background-color: rgba(108, 117, 125, 0.1); }
+    .bg-soft-info { background-color: rgba(13, 202, 240, 0.1); }
+    
+    @keyframes pulse-danger-soft {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+        70% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
+    .pulse-danger-soft { animation: pulse-danger-soft 2s infinite; }
+
+    .btn-group .btn { margin-right: 2px; border-radius: 4px !important; }
+    .btn-group .btn:last-child { margin-right: 0; }
+</style>
 {% endblock %}

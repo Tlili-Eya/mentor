@@ -1,0 +1,146 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}About Us - MentorAI
+{% endblock %}
+
+{% block stylesheets %}
+	<style>
+		.about-section {
+			padding: 80px 0;
+			background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+			min-height: calc(100vh - 160px);
+		}
+
+		.glass-card {
+			background: rgba(255, 255, 255, 0.7);
+			backdrop-filter: blur(10px);
+			border-radius: 20px;
+			border: 1px solid rgba(255, 255, 255, 0.3);
+			box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+			padding: 40px;
+			transition: transform 0.3s ease;
+		}
+
+		.glass-card:hover {
+			transform: translateY(-10px);
+		}
+
+		.qr-container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			background: white;
+			padding: 24px;
+			border-radius: 15px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+			margin-top: 20px;
+			display: inline-block;
+		}
+
+		#qrcode img {
+			margin: 0 auto;
+		}
+
+		.badge-premium {
+			background: linear-gradient(45deg, #FFD700, #FFA500);
+			color: white;
+			padding: 5px 15px;
+			border-radius: 50px;
+			font-size: 0.8rem;
+			font-weight: bold;
+			display: inline-block;
+			margin-bottom: 15px;
+		}
+
+		.section-title h2 {
+			font-weight: 700;
+			color: #2c3e50;
+			margin-bottom: 20px;
+		}
+
+		.ip-display {
+			background: #f1f3f5;
+			padding: 8px 15px;
+			border-radius: 8px;
+			font-family: 'Courier New', Courier, monospace;
+			color: #495057;
+			font-size: 1rem;
+			font-weight: bold;
+			border: 1px dashed #ced4da;
+		}
+	</style>
+{% endblock %}
+
+{% block body %}
+	<section class="about-section d-flex align-items-center">
+		<div class="container" data-aos="fade-up">
+			<div class="row align-items-center">
+				<div class="col-lg-6">
+					<div class="section-title">
+						<span class="badge-premium">Innovation & Technologie</span>
+						<h2 class="display-5">À propos de MentorAI</h2>
+						<p class="lead text-secondary mb-4">Votre plateforme intelligente d'accompagnement et de gestion de carrière.</p>
+						<p class="text-muted mb-4">MentorAI combine la puissance de l'intelligence artificielle avec une approche centrée sur l'humain pour vous aider à atteindre vos objectifs professionnels.</p>
+
+						<div class="mt-4">
+							<div class="d-flex align-items-center mb-3">
+								<div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+									<i class="bi bi-check2 text-primary"></i>
+								</div>
+								<span class="fw-medium">Suivi de progression personnalisé</span>
+							</div>
+							<div class="d-flex align-items-center mb-3">
+								<div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+									<i class="bi bi-check2 text-primary"></i>
+								</div>
+								<span class="fw-medium">IA Chatbot intégrée</span>
+							</div>
+							<div class="d-flex align-items-center mb-3">
+								<div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+									<i class="bi bi-check2 text-primary"></i>
+								</div>
+								<span class="fw-medium">Gestion de projets et parcours</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-lg-5 offset-lg-1">
+					<div class="glass-card text-center">
+						<h3 class="mb-3 h4">Accès Mobile Rapide</h3>
+						<p class="text-muted small">Scannez ce QR code pour accéder instantanément au site sur votre téléphone.</p>
+
+						<div class="qr-container">
+							<div id="qrcode"></div>
+						</div>
+
+
+						<div class="mt-4 pt-3 border-top">
+							<p class="small text-muted mb-0">
+								<i class="bi bi-wifi me-1"></i>
+								Le téléphone doit être sur le même Wi-Fi.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+{% endblock %}
+
+{% block javascripts %}
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+var qrcode = new QRCode(document.getElementById("qrcode"), {
+text: "http://172.26.87.177:8000",
+width: 180,
+height: 180,
+colorDark: "#2c3e50",
+colorLight: "#ffffff",
+correctLevel: QRCode.CorrectLevel.H
+});
+});
+	</script>
+{% endblock %}

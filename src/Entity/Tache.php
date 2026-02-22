@@ -9,6 +9,10 @@ use App\Enum\Etat;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TacheRepository::class)]
+#[ORM\UniqueConstraint(
+    name: 'unique_ordre_per_programme',
+    columns: ['programme_id', 'ordre']
+)]
 class Tache
 {
     #[ORM\Id]
@@ -33,7 +37,6 @@ class Tache
     #[Assert\NotNull(message: "L'état est obligatoire")]
     private ?Etat $etat = null;
 
-
     #[ORM\ManyToOne(inversedBy: 'tache')]
     private ?Programme $programme = null;
 
@@ -53,17 +56,18 @@ class Tache
 
         return $this;
     }
+
     public function getTitre(): ?string
-   {
-    return $this->titre;
+    {
+        return $this->titre;
     }
 
     public function setTitre(string $titre): static
     {
-    $this->titre = $titre;
+        $this->titre = $titre;
 
-     return $this;
-     }
+        return $this;
+    }
 
     public function getDescription(): ?string
     {

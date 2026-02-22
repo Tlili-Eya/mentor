@@ -1,18 +1,19 @@
 <?php
 namespace App\Controller;
 use App\Entity\Objectif;
-use App\Repository\ObjectifRepository;
+use App\Entity\Utilisateur;
 use App\Enum\Statutobj;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use App\Repository\ObjectifRepository;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\PhpWord;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\Routing\Attribute\Route;
 
 class BackObjectifController extends AbstractController
 {
@@ -169,5 +170,15 @@ public function show(?Objectif $objectif): Response
             'objectif' => $objectif,
         ]);
     }
+    #[Route('/admin/utilisateur/{id}/objectifs', name: 'back_utilisateur_objectifs', methods: ['GET'])]
+public function objectifsUtilisateur(Utilisateur $utilisateur): Response
+{
+    $objectifs = $utilisateur->getObjectifs(); // ou $objectifRepository->findBy(['utilisateur' => $utilisateur])
+
+    return $this->render('back/objectif_utilisateur_show.html.twig', [
+        'utilisateur' => $utilisateur,
+        'objectifs'   => $objectifs,
+    ]);
+}
 
 }

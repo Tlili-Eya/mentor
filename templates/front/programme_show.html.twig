@@ -262,18 +262,26 @@
 
 	<!-- Motivation Banner -->
 	{% if programme.motivation|length > 0 %}
-		{% set dernier = programme.motivation|sort((a,b) => b.dategeneratiomm <=> a.dategeneratiomm)|first %}
-		<div class="motivation-banner" data-aos="fade-up">
-			<i class="bi bi-quote quote-icon"></i>
-			<h5 class="fw-bold text-uppercase small mb-2" style="color: var(--accent-color); letter-spacing: 1px;">Le mot du mentor</h5>
-			<p class="fs-5 mb-1 text-dark fw-medium" style="white-space: pre-line;">"{{ dernier.messagemotivant|default('Chaque pas compte. Continuez ainsi !') }}"</p>
-			<small class="text-muted italic">{{ dernier.dategeneratiomm|date('d/m/Y H:i') }}</small>
-		</div>
-	{% else %}
-		<div class="alert alert-light mt-4 text-center py-4">
-			Aucun message motivant pour le moment
-		</div>
-	{% endif %}
+    {# On prend le message avec l'ID le plus grand = le plus récent #}
+    {% set dernierMessage = programme.motivation|sort((a, b) => b.id <=> a.id)|first %}
+    
+    <div class="motivation-banner" data-aos="fade-up">
+        <i class="bi bi-quote quote-icon"></i>
+        <h5 class="fw-bold text-uppercase small mb-2" style="color: var(--accent-color); letter-spacing: 1px;">
+            Le mot du mentor
+        </h5>
+        <p class="fs-5 mb-1 text-dark fw-medium" style="white-space: pre-line;">
+            "{{ dernierMessage.messagemotivant }}"
+        </p>
+        <small class="text-muted italic">
+            {{ dernierMessage.dategeneratiomm|date('d/m/Y') }}
+        </small>
+    </div>
+{% else %}
+    <div class="alert alert-light mt-4 text-center py-4">
+        Aucun message motivant pour le moment
+    </div>
+{% endif %}
 
 	<!-- Stats Cards -->
 	<div class="row g-4 mb-5">

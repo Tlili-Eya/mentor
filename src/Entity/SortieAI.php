@@ -7,6 +7,7 @@ use App\Enum\Cible;
 use App\Enum\TypeSortie;
 use App\Enum\Criticite;
 use App\Enum\CategorieSortie;
+use App\Enum\StatutSortie;
 use App\Repository\SortieAIRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -20,6 +21,12 @@ class SortieAI
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+
+    #[ORM\ManyToOne]
+    private ?Utilisateur $etudiant = null;
+
+    #[ORM\Column(type: 'string', length: 20, enumType: StatutSortie::class, options: ["default" => StatutSortie::Nouveau])]
+    private StatutSortie $statut = StatutSortie::Nouveau;
 
     #[ORM\Column(type: 'string', length: 20, enumType: Cible::class, nullable: false)]
     private Cible $cible;
@@ -45,18 +52,26 @@ class SortieAI
     #[ORM\OneToMany(targetEntity: PlanActions::class, mappedBy: 'sortieAI', orphanRemoval: true)]
     private Collection $planActions;
 
-    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'sortiesAI')]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?ReferenceArticle $article = null;
+    /**
+     * @var Collection<int, ReferenceArticle>
+     */
+    #[ORM\ManyToMany(targetEntity: ReferenceArticle::class, inversedBy: 'sortiesAI')]
+    #[ORM\JoinTable(name: 'sortie_ai_articles')]
+    private Collection $articles;
 
     public function __construct()
     {
         $this->planActions = new ArrayCollection();
+        $this->articles = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
-    // GETTERS ET SETTERS (copie depuis ton fichier actuel)
+    // GETTERS ET SETTERS
     public function getId(): ?int { return $this->id; }
+    public function getEtudiant(): ?Utilisateur { return $this->etudiant; }
+    public function setEtudiant(?Utilisateur $etudiant): static { $this->etudiant = $etudiant; return $this; }
+    public function getStatut(): StatutSortie { return $this->statut; }
+    public function setStatut(StatutSortie $statut): static { $this->statut = $statut; return $this; }
     public function getCible(): Cible { return $this->cible; }
     public function setCible(Cible $cible): static { $this->cible = $cible; return $this; }
     public function getTypeSortie(): TypeSortie { return $this->typeSortie; }
@@ -87,6 +102,31 @@ class SortieAI
         }
         return $this;
     }
-    public function getArticle(): ?ReferenceArticle { return $this->article; }
-    public function setArticle(?ReferenceArticle $article): static { $this->article = $article; return $this; }
+    /**
+     * @return Collection<int, ReferenceArticle>
+     */
+    public function getArticles(): Collection { return $this->articles; }
+
+    public function addArticle(ReferenceArticle $article): static
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles->add($article);
+        }
+        return $this;
+    }
+
+    public function removeArticle(ReferenceArticle $article): static
+    {
+        $this->articles->removeElement($article);
+        return $this;
+    }
+
+    public function __toString(): string
+    {
+        return sprintf(
+            'Sortie AI #%d (%s)',
+            $this->id ?? 0,
+            $this->typeSortie ? $this->typeSortie->value : 'Inconnu'
+        );
+    }
 }

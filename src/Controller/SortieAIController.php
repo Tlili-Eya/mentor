@@ -23,6 +23,7 @@ class SortieAIController extends AbstractController
         $cible = $request->query->get('cible', '');
         $typeSortie = $request->query->get('type', '');
         $criticite = $request->query->get('criticite', '');
+        $statut = $request->query->get('statut', '');
         $page = max(1, $request->query->getInt('page', 1));
         $limit = 10;
 
@@ -51,8 +52,13 @@ class SortieAIController extends AbstractController
                ->setParameter('criticite', $criticite);
         }
 
+        if (!empty($statut)) {
+            $qb->andWhere('s.statut = :statut')
+               ->setParameter('statut', $statut);
+        }
+
         // Tri
-        $validSorts = ['id', 'createdAt', 'cible', 'typeSortie', 'criticite'];
+        $validSorts = ['id', 'createdAt', 'cible', 'typeSortie', 'criticite', 'statut'];
         if (in_array($sortBy, $validSorts)) {
             $qb->orderBy('s.' . $sortBy, strtoupper($order) === 'ASC' ? 'ASC' : 'DESC');
         }
@@ -74,6 +80,7 @@ class SortieAIController extends AbstractController
             'cible' => $cible,
             'typeSortie' => $typeSortie,
             'criticite' => $criticite,
+            'statut' => $statut,
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'total' => $total,
@@ -106,8 +113,22 @@ class SortieAIController extends AbstractController
     #[Route('/{id}', name: 'app_sortie_ai_show', methods: ['GET'])]
     public function show(SortieAI $sortieAI): Response
     {
+        $content = $sortieAI->getContenu();
+        $jsonParsed = null;
+        $cleanedText = $content;
+
+        // Extraction du bloc JSON si présent
+        if (preg_match('/```json\s*(.*?)\s*```/s', $content, $matches)) {
+            $jsonStr = $matches[1];
+            $jsonParsed = json_decode($jsonStr, true);
+            // On nettoie le texte pour ne pas réafficher le JSON brut
+            $cleanedText = trim(str_replace($matches[0], '', $content));
+        }
+
         return $this->render('back/sortie_ai/show.html.twig', [
             'sortie_ai' => $sortieAI,
+            'data' => $jsonParsed,
+            'text_intro' => $cleanedText
         ]);
     }
 
@@ -142,6 +163,16 @@ class SortieAIController extends AbstractController
             $this->addFlash('success', 'La sortie IA a été supprimée avec succès!');
         }
 
+        return $this->redirectToRoute('app_sortie_ai_index');
+    }
+
+    #[Route('/{id}/ignore', name: 'app_sortie_ai_ignore', methods: ['POST'])]
+    public function ignore(SortieAI $sortieAI, EntityManagerInterface $entityManager): Response
+    {
+        $sortieAI->setStatut(\App\Enum\StatutSortie::Ignore);
+        $entityManager->flush();
+
+        $this->addFlash('info', 'La sortie IA a été marquée comme ignorée.');
         return $this->redirectToRoute('app_sortie_ai_index');
     }
 

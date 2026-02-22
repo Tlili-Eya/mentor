@@ -218,4 +218,9 @@ class Projet
 
         return $this;
     }
+
+    public function __toString(): string
+    {
+        return $this->titre ?? 'Projet sans titre';
+    }
 }

@@ -202,12 +202,11 @@
                 <thead style="background-color: #9dbbce;">
                   <tr>
                     <th scope="col" style="color: #102c59; border-bottom: none;">#</th>
+                    <th scope="col" style="color: #102c59; border-bottom: none;">Origine</th>
                     <th scope="col" style="color: #102c59; border-bottom: none;">Décision</th>
-                    <th scope="col" style="color: #102c59; border-bottom: none;">Description</th>
                     <th scope="col" style="color: #102c59; border-bottom: none;">Catégorie</th>
                     <th scope="col" style="color: #102c59; border-bottom: none;">Statut</th>
                     <th scope="col" style="color: #102c59; border-bottom: none;">Articles</th> 
-
                     <th scope="col" style="color: #102c59; border-bottom: none;">Date</th>
                     <th scope="col" class="text-center" style="color: #102c59; border-bottom: none;">Actions</th>
                   </tr>
@@ -216,13 +215,22 @@
                   {% for plan in plans %}
                     <tr style="border-color: #e9ecef;">
                       <th scope="row">{{ plan.id }}</th>
-                      <td class="fw-medium" style="color: #102c59;">{{ plan.decision }}</td>
-                      <td>
-                        {% if plan.description %}
-                          {{ plan.description|slice(0, 50) }}{% if plan.description|length > 50 %}...{% endif %}
+                      <td class="align-middle">
+                        {% if plan.sortieAI %}
+                            <a href="{{ path('app_sortie_ai_show', {id: plan.sortieAI.id}) }}" class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info border-opacity-25 text-decoration-none pulse-info-soft" title="Généré suite à une alerte IA">
+                                <i class="bi bi-robot me-1"></i> IA
+                            </a>
                         {% else %}
-                          <span class="text-muted">Aucune description</span>
+                            <span class="badge rounded-pill bg-light text-muted border border-secondary border-opacity-10">
+                                <i class="bi bi-person me-1"></i> Manuel
+                            </span>
                         {% endif %}
+                      </td>
+                      <td class="fw-medium align-middle" style="color: #102c59;">
+                         <div class="mb-1">{{ plan.decision }}</div>
+                         {% if plan.description %}
+                            <small class="text-muted fw-normal d-block text-truncate" style="max-width: 200px; font-size: 0.75rem;">{{ plan.description }}</small>
+                         {% endif %}
                       </td>
                       <td>
                         {% if plan.categorie %}
@@ -424,6 +432,12 @@
 .btn:focus {
   box-shadow: 0 0 0 0.2rem rgba(16, 44, 89, 0.25);
 }
+    @keyframes pulse-info-soft {
+        0% { box-shadow: 0 0 0 0 rgba(13, 202, 240, 0.4); }
+        70% { box-shadow: 0 0 0 6px rgba(13, 202, 240, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(13, 202, 240, 0); }
+    }
+    .pulse-info-soft { animation: pulse-info-soft 2s infinite; }
 </style>
 
 <script>

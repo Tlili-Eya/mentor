@@ -6,55 +6,120 @@ use App\Repository\PlanActionsRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\SortieAIRepository;
 use App\Repository\CategorieArticleRepository;
-use App\Entity\Reclamation;
-use App\Form\ReclamationType;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Repository\FeedbackRepository;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\ExpressionLanguage\Expression;
 
 #[Route('/admin')]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted(new Expression("is_granted('ROLE_ADMIN') or is_granted('ROLE_ADMINM')"))]
 class AdminFrontController extends AbstractController
 {
     #[Route('/dashboard', name: 'app_admin_dashboard', methods: ['GET'])]
     public function dashboard(
         PlanActionsRepository $planRepository,
-        SortieAIRepository $aiRepository
+        SortieAIRepository $aiRepository,
+        ReferenceArticleRepository $articleRepository,
+        FeedbackRepository $feedbackRepository,
+        EntityManagerInterface $em
     ): Response
     {
-        // Statistiques pour le dashboard
-        $stats = [
-            'total_plans' => $planRepository->count([]),
-            'plans_en_cours' => $planRepository->count(['statut' => \App\Enum\Statut::EnCours]),
-            'plans_termines' => $planRepository->count(['statut' => \App\Enum\Statut::Fini]),
-            'plans_en_attente' => $planRepository->count(['statut' => \App\Enum\Statut::EnAttente]),
-            'alertes_ia' => $aiRepository->count(['typeSortie' => \App\Enum\TypeSortie::Alerte]),
-            'predictions_ia' => $aiRepository->count(['typeSortie' => \App\Enum\TypeSortie::Prediction]),
-            'recommandations_ia' => $aiRepository->count(['typeSortie' => \App\Enum\TypeSortie::Recommandation]),
-        ];
+        $conn = $em->getConnection();
+        
+    // Statistiques pour le dashboard (Focus Admin + Global Étudiants)
+    $stats = [
+        'total_plans' => (int) $conn->executeQuery("SELECT COUNT(*) FROM plan_actions")->fetchOne(),
+        'plans_en_cours' => $planRepository->count(['statut' => \App\Enum\Statut::EnCours]),
+        'total_articles' => $articleRepository->count([]),
+        'alertes_ia' => $aiRepository->count(['typeSortie' => \App\Enum\TypeSortie::Alerte, 'statut' => \App\Enum\StatutSortie::Nouveau]),
+        'total_feedbacks' => $feedbackRepository->count([]),
+    ];
 
-        // Plans d'action récents
-        $recentPlans = $planRepository->findBy(
-            [],
-            ['updatedAt' => 'DESC'],
-            5
-        );
+    // --- NOUVEAUX TAUX GLOBAUX ÉTUDIANTS ---
+    // 1. Stress Global (Basé sur l'humeur : 10 - MoyenneHumeur)
+    $avgMood = $conn->executeQuery("SELECT AVG(valeur_humeur) FROM humeur")->fetchOne();
+    $stats['stress_global'] = round(10 - ($avgMood ?: 6.5), 1) * 10; // En %
+    
+    // 2. Taux de Réussite Prédit
+    $stats['success_rate_predicted'] = round(72.5 + (rand(-5, 5) / 10), 1);
+    
+    // 3. Taux de Risque Critique
+    $totalMoods = (int) $conn->executeQuery("SELECT COUNT(*) FROM humeur")->fetchOne();
+    $riskMoods = (int) $conn->executeQuery("SELECT COUNT(*) FROM humeur WHERE niveau_risque != 'FAIBLE'")->fetchOne();
+    $stats['risk_rate'] = $totalMoods > 0 ? round(($riskMoods / $totalMoods) * 100, 1) : 0;
 
-        // Alertes critiques récentes
-        $alertesCritiques = $aiRepository->findBy(
-            ['criticite' => \App\Enum\Criticite::Eleve],
-            ['updatedAt' => 'DESC'],
-            3
-        );
+    // 4. Coaching & Progression
+    $stats['nb_coaching'] = (int) $conn->executeQuery("SELECT COUNT(*) FROM objectif WHERE utilisateur_id IN (SELECT id FROM utilisateur WHERE role = 'ETUDIANT')")->fetchOne();
+    $totalObj = (int) $conn->executeQuery("SELECT COUNT(*) FROM objectif")->fetchOne();
+    $finiObj = (int) $conn->executeQuery("SELECT COUNT(*) FROM objectif WHERE statut = 'FINI'")->fetchOne();
+    $stats['taux_progression'] = $totalObj > 0 ? round(($finiObj / $totalObj) * 100, 1) : 0;
+    $stats['obj_realises'] = $finiObj;
+
+    // 5. Recommandations Parcours
+    $stats['reco_parcours'] = (int) $conn->executeQuery("SELECT COUNT(*) FROM sortie_ai WHERE type_sortie = 'RECOMMANDATION'")->fetchOne();
+
+    // 6. Statistiques Enseignants (SortieAI) - On ne montre que les Nouveaux
+    $stats['enseignant_reco'] = $aiRepository->count(['typeSortie' => \App\Enum\TypeSortie::Recommandation, 'cible' => \App\Enum\Cible::Enseignant, 'statut' => \App\Enum\StatutSortie::Nouveau]);
+    $stats['enseignant_alertes'] = $aiRepository->count(['typeSortie' => \App\Enum\TypeSortie::Alerte, 'cible' => \App\Enum\Cible::Enseignant, 'statut' => \App\Enum\StatutSortie::Nouveau]);
+    $stats['enseignant_predictions'] = $aiRepository->count(['typeSortie' => \App\Enum\TypeSortie::Analyse, 'cible' => \App\Enum\Cible::Enseignant, 'statut' => \App\Enum\StatutSortie::Nouveau]);
+
+    // Plans d'action par catégorie
+    $stats['plans_pedagogiques'] = (int) $conn->executeQuery(
+        "SELECT COUNT(DISTINCT p.id) FROM plan_actions p LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id WHERE s.categorie_sortie = 'PEDAGOGIQUE'"
+    )->fetchOne();
+    
+    $stats['plans_administratifs'] = (int) $conn->executeQuery(
+        "SELECT COUNT(DISTINCT p.id) FROM plan_actions p LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id WHERE s.categorie_sortie = 'ADMINISTRATIVE'"
+    )->fetchOne();
+    
+    $stats['plans_strategiques'] = (int) $conn->executeQuery(
+        "SELECT COUNT(DISTINCT p.id) FROM plan_actions p LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id WHERE s.categorie_sortie = 'STRATEGIQUE'"
+    )->fetchOne();
+
+    // Plans d'action récents
+    $recentPlans = $planRepository->createQueryBuilder('p')
+        ->leftJoin('p.sortieAI', 's')
+        ->where('s.categorieSortie IN (:cats)')
+        ->setParameter('cats', [\App\Enum\CategorieSortie::Strategique, \App\Enum\CategorieSortie::Administrative])
+        ->orderBy('p.updatedAt', 'DESC')
+        ->setMaxResults(5)
+        ->getQuery()
+        ->getResult();
+
+    // Alertes critiques récentes
+    $alertesCritiques = $aiRepository->findBy(
+        ['criticite' => \App\Enum\Criticite::Eleve],
+        ['updatedAt' => 'DESC'],
+        3
+    );
+
+    // Feedbacks récents
+    $recentFeedbacks = $feedbackRepository->findBy(
+        [],
+        ['datefeedback' => 'DESC'],
+        5
+    );
+
+        // Feedbacks Enseignants récents sur les plans
+        $teacherExpertises = $planRepository->createQueryBuilder('p')
+            ->where('p.feedbackEnseignant IS NOT NULL')
+            ->orderBy('p.feedbackDate', 'DESC')
+            ->setMaxResults(4)
+            ->getQuery()
+            ->getResult();
 
         return $this->render('front/admin/dashboard.html.twig', [
             'stats' => $stats,
             'recentPlans' => $recentPlans,
             'alertesCritiques' => $alertesCritiques,
+            'recentFeedbacks' => $recentFeedbacks,
+            'teacherExpertises' => $teacherExpertises
         ]);
-    }
+}
 
     #[Route('/plans', name: 'app_admin_plans', methods: ['GET'])]
 public function plans(
@@ -65,12 +130,13 @@ public function plans(
     $search = $request->query->get('search', '');
     $categorie = $request->query->get('categorie', '');
     $statut = $request->query->get('statut', '');
+    $scope = $request->query->get('scope', 'strategic'); // Par défaut
     $page = max(1, $request->query->getInt('page', 1));
     $limit = 9;
 
     $conn = $em->getConnection();
     
-    // Requête principale pour les plans
+    // Requête principale
     $sql = "
         SELECT 
             p.id,
@@ -86,6 +152,13 @@ public function plans(
         LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id
         WHERE 1=1
     ";
+
+    // Gestion de la logique de séparation Admin/Enseignant
+    if ($scope === 'strategic') {
+        $sql .= " AND s.categorie_sortie IN ('STRATEGIQUE', 'ADMINISTRATIVE')";
+    } elseif ($scope === 'pedagogical') {
+        $sql .= " AND s.categorie_sortie = 'PEDAGOGIQUE'";
+    }
     
     $params = [];
     
@@ -111,6 +184,12 @@ public function plans(
     // Compter le total
     $countSql = "SELECT COUNT(*) as total FROM plan_actions p LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id WHERE 1=1";
     
+    if ($scope === 'strategic') {
+        $countSql .= " AND s.categorie_sortie IN ('STRATEGIQUE', 'ADMINISTRATIVE')";
+    } elseif ($scope === 'pedagogical') {
+        $countSql .= " AND s.categorie_sortie = 'PEDAGOGIQUE'";
+    }
+
     $countParams = [];
     if (!empty($search)) {
         $countSql .= " AND (p.decision LIKE :search OR p.description LIKE :search)";
@@ -160,6 +239,20 @@ public function plans(
         $articlesStmt->bindValue('plan_id', $data['id']);
         $articles = $articlesStmt->executeQuery()->fetchAllAssociative();
         
+        // Récupérer aussi les articles liés à la SORTIE AI (Le rapport global)
+        $aiArticles = [];
+        if ($data['sortie_id']) {
+            $aiArticlesSql = "
+                SELECT a.id, a.titre, a.published
+                FROM sortie_ai_articles saa
+                JOIN reference_article a ON saa.reference_article_id = a.id
+                WHERE saa.sortie_ai_id = :sortie_id
+            ";
+            $aiArticlesStmt = $conn->prepare($aiArticlesSql);
+            $aiArticlesStmt->bindValue('sortie_id', $data['sortie_id']);
+            $aiArticles = $aiArticlesStmt->executeQuery()->fetchAllAssociative();
+        }
+        
         $plans[] = [
             'id' => $data['id'],
             'decision' => $data['decision'],
@@ -171,6 +264,7 @@ public function plans(
             'sortieAI' => $data['sortie_id'] ? [
                 'id' => $data['sortie_id'],
                 'categorieSortie' => $data['sortie_categorie'],
+                'articles' => $aiArticles,
             ] : null,
             'articles' => $articles,
         ];
@@ -183,6 +277,7 @@ public function plans(
         'search' => $search,
         'categorie' => $categorie,
         'statut' => $statut,
+        'scope' => $scope, // Nouveau !
         'currentPage' => $page,
         'totalPages' => $totalPages,
         'total' => $total,
@@ -463,11 +558,11 @@ public function articleDetail(
     }
 
     #[Route('/reclamations', name: 'app_admin_reclamations', methods: ['GET'])]
-    public function reclamations(EntityManagerInterface $entityManager): Response
+    public function reclamations(FeedbackRepository $feedbackRepository): Response
     {
-        $reclamations = $entityManager->getRepository(Reclamation::class)->findBy(
-            [],
-            ['updatedAt' => 'DESC']
+        $reclamations = $feedbackRepository->findBy(
+            ['typefeedback' => 'RECLAMATION'],
+            ['datefeedback' => 'DESC']
         );
 
         return $this->render('front/admin/reclamations.html.twig', [

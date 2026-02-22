@@ -136,12 +136,53 @@
                     <h5 class="card-title" style="color: #102c59;">Admin</h5>
                     <p class="card-text mb-3" style="color: #666;">Auteur pédagogique</p>
                     <div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-sm text-white" style="background-color: #102c59; border-color: #102c59;">
-                            <i class="bi bi-envelope"></i> Contact
+                        <button class="btn btn-sm text-white" style="background-color: #102c59; border-color: #102c59;" data-bs-toggle="modal" data-bs-target="#reclamationModal">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Signaler un problème
                         </button>
                         <a href="{{ path('app_enseignant_articles') }}" class="btn btn-sm" style="background-color: #9dbbce; border-color: #9dbbce; color: #102c59;">
                             <i class="bi bi-file-text"></i> Tous les articles
                         </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal de Réclamation Simplifiée -->
+            <div class="modal fade" id="reclamationModal" tabindex="-1" aria-labelledby="reclamationModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 1.2rem;">
+                        <form action="{{ path('app_enseignant_article_reclamer', {id: article.id}) }}" method="POST">
+                            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                                <h5 class="modal-title fw-bold" id="reclamationModalLabel" style="color: #102c59;">
+                                    <i class="bi bi-megaphone me-2 text-danger"></i>Réclamation Pédagogique
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <p class="text-muted small mb-4">Une erreur dans cet article ? Un contenu obsolète ? Signalez-le nous en précisant le motif.</p>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold" style="color: #102c59;">Nature du problème</label>
+                                    <select name="motif" class="form-select border-0 bg-light" required>
+                                        <option value="" selected disabled>Choisir un motif...</option>
+                                        <option value="ERREUR_CONTENU">Erreur dans le contenu</option>
+                                        <option value="CONTENU_OBSOLETE">Contenu obsolète / Non à jour</option>
+                                        <option value="LIEN_CASSE">Lien ou ressource cassée</option>
+                                        <option value="AUTRE">Autre (précisez ci-dessous)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-0">
+                                    <label class="form-label small fw-bold" style="color: #102c59;">Votre observation</label>
+                                    <textarea name="description" class="form-select border-0 bg-light" rows="4" placeholder="Détaillez le problème rencontré ici..." required></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 p-4 pt-0">
+                                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Annuler</button>
+                                <button type="submit" class="btn text-white rounded-pill px-4 shadow-sm" style="background-color: #d52e28;">
+                                    Envoyer le signalement
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

@@ -100,6 +100,18 @@ public function new(
     $planAction = new PlanActions();
     $planAction->setDate(new \DateTime());
     
+    // Pré-remplissage via SortieAI si présent en paramètre (Pont Opérationnel)
+    if ($sortieId = $request->query->get('from_sortie')) {
+        $sortie = $entityManager->getRepository(\App\Entity\SortieAI::class)->find($sortieId);
+        if ($sortie) {
+            $planAction->setSortieAI($sortie);
+            // On pré-remplit les champs avec les données de l'IA
+            $planAction->setDecision("Action suite à : " . $sortie->getTypeSortie()->value);
+            $planAction->setDescription($sortie->getContenu());
+            $planAction->setCategorie($sortie->getCategorieSortie());
+        }
+    }
+    
     $form = $this->createForm(PlanActionsType::class, $planAction);
     $form->handleRequest($request);
 
@@ -108,7 +120,14 @@ public function new(
             $planAction->setUpdatedAt(new \DateTime());
             
             try {
+                $planAction->setAuteur($this->getUser());
                 $entityManager->persist($planAction);
+                
+                // Si le plan est lié à une sortie IA, on marque la sortie comme PLANIFIEE
+                if ($planAction->getSortieAI()) {
+                    $planAction->getSortieAI()->setStatut(\App\Enum\StatutSortie::Planifie);
+                }
+
                 $entityManager->flush();
 
                 $this->addFlash('success', 'Le plan d\'action a été créé avec succès!');
@@ -117,8 +136,7 @@ public function new(
                 $this->addFlash('error', 'Erreur lors de la création: ' . $e->getMessage());
             }
         } else {
-            // Message si validation échoue
-            $this->addFlash('warning', 'Veuillez remplir tous les champs obligatoires (Statut et Catégorie).');
+            $this->addFlash('warning', 'Veuillez remplir tous les champs obligatoires.');
         }
     }
 

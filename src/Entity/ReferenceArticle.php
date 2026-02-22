@@ -55,7 +55,7 @@ class ReferenceArticle
     /**
      * @var Collection<int, SortieAI>
      */
-    #[ORM\OneToMany(mappedBy: 'article', targetEntity: SortieAI::class, orphanRemoval:true)]
+    #[ORM\ManyToMany(targetEntity: SortieAI::class, mappedBy: 'articles')]
     private Collection $sortiesAI;
 
     /**
@@ -66,7 +66,7 @@ class ReferenceArticle
 
     public function __construct()
     {
-        $this->sortieAIs = new ArrayCollection();
+        $this->sortiesAI = new ArrayCollection();
         $this->createdAt = new \DateTime();
         $this->published = false;
         $this->planActions = new ArrayCollection(); // AJOUT
@@ -164,16 +164,16 @@ class ReferenceArticle
     /**
      * @return Collection<int, SortieAI>
      */
-    public function getSortieAIs(): Collection
+    public function getSortiesAI(): Collection
     {
-        return $this->sortieAIs;
+        return $this->sortiesAI;
     }
 
     public function addSortieAI(SortieAI $sortieAI): static
     {
-        if (!$this->sortieAIs->contains($sortieAI)) {
-            $this->sortieAIs->add($sortieAI);
-            $sortieAI->addReferenceArticle($this);
+        if (!$this->sortiesAI->contains($sortieAI)) {
+            $this->sortiesAI->add($sortieAI);
+            $sortieAI->addArticle($this);
         }
 
         return $this;
@@ -181,8 +181,8 @@ class ReferenceArticle
 
     public function removeSortieAI(SortieAI $sortieAI): static
     {
-        if ($this->sortieAIs->removeElement($sortieAI)) {
-            $sortieAI->removeReferenceArticle($this);
+        if ($this->sortiesAI->removeElement($sortieAI)) {
+            $sortieAI->removeArticle($this);
         }
 
         return $this;
@@ -212,5 +212,10 @@ class ReferenceArticle
         }
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->titre ?? 'Article sans titre';
     }
 }

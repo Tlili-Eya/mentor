@@ -9,6 +9,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Entity\Feedback;
+use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Routing\Annotation\Route;
 
 
@@ -17,42 +22,63 @@ use Symfony\Component\Routing\Annotation\Route;
 class EnseignantFrontController extends AbstractController
 {
     #[Route('', name: 'app_enseignant_dashboard')]
-    public function dashboard(EntityManagerInterface $em): Response
+    public function dashboard(EntityManagerInterface $em, PlanActionsRepository $planRepository, \App\Repository\SortieAIRepository $aiRepository): Response
     {
         $conn = $em->getConnection();
+        $user = $this->getUser();
         
-        // Statistiques avec requêtes SQL directes (beaucoup plus rapides)
+        // --- PROPOSITION 3 : LE RADAR ÉTUDIANT ---
+        $radarStudents = $conn->executeQuery("
+            SELECT u.id, u.nom, u.prenom, u.pdp_url, 
+                   (SELECT COUNT(*) FROM sortie_ai s WHERE s.etudiant_id = u.id AND s.type_sortie = 'ALERTE' AND s.statut = 'NOUVEAU') as alerts_count,
+                   (SELECT AVG(h.valeur_humeur) 
+                    FROM humeur h 
+                    JOIN profil_apprentissage pa ON h.profil_apprentissage_id = pa.id 
+                    WHERE pa.utilisateur_id = u.id) as avg_mood
+            FROM utilisateur u 
+            WHERE u.role = 'ETUDIANT'
+            ORDER BY alerts_count DESC, avg_mood ASC
+            LIMIT 5
+        ")->fetchAllAssociative();
+
+        // Statistiques
         $stats = [
-            // Articles publiés
-            'total_articles' => (int) $conn->executeQuery(
-                "SELECT COUNT(*) FROM reference_article WHERE published = 1"
-            )->fetchOne(),
-            
-            // Plans pédagogiques
+            'total_articles' => (int) $conn->executeQuery("SELECT COUNT(*) FROM reference_article WHERE published = 1")->fetchOne(),
+            'alertes_ia' => $aiRepository->count(['typeSortie' => \App\Enum\TypeSortie::Alerte, 'statut' => \App\Enum\StatutSortie::Nouveau, 'cible' => \App\Enum\Cible::Enseignant]),
             'plans_pedagogiques' => (int) $conn->executeQuery(
-                "SELECT COUNT(DISTINCT p.id) 
-                 FROM plan_actions p 
-                 LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id 
-                 WHERE s.categorie_sortie = 'PEDAGOGIQUE'"
+                "SELECT COUNT(DISTINCT p.id) FROM plan_actions p LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id 
+                 WHERE s.categorie_sortie = 'PEDAGOGIQUE' AND (p.auteur_id = :userId OR p.auteur_id IS NULL)",
+                ['userId' => $user->getId()]
             )->fetchOne(),
-            
-            // Plans administratifs
             'plans_administratifs' => (int) $conn->executeQuery(
-                "SELECT COUNT(DISTINCT p.id) 
-                 FROM plan_actions p 
-                 LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id 
-                 WHERE s.categorie_sortie = 'ADMINISTRATIVE'"
+                "SELECT COUNT(DISTINCT p.id) FROM plan_actions p LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id 
+                 WHERE s.categorie_sortie = 'ADMINISTRATIVE' AND (p.auteur_id = :userId OR p.auteur_id IS NULL)",
+                ['userId' => $user->getId()]
             )->fetchOne(),
         ];
+
+        // --- PROPOSITION 2 : PLANS EN ATTENTE DE FEEDBACK (ADMIN -> ENSEIGNANT) ---
+        // Plans créés par l'admin (auteur_id IS NULL dans nos fixtures) qui n'ont pas encore de feedback
+        $pendingFeedbackPlans = $planRepository->createQueryBuilder('p')
+            ->leftJoin('p.sortieAI', 's')
+            ->where('p.auteur IS NULL OR p.auteur != :user')
+            ->andWhere('p.feedbackEnseignant IS NULL')
+            ->andWhere('s.categorieSortie IN (:cats)')
+            ->setParameter('user', $user)
+            ->setParameter('cats', [\App\Enum\CategorieSortie::Pedagogique, \App\Enum\CategorieSortie::Administrative])
+            ->orderBy('p.date', 'DESC')
+            ->setMaxResults(3)
+            ->getQuery()
+            ->getResult();
         
-        // Pour les enseignants, articles pédagogiques = tous les articles publiés
-        $stats['articles_pedagogiques'] = $stats['total_articles'];
+        // Plans récents de l'enseignant
+        $recentPlans = $planRepository->findBy(['auteur' => $user], ['date' => 'DESC'], 5);
         
         return $this->render('front/enseignant/dashboard.html.twig', [
-            'total_articles' => $stats['total_articles'],
-            'articles_pedagogiques' => $stats['articles_pedagogiques'],
-            'plans_pedagogiques' => $stats['plans_pedagogiques'],
-            'plans_administratifs' => $stats['plans_administratifs'],
+            'stats' => $stats,
+            'recentPlans' => $recentPlans,
+            'pendingFeedbackPlans' => $pendingFeedbackPlans,
+            'radarStudents' => $radarStudents
         ]);
     }
 
@@ -337,6 +363,54 @@ public function plans(
     ]);
 }
 
+    #[Route('/plan/{id}/feedback', name: 'app_enseignant_plan_feedback', methods: ['GET', 'POST'])]
+    public function planFeedback(int $id, Request $request, PlanActionsRepository $planRepository, EntityManagerInterface $em): Response
+    {
+        $plan = $planRepository->find($id);
+        if (!$plan) {
+            throw $this->createNotFoundException('Plan non trouvé');
+        }
+
+        if ($request->isMethod('POST')) {
+            $feedback = $request->request->get('feedback');
+            $statut = $request->request->get('statut');
+            
+            error_log("POST Feedback received for plan " . $id . ": " . $feedback);
+
+            if ($feedback) {
+                $plan->setFeedbackEnseignant($feedback);
+                $plan->setFeedbackAuteur($this->getUser());
+                $plan->setFeedbackDate(new \DateTime());
+                
+                if ($statut) {
+                    $plan->setStatut(\App\Enum\Statut::from($statut));
+                }
+                
+                $em->persist($plan);
+                $em->flush();
+                
+                $this->addFlash('success', 'Votre expertise terrain a été enregistrée. L\'administration en a été notifiée.');
+                return $this->redirectToRoute('app_enseignant_plan_detail', ['id' => $id], Response::HTTP_SEE_OTHER);
+            }
+        }
+
+        return $this->render('front/enseignant/plan_feedback.html.twig', [
+            'plan' => $plan
+        ]);
+    }
+
+    #[Route('/treat-alerts/{studentId}', name: 'app_enseignant_treat_alerts', methods: ['POST'])]
+    public function treatAlerts(int $studentId, EntityManagerInterface $em): JsonResponse
+    {
+        $conn = $em->getConnection();
+        $conn->executeStatement(
+            "UPDATE sortie_ai SET statut = 'TRAITEE' WHERE etudiant_id = ? AND type_sortie = 'ALERTE'",
+            [$studentId]
+        );
+        
+        return $this->json(['success' => true]);
+    }
+
     #[Route('/plan/{id}', name: 'app_enseignant_plan_detail', methods: ['GET'])]
 public function planDetail(int $id, EntityManagerInterface $em): Response
 {
@@ -374,63 +448,68 @@ public function planDetail(int $id, EntityManagerInterface $em): Response
                 p.decision,
                 p.description,
                 p.statut,
-                p.date as createdAt,
-                p.updated_at as updatedAt,
-                
-                -- Sortie AI
-                s.id as sortie_id,
-                s.contenu as sortie_contenu,
-                s.categorie_sortie as sortie_categorie
-                
-            FROM plan_actions p
-            LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id
-            WHERE p.id = ?
-            LIMIT 1
-        ";
-        
-        $planData = $conn->executeQuery($sql, [$id])->fetchAssociative();
-        
-        if (!$planData) {
-            throw new \Exception("Erreur lors du chargement du plan #{$id}");
-        }
-        
-        // Récupérer les articles pour ce plan
-        $articlesSql = "
-            SELECT 
-                a.id,
-                a.titre,
-                a.contenu,
-                a.published,
-                a.created_at as createdAt,
-                ac.id as categorie_id,
-                ac.nom_categorie as categorie_nom
-            FROM plan_actions_articles paa
-            JOIN reference_article a ON paa.reference_article_id = a.id
-            LEFT JOIN categorie_article ac ON a.categorie_id = ac.id
-            WHERE paa.plan_actions_id = :plan_id
-            ORDER BY a.titre
-        ";
-        
-        $articlesStmt = $conn->prepare($articlesSql);
-        $articlesStmt->bindValue('plan_id', $id);
-        $articles = $articlesStmt->executeQuery()->fetchAllAssociative();
-        
-        // Préparer les données
-        $plan = [
-            'id' => $planData['id'],
-            'decision' => $planData['decision'] ?? 'Sans titre',
-            'description' => $planData['description'] ?? 'Aucune description',
-            'statut' => $planData['statut'] ?? 'INCONNU',
-            'date' => $planData['createdAt'] ? new \DateTime($planData['createdAt']) : null,
-            'updatedAt' => $planData['updatedAt'] ? new \DateTime($planData['updatedAt']) : null,
-            'articles' => $articles,
+            p.date as createdAt,
+            p.updated_at as updatedAt,
+            p.feedback_enseignant,
+            p.feedback_date,
             
-            'sortieAI' => $planData['sortie_id'] ? [
-                'id' => $planData['sortie_id'],
-                'contenu' => $planData['sortie_contenu'],
-                'categorieSortie' => $planData['sortie_categorie'],
-            ] : null,
-        ];
+            -- Sortie AI
+            s.id as sortie_id,
+            s.contenu as sortie_contenu,
+            s.categorie_sortie as sortie_categorie
+            
+        FROM plan_actions p
+        LEFT JOIN sortie_ai s ON p.sortie_ai_id = s.id
+        WHERE p.id = ?
+        LIMIT 1
+    ";
+    
+    $planData = $conn->executeQuery($sql, [$id])->fetchAssociative();
+    
+    if (!$planData) {
+        throw new \Exception("Erreur lors du chargement du plan #{$id}");
+    }
+    
+    // Récupérer les articles pour ce plan
+    $articlesSql = "
+        SELECT 
+            a.id,
+            a.titre,
+            a.contenu,
+            a.published,
+            a.created_at as createdAt,
+            ac.id as categorie_id,
+            ac.nom_categorie as categorie_nom
+        FROM plan_actions_articles paa
+        JOIN reference_article a ON paa.reference_article_id = a.id
+        LEFT JOIN categorie_article ac ON a.categorie_id = ac.id
+        WHERE paa.plan_actions_id = :plan_id
+        ORDER BY a.titre
+    ";
+    
+    $articlesStmt = $conn->prepare($articlesSql);
+    $articlesStmt->bindValue('plan_id', $id);
+    $articles = $articlesStmt->executeQuery()->fetchAllAssociative();
+    
+    // Préparer les données
+    $plan = [
+        'id' => $planData['id'],
+        'decision' => $planData['decision'] ?? 'Sans titre',
+        'description' => $planData['description'] ?? 'Aucune description',
+        'statut' => $planData['statut'] ?? 'INCONNU',
+        'date' => $planData['createdAt'] ? new \DateTime($planData['createdAt']) : null,
+        'updatedAt' => $planData['updatedAt'] ? new \DateTime($planData['updatedAt']) : null,
+        'feedbackEnseignant' => $planData['feedback_enseignant'],
+        'feedbackDate' => $planData['feedback_date'] ? new \DateTime($planData['feedback_date']) : null,
+        'articles' => $articles,
+        
+        'sortieAI' => $planData['sortie_id'] ? [
+            'id' => $planData['sortie_id'],
+            'contenu' => $planData['sortie_contenu'],
+            'categorieSortie' => $planData['sortie_categorie'],
+        ] : null,
+    ];
+    
         
         return $this->render('front/enseignant/plan_detail.html.twig', [
             'plan' => $plan,
@@ -443,12 +522,35 @@ public function planDetail(int $id, EntityManagerInterface $em): Response
         return $this->redirectToRoute('app_enseignant_plans');
     }
 }
-    #[Route('/reclamation/nouvelle', name: 'app_enseignant_reclamation_new', methods: ['GET'])]
-    public function nouvelleReclamation(): Response
+    #[Route('/article/{id}/reclamer', name: 'app_enseignant_article_reclamer', methods: ['POST'])]
+    public function articleReclamation(int $id, Request $request, ReferenceArticleRepository $articleRepository, EntityManagerInterface $em): Response
     {
-        // Fonctionnalité temporairement désactivée
-        $this->addFlash('info', 'La fonctionnalité de réclamation est temporairement désactivée. Elle sera disponible prochainement.');
-        return $this->redirectToRoute('app_enseignant_dashboard');
+        $article = $articleRepository->find($id);
+        if (!$article) {
+            throw $this->createNotFoundException('Article non trouvé');
+        }
+
+        $motif = $request->request->get('motif');
+        $description = $request->request->get('description');
+
+        if ($motif && $description) {
+            $feedback = new Feedback();
+            $feedback->setContenu("ARTICLE #$id ({$article->getTitre()}) - MOTIF: $motif - DESCRIPTION: $description");
+            $feedback->setNote(0);
+            $feedback->setDatefeedback(new \DateTime());
+            $feedback->setTypefeedback('RECLAMATION');
+            $feedback->setEtatfeedback('NOUVEAU');
+            $feedback->setUtilisateur($this->getUser());
+
+            $em->persist($feedback);
+            $em->flush();
+
+            $this->addFlash('success', 'Votre réclamation a été transmise à l\'équipe pédagogique.');
+        } else {
+            $this->addFlash('error', 'Veuillez remplir tous les champs de la réclamation.');
+        }
+
+        return $this->redirectToRoute('app_article_detail', ['id' => $id]);
     }
 
     #[Route('/reclamation/plan/{planId}', name: 'app_enseignant_reclamation_plan', methods: ['GET'])]
@@ -516,7 +618,7 @@ public function debugArticles(ReferenceArticleRepository $repository): Response
     
     return new Response($html);
 }
- #[Route('/preferences', name: 'app_enseignant_preferences')]
+    #[Route('/preferences', name: 'app_enseignant_preferences')]
     public function preferences(): Response
     {
         return $this->render('front/enseignant/preferences.html.twig');
